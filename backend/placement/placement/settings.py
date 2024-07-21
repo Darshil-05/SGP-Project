@@ -77,9 +77,9 @@ WSGI_APPLICATION = 'placement.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': '',
-        'USER': '',
-        'PASSWORD': '',
+        'NAME': 'placement',
+        'USER': 'root',
+        'PASSWORD': 'Charusat$2024',
         'HOST': 'localhost',  # or the hostname where your MySQL server is running
         'PORT': '3306',      # or the port on which your MySQL server is listening
     }
