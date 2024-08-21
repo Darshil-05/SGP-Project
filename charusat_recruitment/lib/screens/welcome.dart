@@ -1,4 +1,6 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
 class Welcome extends StatelessWidget {
   const Welcome({super.key});
@@ -56,45 +58,55 @@ class Welcome extends StatelessWidget {
           SizedBox(
             height: height * 0.09,
           ),
-          Container(
-            height: height * 0.06,
-            width: width * 0.8,
-            decoration: BoxDecoration(
-                color: const Color(0xff0f1d2c),
-                borderRadius: const BorderRadius.all(
-                  Radius.circular(10),
+          GestureDetector(
+            onTap: () {
+              Navigator.of(context).popAndPushNamed('/login');
+            },
+            child: Container(
+              height: height * 0.06,
+              width: width * 0.8,
+              decoration: BoxDecoration(
+                  color: const Color(0xff0f1d2c),
+                  borderRadius: const BorderRadius.all(
+                    Radius.circular(10),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                        color: Colors.black.withOpacity(0.5),
+                        spreadRadius: -3,
+                        offset: const Offset(3, 3),
+                        blurRadius: 20)
+                  ]),
+              child: const Center(
+                child: Text(
+                  "Sign in",
+                  style: TextStyle(
+                      color: Colors.white, fontSize: 28, letterSpacing: 4),
                 ),
-                boxShadow: [
-                  BoxShadow(
-                      color: Colors.black.withOpacity(0.5),
-                      spreadRadius: -3,
-                      offset: const Offset(3, 3),
-                      blurRadius: 20)
-                ]),
-            child: const Center(
-              child: Text(
-                "Sign in",
-                style: TextStyle(
-                    color: Colors.white, fontSize: 28, letterSpacing: 4),
               ),
             ),
           ),
           SizedBox(
             height: height * 0.04,
           ),
-          const Row(
+          Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              SizedBox(
+              const SizedBox(
                   child: Text(
                 "Don't have an account ?  ",
                 style: TextStyle(fontSize: 18),
               )),
-              SizedBox(
-                  child: Text(
-                "Register",
-                style: TextStyle(fontSize: 18 , decoration: TextDecoration.underline),
-              )),
+              GestureDetector(
+                onTap: () {
+                  Navigator.of(context).popAndPushNamed('/register');
+                },
+                child: const Text(
+                  "Register",
+                  style: TextStyle(
+                      fontSize: 18, decoration: TextDecoration.underline),
+                ),
+              ),
             ],
           )
         ],

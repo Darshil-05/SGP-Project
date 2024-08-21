@@ -129,6 +129,7 @@ class _OtpPageState extends State<OtpPage> {
             const RegisterHeader(
               title: "Verification",
               subtitle: "Enter OTP received in email",
+              navigator: true,
             ),
             SizedBox(height: screenHeight * 0.05),
             Padding(
@@ -196,20 +197,6 @@ class _OtpPageState extends State<OtpPage> {
               ),
             ),
             SizedBox(height: screenHeight * 0.03),
-            GestureDetector(
-              onTap: () {
-                // Navigate back to login or registration page
-                Navigator.pop(context);
-              },
-              child: const Text(
-                "Back to Login",
-                style: TextStyle(
-                  fontSize: 15,
-                  color: Color(0xff0f1d2c),
-                  decoration: TextDecoration.underline,
-                ),
-              ),
-            ),
           ],
         ),
       ),

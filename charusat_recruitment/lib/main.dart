@@ -1,5 +1,10 @@
-import 'package:charusat_recruitment/screens/auth/forgotpage.dart';
-import 'package:charusat_recruitment/screens/auth/otp.dart';
+import 'package:charusat_recruitment/screens/home.dart';
+
+import '../screens/screens_after_auth/customtabbar.dart';
+import '../screens/welcome.dart';
+
+import '../screens/auth/forgotpage.dart';
+import '../screens/auth/otp.dart';
 
 import '../Providers/theme_provider.dart';
 import '../screens/auth/login.dart';
@@ -33,12 +38,21 @@ class MyApp extends StatelessWidget {
       child: Builder(builder: (context) {
         final themechanger = Provider.of<Themechange>(context);
         return MaterialApp(
+          routes: {
+            '/home' :(context) => const Home(),// currently working route
+            '/welcome' :(context) => const Welcome(),
+            '/login' :(context) => const LoginPage(),
+            '/register' :(context) => const RegisterPage(),
+            '/forgot' :(context) => const ForgotPage(),
+            '/otp' :(context) => const OtpPage(),
+          },
+          // initialRoute: '/welcome',
           debugShowCheckedModeBanner: false,
           title: 'Flutter Demo',
           themeMode: themechanger.themeMode,
           theme: ThemeManager.lightmode,
           darkTheme: ThemeManager.darkmode,
-          home: const ForgotPage(),
+          home: const Home(),
         );
       }),
     );

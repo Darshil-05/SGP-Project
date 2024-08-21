@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'loginheader.dart';
 
 class LoginPage extends StatefulWidget {
@@ -44,7 +45,6 @@ class _LoginPageState extends State<LoginPage> {
 
   bool _obscureText = true;
 
-  
   @override
   void dispose() {
     // TODO: implement dispose
@@ -122,7 +122,7 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                         labelText: 'Password',
                         labelStyle: const TextStyle(color: Color(0xff0f1d2c)),
-                         enabledBorder: const OutlineInputBorder(
+                        enabledBorder: const OutlineInputBorder(
                           borderSide: BorderSide(color: Colors.grey),
                         ),
                         focusedBorder: const OutlineInputBorder(
@@ -138,6 +138,9 @@ class _LoginPageState extends State<LoginPage> {
                           0xff0f1d2c), // Optional: Change the cursor color
                     ),
                     GestureDetector(
+                      onTap: () {
+                        Navigator.pushNamed(context, '/forgot');
+                      },
                       child: const Padding(
                         padding: EdgeInsets.all(8.0),
                         child: Align(
@@ -179,21 +182,25 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
                     SizedBox(height: height * 0.025),
-                    const Row(
+                    Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        SizedBox(
+                        const SizedBox(
                             child: Text(
                           "Don't have an account ?  ",
                           style: TextStyle(fontSize: 18),
                         )),
-                        SizedBox(
-                            child: Text(
-                          "Register",
-                          style: TextStyle(
-                              fontSize: 18,
-                              decoration: TextDecoration.underline),
-                        )),
+                        GestureDetector(
+                            onTap: () {
+                              Navigator.of(context)
+                                  .popAndPushNamed('/register');
+                            },
+                            child: const Text(
+                              "Register",
+                              style: TextStyle(
+                                  fontSize: 18,
+                                  decoration: TextDecoration.underline),
+                            )),
                       ],
                     )
                   ],

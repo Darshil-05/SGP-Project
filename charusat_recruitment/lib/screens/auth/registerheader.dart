@@ -31,24 +31,7 @@ class RegisterHeader extends StatelessWidget {
               ),
             ),
           ),
-          Positioned(
-            top: 60,
-            left: 15,
-            child: Visibility(
-              visible: navigator ?? false,
-              child: GestureDetector(
-                onTap: () {
-                  Navigator.of(context).pop();
-                },
-                child: Container(
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.arrow_back_rounded, color: Colors.white,size: 25,),
-                ),
-              ),
-            ),
-          ),
+          
           Positioned(
             top: -200,
             left: -250,
@@ -84,6 +67,25 @@ class RegisterHeader extends StatelessWidget {
                 fontSize: 25,
                 letterSpacing: 1,
                 fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          Positioned(
+            top: 60,
+            left: 15,
+            child: Visibility(
+              visible: navigator ?? false,
+              child: GestureDetector(
+                onTap: () {
+                  print("gesture tapped");
+                  Navigator.of(context).pop();
+                },
+                child: Container(
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.arrow_back_rounded, color: Colors.white,size: 25,),
+                ),
               ),
             ),
           ),

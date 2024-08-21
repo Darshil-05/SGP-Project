@@ -1,5 +1,6 @@
 import 'package:charusat_recruitment/screens/auth/registerheader.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -63,6 +64,7 @@ class _RegisterPageState extends State<RegisterPage> {
     if (_formKey.currentState?.validate() ?? false) {
       // Perform registration logic
       print('Registration successful');
+      Navigator.of(context).pushNamed('/otp');
     }
   }
 
@@ -227,21 +229,25 @@ class _RegisterPageState extends State<RegisterPage> {
                       ),
                     ),
                     SizedBox(height: screenHeight * 0.025),
-                    const Row(
+                    Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        SizedBox(
+                        const SizedBox(
                             child: Text(
                           "I have an account ? ",
                           style: TextStyle(fontSize: 16),
                         )),
-                        SizedBox(
-                            child: Text(
-                          "Login",
-                          style: TextStyle(
-                              fontSize: 16,
-                              decoration: TextDecoration.underline),
-                        )),
+                        GestureDetector(
+                            onTap: () {
+                              Navigator.of(context)
+                                  .popAndPushNamed('/login');
+                            },
+                            child: const Text(
+                              "Login",
+                              style: TextStyle(
+                                  fontSize: 16,
+                                  decoration: TextDecoration.underline),
+                            )),
                       ],
                     )
                   ],
