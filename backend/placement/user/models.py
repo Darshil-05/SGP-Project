@@ -13,9 +13,23 @@ class StudentManager(BaseUserManager):
         return user
 
 class Student(AbstractBaseUser):
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=100)
     email = models.EmailField(unique=True)
-    password = models.CharField(max_length=255)
+    password = models.CharField(max_length=200)
+    
+    objects = StudentManager()
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['name']
+
+    def _str_(self):
+        return self.email
+    
+
+class Faculty(AbstractBaseUser):
+    name = models.CharField(max_length=100)
+    email = models.EmailField(unique=True)
+    password = models.CharField(max_length=200)
     
 
     objects = StudentManager()
