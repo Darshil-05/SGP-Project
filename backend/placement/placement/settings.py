@@ -37,10 +37,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework.authtoken',
     'rest_framework',
     'user',
     'faculty',
     'student',
+    'company',
     
 ]
 
@@ -140,3 +142,15 @@ REST_FRAMEWORK = {
     ],
     # Other settings...
 }
+
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',  # Ensure this backend supports email-based authentication
+)
+
+# settings.py
+# AUTH_USER_MODEL = 'student.Student_details'
+# AUTH_USER_MODEL = 'faculty.Faculty_details'
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',  # Default backend for username/email and password
+    # Add other authentication backends if needed
+]
