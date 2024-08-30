@@ -112,3 +112,10 @@
 #     #             return Response({'status': 'failure', 'message': 'User does not exist'}, status=status.HTTP_404_NOT_FOUND)
 #     #     return Response({'status': 'error', 'message': 'Email and password required'}, status=status.HTTP_400_BAD_REQUEST)
 
+from rest_framework import serializers
+from .models import OTP
+
+class OTPSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OTP
+        fields = ['email', 'otp_code']
