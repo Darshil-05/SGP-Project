@@ -1,10 +1,23 @@
-# from django.urls import path, include
-# from rest_framework import routers
-# from .views import *
+from django.urls import path, include
+
+from .views import *
 
 
-# # router.register('companyplacementdrive', views.CompanyPlacementDriveViewSet)
+urlpatterns = [
+    path('company_Details/', CompanyDetailsView.as_view(), name='company-detials'),
+    path('company_Details-crud/<int:pk>/',CompanyDetailsedit.as_view(),name='company-crud'),
+    path('company_Details-post/',CompanyDetailsPost.as_view(),name='company-post'),
 
-# urlpatterns = [
-#     path('company_Details/', CompanyDetailsView.as_view(), name='company-detials'),
-# ]
+]
+
+
+# {
+#     "comapny_name": "Patel @ sons",
+#     "details": "JS,REACT",
+#     "min_package": "300000",
+#     "max_package": "800000",
+#     "comapny_hq_location": "Ahemdvad",
+#     "work_locations": "Nadiad",
+#     "comapny_web": "www.neel.com",
+#     "company_contact": "123465879"
+# }
