@@ -48,6 +48,7 @@ class SignupView(APIView):
                         [email],
                         fail_silently=False,
                 )
+                request.session['email'] = email
                 return Response({'status': 'success', 'message': 'otp sent successfully'}, status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -69,6 +70,7 @@ class SignupView(APIView):
                         [email],
                         fail_silently=False,
                 )
+                request.session['email'] = email
                 return Response({'status': 'success', 'message': 'otp sent successfully'}, status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -126,14 +128,30 @@ class SigninView(APIView):
 
 class VerifyOTPView(APIView):
     def post(self, request):
-        serializer = OTPSerializer(data=request.data)
-        if serializer.is_valid():
-            try:
-                otp_instance = OTP.objects.get(email=serializer.validated_data['email'], otp_code=serializer.validated_data['otp_code'])
-                if otp_instance.is_valid():
-                    return Response({'message': 'OTP verified successfully'}, status=status.HTTP_200_OK)
-                else:
-                    return Response({'error': 'OTP has expired'}, status=status.HTTP_400_BAD_REQUEST)
-            except OTP.DoesNotExist:
-                return Response({'error': 'Invalid OTP or email'}, status=status.HTTP_400_BAD_REQUEST)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # serializer = OTPSerializer(data=request.data)
+        # if serializer.is_valid():
+        #     try:
+        #         otp_instance = OTP.objects.get(email=serializer.validated_data['email'], otp_code=serializer.validated_data['otp_code'])
+        #         if otp_instance.is_valid():
+        #             return Response({'message': 'OTP verified successfully'}, status=status.HTTP_200_OK)
+        #         else:
+        #             return Response({'error': 'OTP has expired'}, status=status.HTTP_400_BAD_REQUEST)
+        #     except OTP.DoesNotExist:
+        #         return Response({'error': 'Invalid OTP or email'}, status=status.HTTP_400_BAD_REQUEST)
+        # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        otp_code = request.data.get('otp_code')
+        email = request.session.get('email')
+        print(otp_code,email)
+
+        if not email:
+            return Response({'error': 'Email not found in session. Please sign up again.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            otp_instance = OTP.objects.get(email=email, otp_code=otp_code)
+            if otp_instance.is_valid():
+                # OTP verified, you can now do further processing, e.g., activate the user
+                return Response({'message': 'OTP verified successfully'}, status=status.HTTP_200_OK)
+            else:
+                return Response({'error': 'OTP has expired'}, status=status.HTTP_400_BAD_REQUEST)
+        except OTP.DoesNotExist:
+            return Response({'error': 'Invalid OTP or email'}, status=status.HTTP_400_BAD_REQUEST)

@@ -35,6 +35,6 @@ class Student_details(AbstractBaseUser):
     def __str__(self):
         return self.email
     
-class UserProfile(models.Model):
-    user = models.OneToOneField(Student_details, on_delete=models.CASCADE)
-    is_student = models.BooleanField(default=False)
+# class UserProfile(models.Model):
+#     user = models.OneToOneField(Student_details, on_delete=models.CASCADE)
+#     is_student = models.BooleanField(default=False)
