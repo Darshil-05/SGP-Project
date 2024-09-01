@@ -10,8 +10,8 @@ List<IconData> bottomNavigationItems = [
 ];
 
 class CustomTabBar extends StatefulWidget {
-  const CustomTabBar({super.key});
-
+  const CustomTabBar({super.key , required this.onTabChange});
+  final Function(int tabIndex) onTabChange;
   @override
   State<CustomTabBar> createState() => _CustomTabBarState();
 }
@@ -19,54 +19,60 @@ class CustomTabBar extends StatefulWidget {
 class _CustomTabBarState extends State<CustomTabBar> {
   // Variable to track the selected index
   int _selectedIndex = 0;
-
+  onTabpress(int index){
+      widget.onTabChange(index);
+  }
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Container(
-        margin: EdgeInsets.symmetric(horizontal: 11),
-        height: 70,
-        decoration: BoxDecoration(
-          color: const Color(0xff0f1d2c),
-          borderRadius: BorderRadius.all(Radius.circular(30)),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: List.generate(
-            bottomNavigationItems.length,
-            (index) {
-              bool isSelected = index == _selectedIndex;
-              return Expanded(
-                child: CupertinoButton(
-                  onPressed: () {
-                    setState(() {
-                      _selectedIndex = index;
-                    });
-                  },
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      AnimatedOpacity(
-                        opacity: isSelected ? 1.0 : 0.5,
-                        duration: Duration(milliseconds: 200),
-                        child: Icon(
-                          bottomNavigationItems[index],
-                          color: Colors.white,
-                          size: isSelected ? 30 : 28,
+        color: Colors.transparent,
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 11),
+          height: 70,
+          decoration:const BoxDecoration(
+            color:  Color(0xff0f1d2c),
+            borderRadius: BorderRadius.all(Radius.circular(25)),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: List.generate(
+              bottomNavigationItems.length,
+              (index) {
+                bool isSelected = index == _selectedIndex;
+                return Expanded(
+                  child: CupertinoButton(
+                    onPressed: () {
+                      setState(() {
+                        _selectedIndex = index;
+                        onTabpress(index);
+                      });
+                    },
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        AnimatedOpacity(
+                          opacity: isSelected ? 1.0 : 0.5,
+                          duration: const Duration(milliseconds: 200),
+                          child: Icon(
+                            bottomNavigationItems[index],
+                            color: Colors.white,
+                            size: isSelected ? 30 : 28,
+                          ),
                         ),
-                      ),
-                      SizedBox(height: 4),
-                      AnimatedContainer(
-                        duration: Duration(milliseconds: 200),
-                        height: 2,
-                        width: isSelected ? 30 : 0,
-                        color: Colors.white,
-                      ),
-                    ],
+                        const SizedBox(height: 4),
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          height: 2,
+                          width: isSelected ? 30 : 0,
+                          color: Colors.white,
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
         ),
       ),
