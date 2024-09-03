@@ -15,9 +15,9 @@ class FacultyManager(BaseUserManager):
         return user
 
 
-class Faculty_details(AbstractBaseUser):
+class Faculty_auth(AbstractBaseUser):
     # user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,null=True)
-    id = models.AutoField(primary_key=True)
+    faculty_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255)
     email = models.EmailField(unique=True)
     password = models.CharField(max_length=255)

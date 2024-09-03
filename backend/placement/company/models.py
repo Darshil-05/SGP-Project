@@ -1,6 +1,4 @@
 from django.db import models
-from student .models import Student_details
-from faculty .models import Faculty_details
 
 
 class CompanyDetails(models.Model):

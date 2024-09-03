@@ -17,16 +17,18 @@ class StudentManager(BaseUserManager):
         return user
 
 
-class Student_details(AbstractBaseUser):
-    # user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,null=True)
-    id = models.AutoField(primary_key=True)
+
+   # token = models.CharField(max_length=255)
+    
+    
+
+class Student_auth(AbstractBaseUser):
+    student_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255)
     email = models.EmailField(unique=True)
     password = models.CharField(max_length=255)
     last_login = models.DateTimeField(null=True, blank=True, default=timezone.now)
-   
-    
-   # token = models.CharField(max_length=255)
+
     objects = StudentManager()
 
     USERNAME_FIELD = 'email'
@@ -35,6 +37,28 @@ class Student_details(AbstractBaseUser):
     def __str__(self):
         return self.email
     
+
+    
+class Student_details(AbstractBaseUser):
+    
+    student_auth = models.OneToOneField(Student_auth, on_delete=models.CASCADE)    
+    id_no = models.CharField(max_length=15)
+    last_name = models.CharField(max_length=255)
+    first_name = models.CharField(max_length=255)
+    birthdate = models.DateField()
+    institute = models.CharField(max_length=255)
+    department = models.CharField(max_length=255)
+    cgpa = models.FloatField(max_length=4)
+    passing_year = models.IntegerField()
+    domains = models.CharField(max_length=255) 
+   
+    def __str__(self):
+        return self.id_no
+    
+ 
+    
+
+
 # class UserProfile(models.Model):
 #     user = models.OneToOneField(Student_details, on_delete=models.CASCADE)
 #     is_student = models.BooleanField(default=False)
