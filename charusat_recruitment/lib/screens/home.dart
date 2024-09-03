@@ -42,7 +42,6 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     }
     SystemChrome.setSystemUIOverlayStyle(_menubtn ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark);
   }
-
   @override
   void initState() {
     _animationController = AnimationController(
