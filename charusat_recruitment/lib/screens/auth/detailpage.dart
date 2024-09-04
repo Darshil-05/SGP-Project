@@ -347,6 +347,37 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
                   onChanged: _onDepartmentChanged,
                   disabledHint: const Text('Select Institute first'),
                 ),
+                GestureDetector(
+                  onTap: (){
+                    
+                  },
+                  child: Container(
+                    height: MediaQuery.sizeOf(context).height * 0.07,
+                    width: MediaQuery.sizeOf(context).width * 0.8,
+                    decoration: BoxDecoration(
+                      color: const Color(0xff0f1d2c),
+                      borderRadius: const BorderRadius.all(Radius.circular(10)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.5),
+                          spreadRadius: -3,
+                          offset: const Offset(3, 3),
+                          blurRadius: 10,
+                        ),
+                      ],
+                    ),
+                    child: const Center(
+                      child: Text(
+                        "Register",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 28,
+                          letterSpacing: 3,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),

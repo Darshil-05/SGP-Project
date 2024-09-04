@@ -10,8 +10,8 @@ class OtpPage extends StatefulWidget {
 }
 
 class _OtpPageState extends State<OtpPage> {
-  final _otpControllers = List.generate(4, (_) => TextEditingController());
-  final _focusNodes = List.generate(4, (_) => FocusNode());
+  final _otpControllers = List.generate(6, (_) => TextEditingController());
+  final _focusNodes = List.generate(6, (_) => FocusNode());
 
   late Timer _timer;
   int _start = 30;
@@ -52,13 +52,12 @@ class _OtpPageState extends State<OtpPage> {
 
   void _resendOtp() {
     setState(() {
-      _start = 30; // Restart the timer with 30 seconds
+      _start = 60; 
       _isButtonDisabled = true;
       _showTimer = true;
     });
     _startTimer();
     print('Resend OTP');
-    // Add resend OTP logic here
   }
 
   @override
@@ -76,7 +75,7 @@ class _OtpPageState extends State<OtpPage> {
   Widget _buildOtpField(int index) {
     return Expanded(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 15.0),
+        padding: const EdgeInsets.symmetric(horizontal: 12.0),
         child: TextFormField(
           controller: _otpControllers[index],
           focusNode: _focusNodes[index],
@@ -90,19 +89,17 @@ class _OtpPageState extends State<OtpPage> {
             border: OutlineInputBorder(
               borderSide: BorderSide(color: Color(0xff0f1d2c)),
             ),
-            contentPadding: EdgeInsets.symmetric(horizontal: 20),
+            contentPadding: EdgeInsets.symmetric(horizontal: 15),
           ),
-
           textAlign: TextAlign.center,
           keyboardType: TextInputType.number,
           maxLength: 1,
-
           buildCounter: (context,
               {required currentLength, required isFocused, maxLength}) {
             return null; // Hides the counter
           },
           onChanged: (value) {
-            if (value.length == 1 && index < 3) {
+            if (value.length == 1 && index < 5) {
               FocusScope.of(context).requestFocus(_focusNodes[index + 1]);
             }
             if (value.isEmpty && index > 0) {
@@ -133,10 +130,10 @@ class _OtpPageState extends State<OtpPage> {
             ),
             SizedBox(height: screenHeight * 0.05),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 30.0),
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(4, (index) => _buildOtpField(index)),
+                children: List.generate(6, (index) => _buildOtpField(index)),
               ),
             ),
             SizedBox(height: screenHeight * 0.02),

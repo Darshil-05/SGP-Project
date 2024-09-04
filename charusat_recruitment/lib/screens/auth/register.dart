@@ -1,6 +1,8 @@
+import 'dart:convert';
+
 import 'package:charusat_recruitment/screens/auth/registerheader.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
+import 'package:http/http.dart' as http;
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -60,12 +62,60 @@ class _RegisterPageState extends State<RegisterPage> {
     super.dispose();
   }
 
-  void _register() {
+  void _register() async {
     if (_formKey.currentState?.validate() ?? false) {
-      // Perform registration logic
-      print('Registration successful');
-      Navigator.of(context).pushNamed('/otp');
+      // Replace with your API endpoint
+      const String url = 'http://127.0.0.1:8000/user/signup/';
+
+      // Gather the form data
+      final Map<String, String> data = {
+        "name": _nameController.text,
+        "email": _emailController.text,
+        "password": _passwordController.text,
+        "confirm_password": _passwordController.text,
+      };
+
+      try {
+        // Make the HTTP POST request
+        final response = await http.post(
+          Uri.parse(url),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode(data),
+        );
+
+        if (response.statusCode == 200) {
+          print('Registration successful');
+          Navigator.of(context).pushNamed('/otp');
+        } else {
+          final error =
+              jsonDecode(response.body)['error'] ?? 'Unknown error occurred';
+          _showErrorDialog(context, error);
+        }
+      } catch (e) {
+        _showErrorDialog(context, 'An error occurred. Please try again.');
+      }
     }
+  }
+
+  void _showErrorDialog(BuildContext context, String errorMessage) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Colors.white,
+        titleTextStyle: const TextStyle(color: Color(0xff0f1d2c)),
+        title: const Text('Error'),
+        content: Text(errorMessage),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text(
+              'OK',
+              style: TextStyle(color: Color(0xff0f1d2c)),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -238,16 +288,16 @@ class _RegisterPageState extends State<RegisterPage> {
                           style: TextStyle(fontSize: 16),
                         )),
                         GestureDetector(
-                            onTap: () {
-                              Navigator.of(context)
-                                  .popAndPushNamed('/login');
-                            },
-                            child: const Text(
-                              "Login",
-                              style: TextStyle(
-                                  fontSize: 16,
-                                  decoration: TextDecoration.underline),
-                            )),
+                          onTap: () {
+                            Navigator.of(context).popAndPushNamed('/login');
+                          },
+                          child: const Text(
+                            "Login",
+                            style: TextStyle(
+                                fontSize: 16,
+                                decoration: TextDecoration.underline),
+                          ),
+                        ),
                       ],
                     )
                   ],
