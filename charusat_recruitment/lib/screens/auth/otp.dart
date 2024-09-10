@@ -1,6 +1,10 @@
 import 'dart:async';
+import 'dart:convert';
+import 'package:charusat_recruitment/const.dart';
+import 'package:charusat_recruitment/screens/auth/detailpage.dart';
 import 'package:flutter/material.dart';
-import 'registerheader.dart'; // Ensure the correct import for RegisterHeader
+import 'package:http/http.dart' as http;
+import '../auth/registerheader.dart';
 
 class OtpPage extends StatefulWidget {
   const OtpPage({super.key});
@@ -17,6 +21,7 @@ class _OtpPageState extends State<OtpPage> {
   int _start = 30;
   bool _isButtonDisabled = true;
   bool _showTimer = true;
+  final bool _isLoading = false; 
 
   @override
   void initState() {
@@ -43,16 +48,71 @@ class _OtpPageState extends State<OtpPage> {
     });
   }
 
-  void _submitOtp() {
-    // Collect OTP from controllers and process verification
-    String otp = _otpControllers.map((controller) => controller.text).join();
-    print('OTP entered: $otp');
-    // Add OTP verification logic here
+  void _submitOtp() async {
+  // Collect OTP from controllers
+  String otp = _otpControllers.map((controller) => controller.text).join();
+
+  
+  // Prepare the data to send
+  Map<String, String> data = {
+    "email": email, 
+    "otp": otp,
+  };
+
+  try {
+    // Send OTP to the server
+    final response = await http.post(
+      Uri.parse("$url/verify-otp"),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(data),
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      // Assuming success response
+      print('OTP verification successful');
+      // After successful OTP verification, clear all previous pages from the stack and push the home page
+      if (mounted) {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const StudentDetailsPage()), // Replace with your home page
+          (Route<dynamic> route) => false, // This clears all previous routes
+        );
+      }
+    } else {
+      // If verification fails, handle error
+      final error = jsonDecode(response.body)['error'] ?? 'Verification failed';
+      _showErrorDialog(context, error);
+    }
+  } catch (e) {
+    // Handle any error in communication or unexpected issues
+    _showErrorDialog(context, 'An error occurred. Please try again.');
+  }
+}
+
+
+  void _showErrorDialog(BuildContext context, String errorMessage) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Colors.white,
+        titleTextStyle: const TextStyle(color: Color(0xff0f1d2c)),
+        title: const Text('Error'),
+        content: Text(errorMessage),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text(
+              'OK',
+              style: TextStyle(color: Color(0xff0f1d2c)),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void _resendOtp() {
     setState(() {
-      _start = 60; 
+      _start = 60;
       _isButtonDisabled = true;
       _showTimer = true;
     });
@@ -181,15 +241,17 @@ class _OtpPageState extends State<OtpPage> {
                     ),
                   ],
                 ),
-                child: const Center(
-                  child: Text(
-                    "Submit",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 28,
-                      letterSpacing: 3,
-                    ),
-                  ),
+                child: Center(
+                  child: _isLoading
+                      ? const CircularProgressIndicator() // Show progress indicator while loading
+                      : const Text(
+                          "Submit",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 28,
+                            letterSpacing: 3,
+                          ),
+                        ),
                 ),
               ),
             ),

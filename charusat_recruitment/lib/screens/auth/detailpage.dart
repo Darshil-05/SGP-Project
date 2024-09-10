@@ -1,7 +1,11 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:charusat_recruitment/screens/models/institute_model.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+
+import '../../const.dart';
 
 class StudentDetailsPage extends StatefulWidget {
   const StudentDetailsPage({super.key});
@@ -24,9 +28,10 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
   String? _selectedDepartment;
   String? _selectedYear;
   List<String> _departments = [];
+    bool _isLoading = false; // New loading state
+
 
   // Function to handle form submission
-
   void _onInstituteChanged(String? value) {
     setState(() {
       _selectedInstitute = value;
@@ -58,24 +63,69 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
     });
   }
 
-  void _submitForm() {
-    if (_formKey.currentState!.validate()) {
-      // Collect student details from text controllers
-      String firstname = _firstnameController.text;
-      String lastname = _lastnameController.text;
-      String studentId = _studentIdController.text;
-      String phone = _phoneController.text;
+  void _submitForm() async {
+  if (_formKey.currentState?.validate() ?? false) {
+    setState(() {
+      _isLoading = true; // Show loading indicator
+    });
 
-      // You can now use these details for further processing
-      print("First Name: $firstname");
-      print("Last Name: $lastname");
-      print("Student ID: $studentId");
-      print("Phone: $phone");
+    // Collect student details from text controllers
+    final Map<String, String> studentData = {
+      "firstname": _firstnameController.text,
+      "lastname": _lastnameController.text,
+      "student_id": _studentIdController.text,
+      "phone": _phoneController.text,
+    };
 
-      // Reset form after submission
-      _formKey.currentState!.reset();
+    try {
+      final response = await http.post(
+        Uri.parse("$url/submit"),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(studentData),
+      );
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        print('Submission successful');
+        if (mounted) {
+          // You can redirect or show a success message here
+          Navigator.of(context).popAndPushNamed('/student_detail');
+        }
+      } else {
+        final error = jsonDecode(response.body)['error'] ?? 'Unknown error occurred';
+        _showErrorDialog(context, error);
+      }
+    } catch (e) {
+      _showErrorDialog(context, 'An error occurred. Please try again. ${e.toString()}');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false; // Hide loading indicator
+        });
+      }
     }
   }
+}
+
+void _showErrorDialog(BuildContext context, String errorMessage) {
+  showDialog(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      backgroundColor: Colors.white,
+      titleTextStyle: const TextStyle(color: Color(0xff0f1d2c)),
+      title: const Text('Error'),
+      content: Text(errorMessage),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(ctx).pop(),
+          child: const Text(
+            'OK',
+            style: TextStyle(color: Color(0xff0f1d2c)),
+          ),
+        ),
+      ],
+    ),
+  );
+}
 
   @override
   Widget build(BuildContext context) {
@@ -100,8 +150,7 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
                     Expanded(
                       child: TextFormField(
                         controller: _firstnameController,
-                        cursorColor:
-                            const Color(0xff0f1d2c), // Set the cursor color
+                        cursorColor: const Color(0xff0f1d2c), // Set the cursor color
                         decoration: const InputDecoration(
                           labelText: 'First Name',
                           labelStyle: TextStyle(color: Color(0xff0f1d2c)),
@@ -114,19 +163,17 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Please enter the student\'s name';
+                            return 'Please enter the student\'s first name';
                           }
                           return null;
                         },
                       ),
                     ),
-                    const SizedBox(
-                        width: 16.0), // Add some spacing between the fields
+                    const SizedBox(width: 16.0), // Add some spacing between the fields
                     Expanded(
                       child: TextFormField(
                         controller: _lastnameController,
-                        cursorColor:
-                            const Color(0xff0f1d2c), // Set the cursor color
+                        cursorColor: const Color(0xff0f1d2c), // Set the cursor color
                         decoration: const InputDecoration(
                           labelText: 'Last Name',
                           labelStyle: TextStyle(color: Color(0xff0f1d2c)),
@@ -153,8 +200,7 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
                     Expanded(
                       child: TextFormField(
                         controller: _studentIdController,
-                        cursorColor:
-                            const Color(0xff0f1d2c), // Set the cursor color
+                        cursorColor: const Color(0xff0f1d2c), // Set the cursor color
                         decoration: const InputDecoration(
                           labelText: 'Student ID',
                           labelStyle: TextStyle(color: Color(0xff0f1d2c)),
@@ -166,22 +212,14 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
                           ),
                         ),
                         validator: (value) {
-                          // Check if the value is empty
                           if (value == null || value.isEmpty) {
-                            return 'Please enter the mobile number';
-                          }
-                          final RegExp mobileNumberRegex =
-                              RegExp(r'^[6-9]\d{9}$');
-                          if (!mobileNumberRegex.hasMatch(value)) {
-                            return 'Please enter a valid 10-digit mobile number starting with 6 or above';
+                            return 'Please enter the student ID';
                           }
                           return null;
                         },
                       ),
                     ),
-                    const SizedBox(
-                      width: 16,
-                    ),
+                    const SizedBox(width: 16.0),
                     Expanded(
                       child: DropdownButtonFormField<String>(
                         decoration: const InputDecoration(
@@ -213,7 +251,7 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
                           return null;
                         },
                       ),
-                    )
+                    ),
                   ],
                 ),
                 const SizedBox(height: 16.0),
@@ -234,8 +272,7 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
                           suffixIcon: Icon(Icons.calendar_today),
                         ),
                         readOnly: true, // Makes text field read-only
-                        onTap: () =>
-                            _selectDate(context), // Opens date picker on tap
+                        onTap: () => _selectDate(context), // Opens date picker on tap
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Please select your date of birth';
@@ -248,8 +285,7 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
                     Expanded(
                       child: TextFormField(
                         controller: _cgpaController,
-                        keyboardType: const TextInputType.numberWithOptions(
-                            decimal: true),
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
                         decoration: const InputDecoration(
                           labelText: 'CGPA',
                           labelStyle: TextStyle(color: Color(0xff0f1d2c)),
@@ -274,40 +310,13 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
                           return null;
                         },
                       ),
-                    )
+                    ),
                   ],
-                ),
-                const SizedBox(height: 16.0),
-                TextFormField(
-                  controller: _phoneController,
-                  cursorColor: const Color(0xff0f1d2c), // Set the cursor color
-                  decoration: const InputDecoration(
-                    labelText: 'Phone Number',
-                    labelStyle: TextStyle(color: Color(0xff0f1d2c)),
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.grey),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Color(0xff0f1d2c)),
-                    ),
-                  ),
-                  keyboardType: TextInputType.number,
-                  validator: (value) {
-                    // Check if the value is empty
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter the mobile number';
-                    }
-                    final RegExp mobileNumberRegex = RegExp(r'^[6-9]\d{9}$');
-                    if (!mobileNumberRegex.hasMatch(value)) {
-                      return 'Please enter a valid 10-digit mobile number starting with 6 or above';
-                    }
-                    return null;
-                  },
                 ),
                 const SizedBox(height: 16.0),
                 DropdownButtonFormField<String>(
                   decoration: const InputDecoration(
-                    labelText: 'Select Institute',
+                    labelText: 'Institute',
                     labelStyle: TextStyle(color: Color(0xff0f1d2c)),
                     enabledBorder: OutlineInputBorder(
                       borderSide: BorderSide(color: Colors.grey),
@@ -317,18 +326,24 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
                     ),
                   ),
                   value: _selectedInstitute,
-                  items: institutes.map((Institute institute) {
-                    return DropdownMenuItem<String>(
-                      value: institute.name,
-                      child: Text(institute.name),
-                    );
-                  }).toList(),
+                  items: institutes
+                      .map((institute) => DropdownMenuItem(
+                            value: institute.name,
+                            child: Text(institute.name),
+                          ))
+                      .toList(),
                   onChanged: _onInstituteChanged,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please select an institute';
+                    }
+                    return null;
+                  },
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 16.0),
                 DropdownButtonFormField<String>(
                   decoration: const InputDecoration(
-                    labelText: 'Select Department',
+                    labelText: 'Department',
                     labelStyle: TextStyle(color: Color(0xff0f1d2c)),
                     enabledBorder: OutlineInputBorder(
                       borderSide: BorderSide(color: Colors.grey),
@@ -338,42 +353,34 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
                     ),
                   ),
                   value: _selectedDepartment,
-                  items: _departments.map((String department) {
-                    return DropdownMenuItem<String>(
-                      value: department,
-                      child: Text(department),
-                    );
-                  }).toList(),
+                  items: _departments
+                      .map((department) => DropdownMenuItem(
+                            value: department,
+                            child: Text(department),
+                          ))
+                      .toList(),
                   onChanged: _onDepartmentChanged,
-                  disabledHint: const Text('Select Institute first'),
-                ),
-                GestureDetector(
-                  onTap: (){
-                    
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please select a department';
+                    }
+                    return null;
                   },
+                ),
+                const SizedBox(height: 16.0),
+                GestureDetector(
+                  onTap: _submitForm, // Submit form on tap
                   child: Container(
-                    height: MediaQuery.sizeOf(context).height * 0.07,
-                    width: MediaQuery.sizeOf(context).width * 0.8,
+                    width: double.infinity,
+                    height: 50.0,
                     decoration: BoxDecoration(
                       color: const Color(0xff0f1d2c),
-                      borderRadius: const BorderRadius.all(Radius.circular(10)),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.5),
-                          spreadRadius: -3,
-                          offset: const Offset(3, 3),
-                          blurRadius: 10,
-                        ),
-                      ],
+                      borderRadius: BorderRadius.circular(8.0),
                     ),
                     child: const Center(
                       child: Text(
-                        "Register",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 28,
-                          letterSpacing: 3,
-                        ),
+                        'Submit',
+                        style: TextStyle(color: Colors.white, fontSize: 16),
                       ),
                     ),
                   ),
@@ -384,15 +391,5 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    // Dispose of controllers when the widget is disposed
-    _firstnameController.dispose();
-    _lastnameController.dispose();
-    _studentIdController.dispose();
-    _phoneController.dispose();
-    super.dispose();
   }
 }

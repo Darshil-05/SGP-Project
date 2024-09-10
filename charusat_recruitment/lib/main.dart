@@ -49,7 +49,7 @@ class MyApp extends StatelessWidget {
           themeMode: themechanger.themeMode,
           theme: ThemeManager.lightmode,
           darkTheme: ThemeManager.darkmode,
-          home: const RegisterPage(), // Change Home to HomeApp
+          home: const StudentDetailsPage(), // Change Home to HomeApp
         );
       }),
     );
