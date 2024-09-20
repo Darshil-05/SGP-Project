@@ -1,5 +1,8 @@
 import 'dart:ffi';
 import 'dart:math' as math;
+import 'package:charusat_recruitment/screens/screens_after_auth/company.dart';
+import 'package:charusat_recruitment/screens/screens_after_auth/notification.dart';
+import 'package:charusat_recruitment/screens/screens_after_auth/profile.dart';
 import 'package:charusat_recruitment/screens/screens_after_auth/side_menu.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/physics.dart';
@@ -27,9 +30,9 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
 
   final List<Widget> _screen = [
     const HomeApp(),
-    commonTab("Company's"),
-    commonTab("Notification"),
-    commonTab("Profile")
+    const CompanyPage(),
+    const NotificationPage(),
+    ProfilePage()
   ];
   final springDesc =
       const SpringDescription(mass: 0.1, stiffness: 40, damping: 5);
@@ -167,9 +170,9 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                 color: Colors.transparent,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.3), // Shadow color
-                    offset: const Offset(0, -2), // Shadow offset
-                    blurRadius: 50, // Shadow blur radius
+                    color: Colors.black.withOpacity(0.1), // Shadow color
+                    offset: const Offset(0, -1), // Shadow offset
+                    blurRadius: 10, // Shadow blur radius
                     spreadRadius: 10, // Shadow spread radius
                   ),
                 ],
@@ -185,11 +188,4 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
       ),
     );
   }
-}
-
-Widget commonTab(String tabName) {
-  return Container(
-    alignment: Alignment.center,
-    child: Text(tabName, style: const TextStyle(fontSize: 28)),
-  );
 }

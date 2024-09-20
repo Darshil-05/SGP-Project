@@ -1,5 +1,6 @@
 import 'package:charusat_recruitment/screens/auth/detailpage.dart';
 import 'package:charusat_recruitment/screens/home.dart';
+import 'package:charusat_recruitment/screens/screens_after_auth/company.dart';
 import 'package:charusat_recruitment/screens/screens_after_auth/home_after_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -49,7 +50,7 @@ class MyApp extends StatelessWidget {
           themeMode: themechanger.themeMode,
           theme: ThemeManager.lightmode,
           darkTheme: ThemeManager.darkmode,
-          home: const StudentDetailsPage(), // Change Home to HomeApp
+          home: const Home(), // Change Home to HomeApp
         );
       }),
     );
