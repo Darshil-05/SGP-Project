@@ -14,7 +14,7 @@ class CompanyDetails(models.Model):
     company_contact = models.IntegerField()
 
     def __str__(self):
-        return self.comapny_name
+        return self.comapny_name 
 
 # # class CompanyPlacementDrive(models.Model):
 # #     company = models.ForeignKey(CompanyDetails, on_delete=models.CASCADE)  # Relation

@@ -1,10 +1,6 @@
 from rest_framework import serializers
 from .models import CompanyDetails
 
-# serializers.py
-from rest_framework import serializers
-from .models import CompanyDetails
-
 
 class CompanyDetailsSerializer(serializers.ModelSerializer):
     class Meta:
@@ -54,6 +50,8 @@ class CompanyDetailsSerializer(serializers.ModelSerializer):
                 'comapny_web': instance.comapny_web,
                 'company_contact': instance.company_contact
             }
+    
+
 # # class CompanyPlacementDriveSerializer(serializers.ModelSerializer):
 # #     class Meta:
 # #         model = CompanyPlacementDrive

@@ -1,8 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.utils import timezone
+from django.contrib.postgres.fields import ArrayField
 
-from django.conf import settings
 
 
 
@@ -50,7 +50,13 @@ class Student_details(AbstractBaseUser):
     department = models.CharField(max_length=255)
     cgpa = models.FloatField(max_length=4)
     passing_year = models.IntegerField()
-    domains = models.CharField(max_length=255) 
+    domains = models.CharField(max_length=255)
+    experience = ArrayField(models.CharField(max_length=255), blank=True, default=list)
+    city = models.CharField(max_length=50,default="changa")
+    programming_skill = models.CharField(max_length=50,blank=True)
+    tech_skill = models.CharField(max_length=100,blank=True)
+    certification = ArrayField(models.CharField(max_length=255),blank=True,default=list)
+    # city,prog-skill and tech-skill,experince,certification
    
     def __str__(self):
         return self.id_no

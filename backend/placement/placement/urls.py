@@ -22,5 +22,6 @@ urlpatterns = [
     path('user/',include('user.urls')),
     path('student/',include('student.urls')),
     path('faculty/',include('faculty.urls')),
+    path('announcement/',include('announcement.urls')),
     # path('company/',include('company.urls'))
 ]
