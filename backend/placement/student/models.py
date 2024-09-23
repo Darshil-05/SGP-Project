@@ -39,9 +39,9 @@ class Student_auth(AbstractBaseUser):
     
 
     
-class Student_details(AbstractBaseUser):
-    
-    student_auth = models.OneToOneField(Student_auth, on_delete=models.CASCADE)    
+class Student_details(models.Model):
+   
+    # student_auth = models.OneToOneField(Student_auth, on_delete=models.CASCADE)    
     id_no = models.CharField(max_length=15)
     last_name = models.CharField(max_length=255)
     first_name = models.CharField(max_length=255)
@@ -68,3 +68,15 @@ class Student_details(AbstractBaseUser):
 # class UserProfile(models.Model):
 #     user = models.OneToOneField(Student_details, on_delete=models.CASCADE)
 #     is_student = models.BooleanField(default=False)
+
+# {
+#     "id_no": "22it095",
+#     "last_name": "jeet",
+#     "first_name": "patel",
+#     "birthdate": "2004-11-19",
+#     "institute": "CSPIT",
+#     "department": "IT",
+#     "cgpa": "9.8",
+#     "passing_year": "2026",
+#     "domains": "cyber security"
+# }
