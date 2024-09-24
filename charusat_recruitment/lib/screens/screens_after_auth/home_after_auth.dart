@@ -112,7 +112,7 @@ class _HomeAppState extends State<HomeApp> {
         style: TextStyle(
           color: Provider.of<PieChartProvider>(context).selectedYear == value
               ? Colors.white
-              : Colors.blue,
+              : Colors.black,
         ),
       ),
     );

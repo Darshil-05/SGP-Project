@@ -1,6 +1,6 @@
 import 'dart:ffi';
 import 'dart:math' as math;
-import 'package:charusat_recruitment/screens/screens_after_auth/company.dart';
+import 'package:charusat_recruitment/screens/screens_after_auth/company/company.dart';
 import 'package:charusat_recruitment/screens/screens_after_auth/notification.dart';
 import 'package:charusat_recruitment/screens/screens_after_auth/profile.dart';
 import 'package:charusat_recruitment/screens/screens_after_auth/side_menu.dart';
@@ -31,7 +31,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   final List<Widget> _screen = [
     const HomeApp(),
     const CompanyPage(),
-    const NotificationPage(),
+    NotificationPage(),
     ProfilePage()
   ];
   final springDesc =

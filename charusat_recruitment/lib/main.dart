@@ -1,6 +1,7 @@
 import 'package:charusat_recruitment/screens/auth/detailpage.dart';
 import 'package:charusat_recruitment/screens/home.dart';
-import 'package:charusat_recruitment/screens/screens_after_auth/company.dart';
+import 'package:charusat_recruitment/screens/screens_after_auth/company/company.dart';
+import 'package:charusat_recruitment/screens/screens_after_auth/company/company_details.dart';
 import 'package:charusat_recruitment/screens/screens_after_auth/home_after_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -44,13 +45,14 @@ class MyApp extends StatelessWidget {
             '/register': (context) => const RegisterPage(),
             '/forgot': (context) => const ForgotPage(),
             '/otp': (context) => const OtpPage(),
+            '/companydetails': (context) => CompanyDetailsPage(),
           },
           debugShowCheckedModeBanner: false,
           title: 'Flutter Demo',
           themeMode: themechanger.themeMode,
           theme: ThemeManager.lightmode,
           darkTheme: ThemeManager.darkmode,
-          home: const Home(), // Change Home to HomeApp
+          home: Welcome(), // Change to Home 
         );
       }),
     );
