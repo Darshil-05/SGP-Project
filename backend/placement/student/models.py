@@ -50,9 +50,9 @@ class Student_details(models.Model):
     passing_year = models.IntegerField()
     domains = models.CharField(max_length=255)
     # experience = ArrayField(models.CharField(max_length=255), blank=True, default=list)
-    city = models.CharField(max_length=50,default='Unknown City')
-    programming_skill = models.CharField(max_length=50,blank=True)
-    tech_skill = models.CharField(max_length=100,blank=True)
+    city = models.CharField(max_length=255)
+    programming_skill = models.CharField(max_length=255)
+    tech_skill = models.CharField(max_length=255)
     # certification = ArrayField(models.CharField(max_length=255),blank=True,default=list)
     # city,prog-skill and tech-skill,experince,certification
    

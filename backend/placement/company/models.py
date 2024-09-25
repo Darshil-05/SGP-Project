@@ -7,7 +7,7 @@ class CompanyDetails(models.Model):
     details = models.TextField()
     min_package = models.BigIntegerField()
     max_package = models.BigIntegerField()
-    bond = models.IntegerField(null=True)
+    bond = models.IntegerField()
     comapny_hq_location = models.CharField(max_length=255)
     work_locations = models.CharField(max_length=255)
     comapny_web = models.CharField(max_length=255)
