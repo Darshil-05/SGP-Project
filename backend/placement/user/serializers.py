@@ -113,7 +113,7 @@
 #     #     return Response({'status': 'error', 'message': 'Email and password required'}, status=status.HTTP_400_BAD_REQUEST)
 
 from rest_framework import serializers
-from .models import OTP
+from .models import *
 
 class OTPSerializer(serializers.ModelSerializer):
     class Meta:

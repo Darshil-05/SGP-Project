@@ -6,7 +6,7 @@ class StudentDetailsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Student_auth
-        fields = ['student_id','email', 'name', 'password']
+        fields = ['id','email', 'name', 'password']
 
     def create(self, validated_data):
         password = validated_data.pop('password', None)
