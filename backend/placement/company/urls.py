@@ -1,15 +1,10 @@
-from django.urls import path, include
-
-from .views import *
-
+from django.urls import path
+from .views import CompanyDetailsList, CompanyDetailsDetail
 
 urlpatterns = [
-    path('company_Details/', CompanyDetailsView.as_view(), name='company-detials'),
-    path('company_Details-crud/<int:pk>/',CompanyDetailsedit.as_view(),name='company-crud'),
-    path('company_Details-post/',CompanyDetailsPost.as_view(),name='company-post'),
-
+    path('companies/', CompanyDetailsList.as_view(), name='company-list'),
+    path('companies/<int:pk>/', CompanyDetailsDetail.as_view(), name='company-detail'),
 ]
-
 
 # {
 #     "comapny_name": "Patel @ sons",

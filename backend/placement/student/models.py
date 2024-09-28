@@ -58,3 +58,11 @@ class Student_details(models.Model):
    
     def __str__(self):
         return self.id_no
+    
+class Certificate(models.Model):
+    student = models.ForeignKey(Student_details, related_name='certificates', on_delete=models.CASCADE)
+    name = models.CharField(max_length=255)
+    platform = models.CharField(max_length=255)
+
+    def __str__(self):
+        return f"{self.name} - {self.student.id_no}"

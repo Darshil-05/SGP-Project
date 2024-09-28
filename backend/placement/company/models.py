@@ -1,5 +1,12 @@
 from django.db import models
+import re
+from django.core.exceptions import ValidationError
 
+
+def validate_number(mobile_number):
+    pattern = r'^[789]\d{9}$'
+    if not re.match(pattern, mobile_number):
+        raise ValidationError(f"{mobile_number} is not a valid Indian mobile number.")
 
 class CompanyDetails(models.Model):
     company_id = models.AutoField(primary_key=True)
@@ -11,10 +18,14 @@ class CompanyDetails(models.Model):
     comapny_hq_location = models.CharField(max_length=255)
     work_locations = models.CharField(max_length=255)
     comapny_web = models.CharField(max_length=255)
-    company_contact = models.IntegerField()
+    company_contact = models.CharField(max_length=15,validators=[validate_number])
 
     def __str__(self):
         return self.comapny_name 
+
+
+
+    
 
 # # class CompanyPlacementDrive(models.Model):
 # #     company = models.ForeignKey(CompanyDetails, on_delete=models.CASCADE)  # Relation

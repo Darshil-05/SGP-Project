@@ -5,23 +5,43 @@ from django.http import HttpResponse
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.response import Response
-from .serializers import StudentInfoSerializer
 from .models import Student_details
 from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework import generics
 # Create your views here.
-class StudentDetailsview(APIView):
-      def get(self, request):
-           Studentdetails= Student_details.objects.all()
-           serializer = StudentInfoSerializer(Studentdetails, many=True, context={'request': request})
-           return Response(serializer.data)
+# class StudentDetailsview(APIView):
+#       def get(self, request):
+#            Studentdetails= Student_details.objects.all()
+#            serializer = StudentInfoSerializer(Studentdetails, many=True, context={'request': request})
+#            return Response(serializer.data)
 
-class StudentDetailsPost(APIView):   
-      def post(self, request):
-        serializer = StudentInfoSerializer(data=request.data, context={'request': request})
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+# class StudentDetailsPost(APIView):   
+#       def post(self, request):
+#         serializer = StudentInfoSerializer(data=request.data, context={'request': request})
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response(serializer.data, status=status.HTTP_201_CREATED)
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+from .models import Student_details, Certificate
+from .serializers import StudentDetailsSerializer, CertificateSerializer
+
+class StudentDetailsList(generics.ListCreateAPIView):
+    queryset = Student_details.objects.all()
+    serializer_class = StudentDetailsSerializer
+
+class StudentDetailsDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Student_details.objects.all()
+    serializer_class = StudentDetailsSerializer
+
+class CertificateList(generics.ListCreateAPIView):
+    queryset = Certificate.objects.all()
+    serializer_class = CertificateSerializer
+
+class CertificateDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Certificate.objects.all()
+    serializer_class = CertificateSerializer
       
 class ExportStudentData(APIView):
     def get(self, request):
