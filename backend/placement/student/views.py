@@ -8,24 +8,8 @@ from rest_framework.response import Response
 from .models import Student_details
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework import generics
-# Create your views here.
-# class StudentDetailsview(APIView):
-#       def get(self, request):
-#            Studentdetails= Student_details.objects.all()
-#            serializer = StudentInfoSerializer(Studentdetails, many=True, context={'request': request})
-#            return Response(serializer.data)
-
-# class StudentDetailsPost(APIView):   
-#       def post(self, request):
-#         serializer = StudentInfoSerializer(data=request.data, context={'request': request})
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response(serializer.data, status=status.HTTP_201_CREATED)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-from .models import Student_details, Certificate
-from .serializers import StudentDetailsSerializer, CertificateSerializer
+from .models import Student_details, Certificate, Experience
+from .serializers import StudentDetailsSerializer, CertificateSerializer,ExperienceSerializer
 
 class StudentDetailsList(generics.ListCreateAPIView):
     queryset = Student_details.objects.all()
@@ -42,6 +26,14 @@ class CertificateList(generics.ListCreateAPIView):
 class CertificateDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Certificate.objects.all()
     serializer_class = CertificateSerializer
+
+class ExperienceList(generics.ListCreateAPIView):
+    queryset = Experience.objects.all()
+    serializer_class = ExperienceSerializer
+
+class ExperienceDetails(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Experience.objects.all()
+    serializer_class = ExperienceSerializer
       
 class ExportStudentData(APIView):
     def get(self, request):

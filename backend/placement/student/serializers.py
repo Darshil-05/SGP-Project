@@ -23,8 +23,14 @@ class CertificateSerializer(serializers.ModelSerializer):
         model = Certificate
         fields = '__all__'
 
+class ExperienceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Certificate
+        fields = '__all__'
+
 class StudentDetailsSerializer(serializers.ModelSerializer):
     certificates = CertificateSerializer(many=True, read_only=True)
+    experience = ExperienceSerializer(many=True,read_only=True)
 
     class Meta:
         model = Student_details

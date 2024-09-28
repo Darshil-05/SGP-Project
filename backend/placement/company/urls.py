@@ -1,10 +1,14 @@
 from django.urls import path
-from .views import CompanyDetailsList, CompanyDetailsDetail
+from .views import *
 
 urlpatterns = [
     path('companies/', CompanyDetailsList.as_view(), name='company-list'),
     path('companies/<int:pk>/', CompanyDetailsDetail.as_view(), name='company-detail'),
+    path('interview-rounds/', InterviewRoundList.as_view(), name='interview-round-list'),
+    path('interview-rounds/<int:pk>/', InterviewRoundDetail.as_view(), name='interview-round-detail'),
+  
 ]
+
 
 # {
 #     "comapny_name": "Patel @ sons",

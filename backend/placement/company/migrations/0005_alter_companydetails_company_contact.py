@@ -14,6 +14,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='companydetails',
             name='company_contact',
-            field=models.CharField(max_length=15, validators=[company.models.validate_number]),
+            field=models.CharField(max_length=15),
         ),
     ]

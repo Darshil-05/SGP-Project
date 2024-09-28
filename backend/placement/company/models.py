@@ -1,12 +1,25 @@
 from django.db import models
 import re
+import phonenumbers
 from django.core.exceptions import ValidationError
 
 
-def validate_number(mobile_number):
-    pattern = r'^[789]\d{9}$'
-    if not re.match(pattern, mobile_number):
-        raise ValidationError(f"{mobile_number} is not a valid Indian mobile number.")
+# def validate_number(mobile_number):
+#     """Validator for international mobile numbers."""
+#     try:
+#         # Parse the phone number with a default region (you can set it to 'IN' for India or use dynamic country code)
+#         parsed_number = phonenumbers.parse(phone_number, None)
+        
+#         # Check if the number is valid
+#         if not phonenumbers.is_valid_number(parsed_number):
+#             raise ValidationError(f"{phone_number} is not a valid mobile number.")
+        
+#         # Optionally, you can check if the number is a mobile number specifically
+#         if not phonenumbers.is_valid_number_for_region(parsed_number, 'IN'):
+#             raise ValidationError(f"{phone_number} is not a valid mobile number for the specified region.")
+        
+#     except phonenumbers.NumberParseException:
+#         raise ValidationError(f"{phone_number} is not a valid mobile number format.")
 
 class CompanyDetails(models.Model):
     company_id = models.AutoField(primary_key=True)
@@ -18,14 +31,33 @@ class CompanyDetails(models.Model):
     comapny_hq_location = models.CharField(max_length=255)
     work_locations = models.CharField(max_length=255)
     comapny_web = models.CharField(max_length=255)
-    company_contact = models.CharField(max_length=15,validators=[validate_number])
+    # company_contact = models.CharField(max_length=15)
+    # company_contact = models.CharField(max_length=15)
+
 
     def __str__(self):
         return self.comapny_name 
 
 
 
-    
+class InterviewRound(models.Model):
+    ROUND_STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('completed', 'Completed'),
+        ('running', 'Running'),
+        
+    ]
+
+    company = models.ForeignKey(CompanyDetails, related_name='interview_rounds', on_delete=models.CASCADE)
+    round_number = models.PositiveIntegerField()
+    status = models.CharField(max_length=10, choices=ROUND_STATUS_CHOICES, default='pending')
+    # scheduled_date = models.DateField(null=True, blank=True)
+
+    class Meta:
+        unique_together = ('company', 'round_number')  # Ensure a company can't have the same round number multiple times
+
+    def __str__(self):
+        return f"Round {self.round_number} for {self.company.company_name} - Status: {self.status}"
 
 # # class CompanyPlacementDrive(models.Model):
 # #     company = models.ForeignKey(CompanyDetails, on_delete=models.CASCADE)  # Relation
