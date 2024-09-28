@@ -97,6 +97,7 @@ class SignupView(APIView):
         if email.endswith('@charusat.ac.in'):
             user_type = 'faculty'
             serializer = FacultyDetailsSerializer(data={'email': email, 'password': password, 'name': name})
+            
         elif email.endswith('@charusat.edu.in'):
             user_type = 'student'
             serializer = StudentDetailsSerializer(data={'email': email, 'password': password, 'name': name})
@@ -104,13 +105,7 @@ class SignupView(APIView):
             return Response({'status': 'failure', 'message': 'Invalid email domain'}, status=status.HTTP_400_BAD_REQUEST)
 
         if serializer.is_valid():
-            # Store user details in session
-            request.session['user_data'] = {
-                'email': email,
-                'password': password,
-                'name': name,
-                'user_type': user_type
-            }
+            user = serializer.save()
 
             otp_code = generate_otp()
             OTP.objects.create(email=email, otp_code=otp_code)
@@ -121,10 +116,19 @@ class SignupView(APIView):
                 [email],
                 fail_silently=False,
             )
-            return Response({'status': 'success', 'message': 'OTP sent successfully'}, status=status.HTTP_201_CREATED)
+
+            # Generate JWT tokens
+            refresh = RefreshToken.for_user(user)
+            access_token = str(refresh.access_token)
+
+            return Response({
+                'status': 'success',
+                'message': 'OTP sent successfully',
+                'access_token': access_token,
+                'refresh_token': str(refresh)
+            }, status=status.HTTP_201_CREATED)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 
 
