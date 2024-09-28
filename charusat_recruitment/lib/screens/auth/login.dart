@@ -15,8 +15,7 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
 
   void _login() {
-
-    if(_emailController.text=="demo" && _passwordController.text=="demo"){
+    if (_emailController.text == "demo" && _passwordController.text == "demo") {
       Navigator.of(context).popAndPushNamed("/home");
     }
 
@@ -196,18 +195,18 @@ class _LoginPageState extends State<LoginPage> {
                           style: TextStyle(fontSize: 18),
                         )),
                         GestureDetector(
-                            onTap: () {
-                              Navigator.of(context)
-                                  .popAndPushNamed('/register');
-                            },
-                            child: const Text(
-                              "Register",
-                              style: TextStyle(
-                                  fontSize: 18,
-                                  decoration: TextDecoration.underline),
-                            )),
+                          onTap: () {
+                            Navigator.of(context).popAndPushNamed('/register');
+                          },
+                          child: const Text(
+                            "Register",
+                            style: TextStyle(
+                                fontSize: 18,
+                                decoration: TextDecoration.underline),
+                          ),
+                        ),
                       ],
-                    )
+                    ),
                   ],
                 ),
               ),

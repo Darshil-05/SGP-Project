@@ -18,73 +18,107 @@ class _HomeAppState extends State<HomeApp> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SingleChildScrollView(
-        padding: EdgeInsets.only(
-          top: MediaQuery.of(context).padding.top + 65,
-          bottom: MediaQuery.of(context).padding.bottom,
-        ),
-        physics: const BouncingScrollPhysics(),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Padding(
-              padding: EdgeInsets.only(left: 20.0),
-              child: Text(
-                "Announcement",
-                style: TextStyle(fontSize: 30, fontFamily: "pop"),
-              ),
-            ),
-            const SizedBox(height: 10),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: _announce
-                    .map((announce) => Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: AnnounceCard(announce: announce),
-                        ))
-                    .toList(),
-              ),
-            ),
-            const SizedBox(height: 10),
-            const Padding(
-              padding: EdgeInsets.only(left: 20.0),
-              child: Text(
-                "Analysis",
-                style: TextStyle(fontSize: 30, fontFamily: "pop"),
-              ),
-            ),
-            const SizedBox(height: 10),
-
-            // Row of buttons for selecting the time period
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
+      body: RefreshIndicator.adaptive(
+        edgeOffset: 20,
+        color: Color(0xff0f1d2c),
+        backgroundColor: Colors.white,
+        onRefresh: () {
+          return Future.delayed(Duration(seconds: 2), () {
+            print("Hello World");
+          });
+        },
+        child: SingleChildScrollView(
+          padding: EdgeInsets.only(
+            top: MediaQuery.of(context).padding.top + 65,
+            bottom: MediaQuery.of(context).padding.bottom,
+          ),
+          physics: BouncingScrollPhysics(
+              decelerationRate: ScrollDecelerationRate.normal),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: EdgeInsets.only(left: 20.0),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    _buildTimeButton('Last Year', 'lastYear'),
-                    const SizedBox(width: 8),
-                    _buildTimeButton('Last 2 Years', 'last2Years'),
-                    const SizedBox(width: 8),
-                    _buildTimeButton('Last 5 Years', 'last5Years'),
+                    const Text(
+                      "Announcement",
+                      style: TextStyle(fontSize: 30, fontFamily: "pop"),
+                    ),
+                    const SizedBox(
+                      width: 20,
+                    ),
+                    InkWell(
+                      onTap: () {
+                        
+                      },
+                      child: Container(
+                        padding: EdgeInsets.all(5),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.grey.shade300,
+                        ),
+                        child: const Icon(
+                          Icons.add,
+                          size: 30,
+                        ),
+                      ),
+                    )
                   ],
                 ),
               ),
-            ),
+              const SizedBox(height: 10),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: _announce
+                      .map((announce) => Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: AnnounceCard(announce: announce),
+                          ))
+                      .toList(),
+                ),
+              ),
+              const SizedBox(height: 10),
+              const Padding(
+                padding: EdgeInsets.only(left: 20.0),
+                child: Text(
+                  "Analysis",
+                  style: TextStyle(fontSize: 30, fontFamily: "pop"),
+                ),
+              ),
+              const SizedBox(height: 10),
 
-            const SizedBox(height: 20),
+              // Row of buttons for selecting the time period
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _buildTimeButton('Last Year', 'lastYear'),
+                      const SizedBox(width: 8),
+                      _buildTimeButton('Last 2 Years', 'last2Years'),
+                      const SizedBox(width: 8),
+                      _buildTimeButton('Last 5 Years', 'last5Years'),
+                    ],
+                  ),
+                ),
+              ),
 
-            // Listen to changes in PieChartProvider
-            Consumer<PieChartProvider>(
-              builder: (context, provider, child) {
-                return CustomPieChart(
-                  selectedYear: provider.selectedYear,
-                );
-              },
-            ),
-          ],
+              const SizedBox(height: 20),
+
+              // Listen to changes in PieChartProvider
+              Consumer<PieChartProvider>(
+                builder: (context, provider, child) {
+                  return CustomPieChart(
+                    selectedYear: provider.selectedYear,
+                  );
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -99,9 +133,10 @@ class _HomeAppState extends State<HomeApp> {
             .setSelectedYear(value);
       },
       style: OutlinedButton.styleFrom(
-        backgroundColor: Provider.of<PieChartProvider>(context).selectedYear == value
-            ? const Color(0xff0f1d2c)
-            : Colors.white,
+        backgroundColor:
+            Provider.of<PieChartProvider>(context).selectedYear == value
+                ? const Color(0xff0f1d2c)
+                : Colors.white,
         side: const BorderSide(color: Color(0xff0f1d2c)),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(30), // Circular border

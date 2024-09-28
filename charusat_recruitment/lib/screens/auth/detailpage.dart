@@ -24,12 +24,16 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _dobController = TextEditingController();
   final TextEditingController _cgpaController = TextEditingController();
+  final TextEditingController _cityController = TextEditingController();
+  final TextEditingController _programmingskillController =
+      TextEditingController();
+  final TextEditingController _otherskillController = TextEditingController();
+  final TextEditingController _domainController = TextEditingController();
   String? _selectedInstitute;
   String? _selectedDepartment;
   String? _selectedYear;
   List<String> _departments = [];
-    bool _isLoading = false; // New loading state
-
+  bool _isLoading = false; // New loading state
 
   // Function to handle form submission
   void _onInstituteChanged(String? value) {
@@ -64,68 +68,70 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
   }
 
   void _submitForm() async {
-  if (_formKey.currentState?.validate() ?? false) {
-    setState(() {
-      _isLoading = true; // Show loading indicator
-    });
+    if (_formKey.currentState?.validate() ?? false) {
+      setState(() {
+        _isLoading = true; // Show loading indicator
+      });
 
-    // Collect student details from text controllers
-    final Map<String, String> studentData = {
-      "firstname": _firstnameController.text,
-      "lastname": _lastnameController.text,
-      "student_id": _studentIdController.text,
-      "phone": _phoneController.text,
-    };
+      // Collect student details from text controllers
+      final Map<String, String> studentData = {
+        "firstname": _firstnameController.text,
+        "lastname": _lastnameController.text,
+        "student_id": _studentIdController.text,
+        "phone": _phoneController.text,
+      };
 
-    try {
-      final response = await http.post(
-        Uri.parse("$url/submit"),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(studentData),
-      );
+      try {
+        final response = await http.post(
+          Uri.parse("$url/submit"),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode(studentData),
+        );
 
-      if (response.statusCode == 201 || response.statusCode == 200) {
-        print('Submission successful');
-        if (mounted) {
-          // You can redirect or show a success message here
-          Navigator.of(context).popAndPushNamed('/student_detail');
+        if (response.statusCode == 201 || response.statusCode == 200) {
+          print('Submission successful');
+          if (mounted) {
+            // You can redirect or show a success message here
+            Navigator.of(context).popAndPushNamed('/student_detail');
+          }
+        } else {
+          final error =
+              jsonDecode(response.body)['error'] ?? 'Unknown error occurred';
+          _showErrorDialog(context, error);
         }
-      } else {
-        final error = jsonDecode(response.body)['error'] ?? 'Unknown error occurred';
-        _showErrorDialog(context, error);
-      }
-    } catch (e) {
-      _showErrorDialog(context, 'An error occurred. Please try again. ${e.toString()}');
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false; // Hide loading indicator
-        });
+      } catch (e) {
+        _showErrorDialog(
+            context, 'An error occurred. Please try again. ${e.toString()}');
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false; // Hide loading indicator
+          });
+        }
       }
     }
   }
-}
 
-void _showErrorDialog(BuildContext context, String errorMessage) {
-  showDialog(
-    context: context,
-    builder: (ctx) => AlertDialog(
-      backgroundColor: Colors.white,
-      titleTextStyle: const TextStyle(color: Color(0xff0f1d2c)),
-      title: const Text('Error'),
-      content: Text(errorMessage),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(ctx).pop(),
-          child: const Text(
-            'OK',
-            style: TextStyle(color: Color(0xff0f1d2c)),
+  void _showErrorDialog(BuildContext context, String errorMessage) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Colors.white,
+        titleTextStyle: const TextStyle(color: Color(0xff0f1d2c)),
+        title: const Text('Error'),
+        content: Text(errorMessage),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text(
+              'OK',
+              style: TextStyle(color: Color(0xff0f1d2c)),
+            ),
           ),
-        ),
-      ],
-    ),
-  );
-}
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -150,7 +156,8 @@ void _showErrorDialog(BuildContext context, String errorMessage) {
                     Expanded(
                       child: TextFormField(
                         controller: _firstnameController,
-                        cursorColor: const Color(0xff0f1d2c), // Set the cursor color
+                        cursorColor:
+                            const Color(0xff0f1d2c), // Set the cursor color
                         decoration: const InputDecoration(
                           labelText: 'First Name',
                           labelStyle: TextStyle(color: Color(0xff0f1d2c)),
@@ -169,11 +176,13 @@ void _showErrorDialog(BuildContext context, String errorMessage) {
                         },
                       ),
                     ),
-                    const SizedBox(width: 16.0), // Add some spacing between the fields
+                    const SizedBox(
+                        width: 16.0), // Add some spacing between the fields
                     Expanded(
                       child: TextFormField(
                         controller: _lastnameController,
-                        cursorColor: const Color(0xff0f1d2c), // Set the cursor color
+                        cursorColor:
+                            const Color(0xff0f1d2c), // Set the cursor color
                         decoration: const InputDecoration(
                           labelText: 'Last Name',
                           labelStyle: TextStyle(color: Color(0xff0f1d2c)),
@@ -200,7 +209,8 @@ void _showErrorDialog(BuildContext context, String errorMessage) {
                     Expanded(
                       child: TextFormField(
                         controller: _studentIdController,
-                        cursorColor: const Color(0xff0f1d2c), // Set the cursor color
+                        cursorColor:
+                            const Color(0xff0f1d2c), // Set the cursor color
                         decoration: const InputDecoration(
                           labelText: 'Student ID',
                           labelStyle: TextStyle(color: Color(0xff0f1d2c)),
@@ -272,7 +282,8 @@ void _showErrorDialog(BuildContext context, String errorMessage) {
                           suffixIcon: Icon(Icons.calendar_today),
                         ),
                         readOnly: true, // Makes text field read-only
-                        onTap: () => _selectDate(context), // Opens date picker on tap
+                        onTap: () =>
+                            _selectDate(context), // Opens date picker on tap
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Please select your date of birth';
@@ -285,7 +296,8 @@ void _showErrorDialog(BuildContext context, String errorMessage) {
                     Expanded(
                       child: TextFormField(
                         controller: _cgpaController,
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true),
                         decoration: const InputDecoration(
                           labelText: 'CGPA',
                           labelStyle: TextStyle(color: Color(0xff0f1d2c)),
@@ -312,6 +324,88 @@ void _showErrorDialog(BuildContext context, String errorMessage) {
                       ),
                     ),
                   ],
+                ),
+                const SizedBox(height: 16.0),
+                TextFormField(
+                  controller: _cityController,
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  decoration: const InputDecoration(
+                    labelText: 'City',
+                    labelStyle: TextStyle(color: Color(0xff0f1d2c)),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.grey),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xff0f1d2c)),
+                    ),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your City';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16.0),
+                TextFormField(
+                  controller: _domainController,
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  decoration: const InputDecoration(
+                    labelText: 'Domain',
+                    labelStyle: TextStyle(color: Color(0xff0f1d2c)),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.grey),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xff0f1d2c)),
+                    ),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your Domain';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16.0),
+                TextFormField(
+                  controller: _programmingskillController,
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  decoration: const InputDecoration(
+                    labelText: 'Programming skills',
+                    labelStyle: TextStyle(color: Color(0xff0f1d2c)),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.grey),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xff0f1d2c)),
+                    ),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your City';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16.0),
+                TextFormField(
+                  controller: _otherskillController,
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  decoration: const InputDecoration(
+                    labelText: 'Other skills',
+                    labelStyle: TextStyle(color: Color(0xff0f1d2c)),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.grey),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xff0f1d2c)),
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 16.0),
                 DropdownButtonFormField<String>(

@@ -79,7 +79,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
       try {
         final response = await http.post(
-          Uri.parse("$url/signup"),
+          Uri.parse("{$url}user/signup"),
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode(data),
         );
@@ -282,6 +282,28 @@ class _RegisterPageState extends State<RegisterPage> {
                               ),
                       ),
                     ),
+                    SizedBox(height: 20,),
+                     Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const SizedBox(
+                            child: Text(
+                          "Do you have an account ?  ",
+                          style: TextStyle(fontSize: 18),
+                        )),
+                        GestureDetector(
+                            onTap: () {
+                              Navigator.of(context)
+                                  .popAndPushNamed('/login');
+                            },
+                            child: const Text(
+                              "Sign In",
+                              style: TextStyle(
+                                  fontSize: 18,
+                                  decoration: TextDecoration.underline),
+                            )),
+                      ],
+                    )
                   ],
                 ),
               ),
