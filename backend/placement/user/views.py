@@ -7,8 +7,8 @@ from faculty .models import Faculty_auth
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate, login as auth_login
-from student .serializers import StudentDetailsSerializer
-from faculty .serializers import FacultyDetailsSerializer
+from student .serializers import StudentAuthSerializer
+from faculty .serializers import FacultyAuthSerializer
 import random
 from django.core.mail import send_mail
 from rest_framework import status
@@ -96,11 +96,11 @@ class SignupView(APIView):
 
         if email.endswith('@charusat.ac.in'):
             user_type = 'faculty'
-            serializer = FacultyDetailsSerializer(data={'email': email, 'password': password, 'name': name})
+            serializer = FacultyAuthSerializer(data={'email': email, 'password': password, 'name': name})
             
         elif email.endswith('@charusat.edu.in'):
             user_type = 'student'
-            serializer = StudentDetailsSerializer(data={'email': email, 'password': password, 'name': name})
+            serializer = StudentAuthSerializer(data={'email': email, 'password': password, 'name': name})
         else:
             return Response({'status': 'failure', 'message': 'Invalid email domain'}, status=status.HTTP_400_BAD_REQUEST)
 

@@ -2,7 +2,7 @@ from rest_framework import serializers
 from .models import Faculty_auth
 
 
-class FacultyDetailsSerializer(serializers.ModelSerializer):
+class FacultyAuthSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
 
     class Meta:
