@@ -47,6 +47,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   }
   @override
   void initState() {
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.dark);
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 200),
       upperBound: 1,

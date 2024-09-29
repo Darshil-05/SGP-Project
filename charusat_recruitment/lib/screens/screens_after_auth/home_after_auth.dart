@@ -23,6 +23,7 @@ class _HomeAppState extends State<HomeApp> {
         color: Color(0xff0f1d2c),
         backgroundColor: Colors.white,
         onRefresh: () {
+          setState(() {});
           return Future.delayed(Duration(seconds: 2), () {
             print("Hello World");
           });
@@ -32,7 +33,7 @@ class _HomeAppState extends State<HomeApp> {
             top: MediaQuery.of(context).padding.top + 65,
             bottom: MediaQuery.of(context).padding.bottom,
           ),
-          physics: BouncingScrollPhysics(
+          physics: const BouncingScrollPhysics(
               decelerationRate: ScrollDecelerationRate.normal),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -50,10 +51,10 @@ class _HomeAppState extends State<HomeApp> {
                     ),
                     InkWell(
                       onTap: () {
-                        
+                        Navigator.of(context).pushNamed('/announcement');
                       },
                       child: Container(
-                        padding: EdgeInsets.all(5),
+                        padding: const EdgeInsets.all(5),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: Colors.grey.shade300,
@@ -70,14 +71,25 @@ class _HomeAppState extends State<HomeApp> {
               const SizedBox(height: 10),
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: _announce
-                      .map((announce) => Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: AnnounceCard(announce: announce),
-                          ))
-                      .toList(),
-                ),
+                child: _announce.length != 0
+                    ? Row(
+                        children: _announce
+                            .map((announce) => Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: AnnounceCard(announce: announce),
+                                ))
+                            .toList(),
+                      )
+                    : Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: AnnounceCard(
+                            announce: AnnouncementModel(
+                                id: UniqueKey(),
+                                title: "No Announcement",
+                                subtitle: " ",
+                                companyName: " ",
+                                color: const Color(0xff005fe7))),
+                      ),
               ),
               const SizedBox(height: 10),
               const Padding(

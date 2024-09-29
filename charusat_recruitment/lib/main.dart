@@ -1,5 +1,6 @@
 import 'package:charusat_recruitment/screens/auth/detailpage.dart';
 import 'package:charusat_recruitment/screens/home.dart';
+import 'package:charusat_recruitment/screens/screens_after_auth/announcement_manage.dart';
 import 'package:charusat_recruitment/screens/screens_after_auth/company/company.dart';
 import 'package:charusat_recruitment/screens/screens_after_auth/company/company_details.dart';
 import 'package:charusat_recruitment/screens/screens_after_auth/home_after_auth.dart';
@@ -33,28 +34,32 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => Themechange()),
-        ChangeNotifierProvider(create: (_) => PieChartProvider()), // Add PieChartProvider here
+        ChangeNotifierProvider(
+            create: (_) => PieChartProvider()), // Add PieChartProvider here
       ],
-      child: Builder(builder: (context) {
-        final themechanger = Provider.of<Themechange>(context);
-        return MaterialApp(
-          routes: {
-            '/home': (context) => const Home(), // Change Home to HomeApp
-            '/welcome': (context) => const Welcome(),
-            '/login': (context) => const LoginPage(),
-            '/register': (context) => const RegisterPage(),
-            '/forgot': (context) => const ForgotPage(),
-            '/otp': (context) => const OtpPage(),
-            '/companydetails': (context) => CompanyDetailsPage(),
-          },
-          debugShowCheckedModeBanner: false,
-          title: 'Flutter Demo',
-          themeMode: themechanger.themeMode,
-          theme: ThemeManager.lightmode,
-          darkTheme: ThemeManager.darkmode,
-          home: Welcome(), // Change to Home 
-        );
-      }),
+      child: Builder(
+        builder: (context) {
+          final themechanger = Provider.of<Themechange>(context);
+          return MaterialApp(
+            routes: {
+              '/home': (context) => const Home(), // Change Home to HomeApp
+              '/welcome': (context) => const Welcome(),
+              '/login': (context) => const LoginPage(),
+              '/register': (context) => const RegisterPage(),
+              '/forgot': (context) => const ForgotPage(),
+              '/otp': (context) => const OtpPage(),
+              '/companydetails': (context) => CompanyDetailsPage(),
+              '/announcement': (context) => const AnnouncementManagement(),
+            },
+            debugShowCheckedModeBanner: false,
+            title: 'Flutter Demo',
+            themeMode: themechanger.themeMode,
+            theme: ThemeManager.lightmode,
+            darkTheme: ThemeManager.darkmode,
+            home: Home(), // Change to Home for skip login
+          );
+        },
+      ),
     );
   }
 }
