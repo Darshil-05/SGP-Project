@@ -10,6 +10,6 @@ urlpatterns = [
     path('certificates/', CertificateList.as_view(), name='certificate-list'),
     path('certificates/<int:pk>/', CertificateDetail.as_view(), name='certificate-detail'),
     path('experience/', ExperienceList.as_view(), name='experience-list'),
-    path('certificates/<int:pk>/', ExperienceDetails.as_view(), name='experience-detail'),
+    path('experience/<int:pk>/', ExperienceDetails.as_view(), name='experience-detail'),
     # path('import-students/', ImportStudentData.as_view(), name='import-students'),
 ]
