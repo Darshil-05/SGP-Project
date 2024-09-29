@@ -166,3 +166,50 @@ class VerifyOTPView(APIView):
                 return Response({'error': 'OTP has expired'}, status=status.HTTP_400_BAD_REQUEST)
         except OTP.DoesNotExist:
             return Response({'error': 'Invalid OTP or email'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ResendOTPView(APIView):
+    def post(self, request):
+        # Retrieve user data from the session
+        user_data = request.session.get('user_data')
+
+        if not user_data:
+            return Response({'status': 'failure', 'message': 'No user data found in session. Please sign up again.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        email = user_data['email']
+
+        try:
+            # Check if the OTP exists for this user
+            otp_instance = OTP.objects.filter(email=email).first()
+
+            # Generate a new OTP
+            new_otp_code = generate_otp()
+
+            if otp_instance:
+                # Update the existing OTP
+                otp_instance.otp_code = new_otp_code
+                otp_instance.save()
+            else:
+                # Create a new OTP instance if it doesn't exist
+                OTP.objects.create(email=email, otp_code=new_otp_code)
+
+            # Send the new OTP via email
+            send_mail(
+                'Your New OTP Code',
+                f'Your new OTP code is {new_otp_code}',
+                settings.DEFAULT_FROM_EMAIL,
+                [email],
+                fail_silently=False,
+            )
+
+            return Response({
+                'status': 'success',
+                'message': 'A new OTP has been sent to your email.'
+            }, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({
+                'status': 'failure',
+                'message': 'Failed to resend OTP. Please try again later.',
+                'error': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
