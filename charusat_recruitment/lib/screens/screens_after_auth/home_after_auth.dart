@@ -1,9 +1,13 @@
+import 'dart:convert';
+
+import 'package:charusat_recruitment/const.dart';
 import 'package:charusat_recruitment/screens/Components/announcecard.dart';
 import 'package:charusat_recruitment/screens/models/announcement_model.dart';
 import 'package:charusat_recruitment/screens/screens_after_auth/pie_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../Providers/pie_chart_provider.dart';
+import 'package:http/http.dart' as http;
 
 class HomeApp extends StatefulWidget {
   const HomeApp({super.key});
@@ -13,8 +17,33 @@ class HomeApp extends StatefulWidget {
 }
 
 class _HomeAppState extends State<HomeApp> {
-  final List<AnnouncementModel> _announce = AnnouncementModel.annouce;
 
+Future<void> getAnnouncements() async {
+  final url = Uri.parse('http://127.0.0.1:8000/announcement/announcements/');
+  final response = await http.get(url);
+
+  if (response.statusCode == 200) {
+    List<dynamic> responseData = json.decode(response.body);
+
+    // Map response data to the AnnouncementModel
+    announce = responseData.map<AnnouncementModel>((item) {
+      return AnnouncementModel(
+        id: item['id'],
+        title: item['title'],
+        subtitle: item['description'],
+        companyName: item['comapny_name'],
+        color: Colors.blue, // Assigning a default color or handle this based on data
+      );
+    }).toList();
+  } else {
+    showErrorDialog(context, "Error to load announcements ");
+  }
+}
+  @override
+  void initState() {
+    getAnnouncements();
+    super.initState();
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -71,9 +100,9 @@ class _HomeAppState extends State<HomeApp> {
               const SizedBox(height: 10),
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
-                child: _announce.length != 0
+                child: announce.isNotEmpty
                     ? Row(
-                        children: _announce
+                        children: announce
                             .map((announce) => Padding(
                                   padding: const EdgeInsets.all(8.0),
                                   child: AnnounceCard(announce: announce),
