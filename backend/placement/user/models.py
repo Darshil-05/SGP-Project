@@ -10,6 +10,10 @@ class OTP(models.Model):
     def is_valid(self):
         # OTP is valid for 10 minutes
         return timezone.now() < self.created_at + timedelta(minutes=10)
+    
+    def created_at_local(self):
+        # Convert created_at to local time (IST)
+        return self.created_at.astimezone(timezone.pytz.timezone('Asia/Kolkata'))
 
     def __str__(self):
         return f"{self.email} - {self.otp_code}"

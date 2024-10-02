@@ -56,9 +56,20 @@ class SignupView(APIView):
                 'user_type': user_type
             }
 
+           
+
             # Generate and send OTP
             otp_code = generate_otp()
-            OTP.objects.create(email=email, otp_code=otp_code)
+
+            otp_instance, created = OTP.objects.update_or_create(
+                email=email,
+                defaults={
+                'otp_code': otp_code,
+                'created_at': timezone.now()  # Update the created_at field to the current time
+                }
+            )
+
+            # OTP.objects.create(email=email, otp_code=otp_code)
             send_mail(
                 'Your OTP Code',
                 f'Your OTP code is {otp_code}',
@@ -174,24 +185,25 @@ class ResendOTPView(APIView):
         user_data = request.session.get('user_data')
 
         if not user_data:
-            return Response({'status': 'failure', 'message': 'No user data found in session. Please sign up again.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({
+                'status': 'failure',
+                'message': 'No user data found in session. Please sign up again.'
+            }, status=status.HTTP_400_BAD_REQUEST)
 
         email = user_data['email']
 
         try:
-            # Check if the OTP exists for this user
-            otp_instance = OTP.objects.filter(email=email).first()
-
             # Generate a new OTP
             new_otp_code = generate_otp()
 
-            if otp_instance:
-                # Update the existing OTP
-                otp_instance.otp_code = new_otp_code
-                otp_instance.save()
-            else:
-                # Create a new OTP instance if it doesn't exist
-                OTP.objects.create(email=email, otp_code=new_otp_code)
+            # Update the existing OTP if it exists, otherwise create a new one
+            otp_instance, created = OTP.objects.update_or_create(
+                email=email,
+                defaults={
+                'otp_code': new_otp_code,
+                'created_at': timezone.now()  # Update the created_at field to the current time
+                }
+            )
 
             # Send the new OTP via email
             send_mail(
