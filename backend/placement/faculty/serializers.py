@@ -14,15 +14,5 @@ class FacultyAuthSerializer(serializers.ModelSerializer):
         user = Faculty_auth.objects.create_user(**validated_data, password=password)
         return user
     
-    def validate_password(self, value):
-        """Validate the password strength."""
-        if len(value) < 8:
-            re
-        if not any(char.isdigit() for char in value):
-            raise serializers.ValidationError("Password must contain at least one digit.")
-        if not any(char.isalpha() for char in value):
-            raise serializers.ValidationError("Password must contain at least one letter.")
-        if not any(char in "!@#$%^&*()-_=+[]{}|;:,.<>?/" for char in value):
-            raise serializers.ValidationError("Password must contain at least one special character.")
-        return value
+   
 
