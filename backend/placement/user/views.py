@@ -19,6 +19,9 @@ from .serializers import *
 from django.contrib.auth.hashers import make_password
 from django.conf import settings
 import string
+import re
+
+
 
 def generate_otp():
     return ''.join(random.choices(string.digits, k=6))
@@ -99,6 +102,10 @@ class SignupView(APIView):
             serializer = StudentAuthSerializer(data={'email': email, 'password': password, 'name': name})
         else:
             return Response({'status': 'failure', 'message': 'Invalid email domain'}, status=status.HTTP_400_BAD_REQUEST)
+        
+
+        if not self.is_password_valid(password):
+            return Response({'status': 'failure', 'message': 'Password must be strong.'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Check serializer validity
         if serializer.is_valid():
@@ -131,6 +138,18 @@ class SignupView(APIView):
 
         else:
             return Response({'status': 'failure', 'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+    
+    def is_password_valid(self, password):
+        """Validate the password strength."""
+        if len(password) < 8:
+            return False
+        if not re.search(r'\d', password):
+            return False
+        if not re.search(r'[A-Za-z]', password):
+            return False
+        if not re.search(r'[!@#$%^&*()_+=-]', password):
+            return False
+        return True
 
          
 

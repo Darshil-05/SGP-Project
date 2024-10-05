@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import *
+from rest_framework.response import Response
 
 class StudentAuthSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
@@ -13,6 +14,7 @@ class StudentAuthSerializer(serializers.ModelSerializer):
         user = Student_auth.objects.create_user(**validated_data, password=password)
         return user
 
+    
 # class StudentInfoSerializer(serializers.ModelSerializer):
 #     class Meta:
 #         model = Student_details
