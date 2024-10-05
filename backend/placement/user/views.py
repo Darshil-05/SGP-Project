@@ -20,6 +20,11 @@ from django.contrib.auth.hashers import make_password
 from django.conf import settings
 import string
 import re
+from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.tokens import BlacklistMixin
+
+
+
 
 
 
@@ -196,7 +201,34 @@ class SigninView(APIView):
 
         return Response({'status': 'failure', 'message': 'Invalid email domain'}, status=status.HTTP_400_BAD_REQUEST)
 
+class SignoutView(APIView):
+    # permission_classes = (IsAuthenticated,)  # Ensure the user is authenticated
 
+    def post(self, request):
+        try:
+            # Get the refresh token from the request data
+            refresh_token = request.data.get('refresh_token')
+            if refresh_token is None:
+                return Response({
+                    'status': 'failure',
+                    'message': 'Refresh token is required to sign out.'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            # Blacklist the refresh token
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+
+            return Response({
+                'status': 'success',
+                'message': 'User signed out successfully.'
+            }, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({
+                'status': 'failure',
+                'message': 'Failed to sign out.',
+                'error': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 

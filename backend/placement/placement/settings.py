@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'student',
     'company',
     'announcement',
+    'rest_framework_simplejwt.token_blacklist',
     
 ]
 
