@@ -233,6 +233,60 @@ class SignoutView(APIView):
 
 
 
+# class VerifyOTPView(APIView):
+#     def post(self, request):
+#         otp_code = request.data.get('otp_code')
+#         email = request.data.get('email')
+#         name = request.data.get('name')  # Pass the name directly in the request
+#         password = request.data.get('password')  # Pass the password directly in the request
+
+#         if not otp_code or not email or not name or not password:
+#             return Response({'error': 'OTP, email, name, and password are required'}, status=status.HTTP_400_BAD_REQUEST)
+
+#         try:
+#             # Retrieve the OTP entry for the given email and OTP code
+#             otp_instance = OTP.objects.filter(email=email, otp_code=otp_code).first()
+
+#             if otp_instance is None:
+#                 return Response({'error': 'Invalid OTP or email'}, status=status.HTTP_400_BAD_REQUEST)
+
+#             # Check if the OTP is still valid
+#             if otp_instance.is_valid():
+#                 user_type = otp_instance.user_type  # Retrieve the user type from the OTP instance
+                
+#                 # OTP verified, now create the user
+#                 if user_type == 'faculty':
+#                     user = Faculty_auth.objects.create(
+#                         email=email,
+#                         password=make_password(password),  # Use the password from the request
+#                         name=name  # Use the name from the request
+#                     )
+#                 elif user_type == 'student':
+#                     user = Student_auth.objects.create(
+#                         email=email,
+#                         password=make_password(password),  # Use the password from the request
+#                         name=name  # Use the name from the request
+#                     )
+
+#                 # Generate JWT tokens after the user is created
+#                 refresh = RefreshToken.for_user(user)
+#                 access_token = str(refresh.access_token)
+
+#                 # Optionally, delete OTP after successful verification
+#                 otp_instance.delete()
+
+#                 return Response({
+#                     'status': 'success',
+#                     'message': 'OTP verified successfully and user created',
+#                     'access_token': access_token,
+#                     'refresh_token': str(refresh)
+#                 }, status=status.HTTP_200_OK)
+#             else:
+#                 return Response({'error': 'OTP has expired'}, status=status.HTTP_400_BAD_REQUEST)
+
+#         except OTP.DoesNotExist:
+#             return Response({'error': 'Invalid OTP or email'}, status=status.HTTP_400_BAD_REQUEST)
+
 class VerifyOTPView(APIView):
     def post(self, request):
         otp_code = request.data.get('otp_code')
@@ -268,25 +322,19 @@ class VerifyOTPView(APIView):
                         name=name  # Use the name from the request
                     )
 
-                # Generate JWT tokens after the user is created
-                refresh = RefreshToken.for_user(user)
-                access_token = str(refresh.access_token)
-
                 # Optionally, delete OTP after successful verification
                 otp_instance.delete()
 
                 return Response({
                     'status': 'success',
                     'message': 'OTP verified successfully and user created',
-                    'access_token': access_token,
-                    'refresh_token': str(refresh)
+                    'user_id': user.id,  # Optionally return the user ID
                 }, status=status.HTTP_200_OK)
             else:
                 return Response({'error': 'OTP has expired'}, status=status.HTTP_400_BAD_REQUEST)
 
         except OTP.DoesNotExist:
             return Response({'error': 'Invalid OTP or email'}, status=status.HTTP_400_BAD_REQUEST)
-
 
 
 # class VerifyOTPView(APIView):
