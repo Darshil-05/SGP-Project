@@ -1,11 +1,11 @@
-import 'dart:html';
+
 
 import 'package:charusat_recruitment/screens/models/announcement_model.dart';
 import 'package:flutter/material.dart';
 
-const String url = 'http://192.168.98.209:8000/';
+const String serverurl = 'http://192.168.48.209:8000/';
 late String email;
-late List<AnnouncementModel> announce;
+// late final List<AnnouncementModel> announce ;
 void showErrorDialog(BuildContext context, String errorMessage) {
   showDialog(
     context: context,

@@ -62,19 +62,19 @@ class _CompanyPageState extends State<CompanyPage> {
             return Column(
               children: [
                  ClipRRect(
-                  borderRadius: BorderRadius.only(topLeft: Radius.circular(5) , topRight: Radius.circular(5)),
+                    clipBehavior: Clip.hardEdge,
+                  borderRadius: const BorderRadius.only(topLeft: Radius.circular(5) , topRight: Radius.circular(5)),
                     child: Image.network(
                       company['image']!,
                       height: 150,
                       width: MediaQuery.sizeOf(context).width,
                       fit: BoxFit.cover,alignment: Alignment.centerLeft,
                     ),
-                    clipBehavior: Clip.hardEdge,
                   ),
                 Card(
                   color: Colors.white70,
-                  margin: EdgeInsets.only(bottom: 15),
-                  shape: RoundedRectangleBorder(
+                  margin: const EdgeInsets.only(bottom: 15),
+                  shape: const RoundedRectangleBorder(
                   borderRadius: BorderRadius.only(bottomLeft: Radius.circular(5) , bottomRight: Radius.circular(5)),
                   ),
                   child: Padding(
@@ -95,28 +95,28 @@ class _CompanyPageState extends State<CompanyPage> {
                                   color: Colors.black,
                                 ),
                               ),
-                              SizedBox(height: 5),
+                              const SizedBox(height: 5),
                               // Date and Location
                               Row(
                                 children: [
-                                  Icon(Icons.calendar_today,
+                                  const Icon(Icons.calendar_today,
                                       size: 14, color: Colors.black),
-                                  SizedBox(width: 5),
+                                  const SizedBox(width: 5),
                                   Text(company['date']!,
-                                      style: TextStyle(color: Colors.black)),
-                                  SizedBox(width: 10),
-                                  Icon(Icons.location_on,
+                                      style: const TextStyle(color: Colors.black)),
+                                  const SizedBox(width: 10),
+                                  const Icon(Icons.location_on,
                                       size: 14, color: Colors.black),
-                                  SizedBox(width: 5),
+                                  const SizedBox(width: 5),
                                   Text(company['location']!,
-                                      style: TextStyle(color: Colors.black)),
+                                      style: const TextStyle(color: Colors.black)),
                                 ],
                               ),
-                              SizedBox(height: 5),
+                              const SizedBox(height: 5),
                               // Brief description
                               Text(
                                 company['description']!,
-                                style: TextStyle(
+                                style: const TextStyle(
                                     fontSize: 14, color: Colors.black87),
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
@@ -156,11 +156,31 @@ class _CompanyPageState extends State<CompanyPage> {
               ),
             ),
             const SizedBox(height: 20),
-            const Padding(
-              padding: EdgeInsets.only(left: 20.0),
-              child: Text(
-                "Upcomming",
-                style: TextStyle(fontSize: 20, fontFamily: "pop"),
+             Padding(
+              padding: const EdgeInsets.only(left: 20.0),
+              child: Row(
+                children: [
+                  const Text(
+                    "Upcomming",
+                    style: TextStyle(fontSize: 20, fontFamily: "pop"),
+                  ),
+                  InkWell(
+                      onTap: () {
+                        Navigator.of(context).pushNamed('/companymanager');
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(5),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.grey.shade300,
+                        ),
+                        child: const Icon(
+                          Icons.add,
+                          size: 30,
+                        ),
+                      ),
+                    )
+                ],
               ),
             ),
             const SizedBox(height: 10),

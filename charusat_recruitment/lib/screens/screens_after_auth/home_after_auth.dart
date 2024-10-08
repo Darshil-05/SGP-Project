@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:charusat_recruitment/Providers/announcement_provider.dart';
 import 'package:charusat_recruitment/const.dart';
 import 'package:charusat_recruitment/screens/Components/announcecard.dart';
 import 'package:charusat_recruitment/screens/models/announcement_model.dart';
@@ -17,28 +18,48 @@ class HomeApp extends StatefulWidget {
 }
 
 class _HomeAppState extends State<HomeApp> {
-
 Future<void> getAnnouncements() async {
-  final url = Uri.parse('http://127.0.0.1:8000/announcement/announcements/');
-  final response = await http.get(url);
+  print("calling geting");
 
-  if (response.statusCode == 200) {
-    List<dynamic> responseData = json.decode(response.body);
+  var request = http.Request('GET', Uri.parse('$serverurl/announcement/announcements/'));
+  request.body = ''''''; // You can add any necessary body content if required
 
-    // Map response data to the AnnouncementModel
-    announce = responseData.map<AnnouncementModel>((item) {
-      return AnnouncementModel(
-        id: item['id'],
-        title: item['title'],
-        subtitle: item['description'],
-        companyName: item['comapny_name'],
-        color: Colors.blue, // Assigning a default color or handle this based on data
-      );
-    }).toList();
-  } else {
-    showErrorDialog(context, "Error to load announcements ");
+  try {
+    // Send the request and wait for the response
+    http.StreamedResponse streamedResponse = await request.send().timeout(Duration(seconds: 15));
+
+    // Convert streamed response to regular response
+    final response = await http.Response.fromStream(streamedResponse);
+
+    print("wait over");
+
+    if (response.statusCode == 201 || response.statusCode == 200) {
+      List<dynamic> responseData = json.decode(response.body);
+      print("inside");
+
+      // Map response data to the AnnouncementModel
+      List<AnnouncementModel> announce = responseData.map<AnnouncementModel>((item) {
+        print(item['title']);
+        return AnnouncementModel(
+          id: item['id'],
+          title: item['title'],
+          subtitle: item['description'],
+          companyName: item['comapny_name'],
+          color: Colors.blue, // Assigning a default color or handle based on data
+        );
+      }).toList();
+
+      // Adding the `announce` list to your provider
+      Provider.of<AnnouncementProvider>(context, listen: false).announcements = announce;
+    } else {
+      showErrorDialog(context, "Error loading announcements");
+    }
+  } catch (e) {
+    print("Error occurred: $e");
+    showErrorDialog(context, "Error loading announcements");
   }
 }
+
   @override
   void initState() {
     getAnnouncements();
@@ -46,13 +67,14 @@ Future<void> getAnnouncements() async {
   }
   @override
   Widget build(BuildContext context) {
+    List<AnnouncementModel> announcements = Provider.of<AnnouncementProvider>(context).announcements;
     return Scaffold(
       body: RefreshIndicator.adaptive(
         edgeOffset: 20,
         color: Color(0xff0f1d2c),
         backgroundColor: Colors.white,
         onRefresh: () {
-          setState(() {});
+getAnnouncements();
           return Future.delayed(Duration(seconds: 2), () {
             print("Hello World");
           });
@@ -100,9 +122,9 @@ Future<void> getAnnouncements() async {
               const SizedBox(height: 10),
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
-                child: announce.isNotEmpty
+                child: announcements.isNotEmpty
                     ? Row(
-                        children: announce
+                        children: announcements
                             .map((announce) => Padding(
                                   padding: const EdgeInsets.all(8.0),
                                   child: AnnounceCard(announce: announce),
@@ -113,7 +135,7 @@ Future<void> getAnnouncements() async {
                         padding: const EdgeInsets.all(8.0),
                         child: AnnounceCard(
                             announce: AnnouncementModel(
-                                id: UniqueKey(),
+                                id: 0,
                                 title: "No Announcement",
                                 subtitle: " ",
                                 companyName: " ",

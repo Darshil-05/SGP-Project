@@ -62,7 +62,7 @@ class _OtpPageState extends State<OtpPage> {
   try {
     // Send OTP to the server
     final response = await http.post(
-      Uri.parse("$url/verify-otp"),
+      Uri.parse("$serverurl/verify-otp"),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode(data),
     );

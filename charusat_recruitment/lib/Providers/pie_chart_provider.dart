@@ -7,6 +7,6 @@ class PieChartProvider with ChangeNotifier {
 
   void setSelectedYear(String year) {
     _selectedYear = year;
-    notifyListeners(); // Notify listeners to rebuild widgets listening to this provider
+    notifyListeners(); 
   }
 }

@@ -1,6 +1,12 @@
+import 'dart:convert';
+
+import 'package:charusat_recruitment/Providers/announcement_provider.dart';
+import 'package:charusat_recruitment/const.dart';
 import 'package:flutter/material.dart';
 import 'package:charusat_recruitment/screens/Components/announcecard.dart';
 import 'package:charusat_recruitment/screens/models/announcement_model.dart';
+import 'package:provider/provider.dart';
+import 'package:http/http.dart' as http;
 
 class AnnouncementManagement extends StatefulWidget {
   const AnnouncementManagement({super.key});
@@ -10,8 +16,6 @@ class AnnouncementManagement extends StatefulWidget {
 }
 
 class _AnnouncementManagementState extends State<AnnouncementManagement> {
-  final List<AnnouncementModel> _announce = AnnouncementModel.annouce;
-
   // Controllers for TextFormFields
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
@@ -25,6 +29,8 @@ class _AnnouncementManagementState extends State<AnnouncementManagement> {
 
   @override
   Widget build(BuildContext context) {
+    List<AnnouncementModel> announcements =
+        Provider.of<AnnouncementProvider>(context).announcements;
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
@@ -37,7 +43,7 @@ class _AnnouncementManagementState extends State<AnnouncementManagement> {
       body: SingleChildScrollView(
         child: Center(
           child: Column(
-            children: _announce
+            children: announcements
                 .map((announce) => GestureDetector(
                       onLongPress: () {
                         // Show confirmation dialog for deletion
@@ -84,7 +90,7 @@ class _AnnouncementManagementState extends State<AnnouncementManagement> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Center(
+                  const Center(
                     child: Text(
                       "Add Announcement",
                       style: TextStyle(
@@ -177,9 +183,15 @@ class _AnnouncementManagementState extends State<AnnouncementManagement> {
                       if (_formKey.currentState!.validate()) {
                         setState(() {
                           // Add the announcement with a unique id
-                          _announce.add(
+                          print("Calling announcement");
+                         addAnnouncement(_titleController.text , _descriptionController.text ,  _organizationController.text);
+
+
+                          Provider.of<AnnouncementProvider>(context,
+                                  listen: false)
+                              .addAnnouncement(
                             AnnouncementModel(
-                              id: UniqueKey(), // Generate unique ID
+                              id: 2, // Generate unique ID
                               title: _titleController.text,
                               subtitle: _descriptionController.text,
                               companyName: _organizationController.text,
@@ -251,7 +263,8 @@ class _AnnouncementManagementState extends State<AnnouncementManagement> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Delete Announcement'),
-          content: const Text('Are you sure you want to delete this announcement?'),
+          content:
+              const Text('Are you sure you want to delete this announcement?'),
           actions: [
             TextButton(
               onPressed: () {
@@ -262,8 +275,9 @@ class _AnnouncementManagementState extends State<AnnouncementManagement> {
             TextButton(
               onPressed: () {
                 setState(() {
-                  // Remove the announcement with the matching id
-                  _announce.removeWhere((announce) => announce.id == announcement.id);
+                  deleteannouncement(announcement.id);
+                  Provider.of<AnnouncementProvider>(context, listen: false)
+                      .removeAnnouncementById(announcement.id);
                 });
                 Navigator.pop(context); // Close the dialog after deletion
               },
@@ -273,5 +287,43 @@ class _AnnouncementManagementState extends State<AnnouncementManagement> {
         );
       },
     );
+  }
+  Future<void> addAnnouncement(String title, String description , String companyName )async{
+
+    print("started adding");
+    var headers = {
+  'Content-Type': 'application/json'
+};
+var request = http.Request('post', Uri.parse('$serverurl/announcement/announcements/'));
+request.body = json.encode({
+  "title": title,
+  "description": description,
+  "comapny_name": companyName
+});
+request.headers.addAll(headers);
+
+http.StreamedResponse response = await request.send();
+print("added");
+if (response.statusCode == 201) {
+  print(await response.stream.bytesToString());
+}
+else {
+  print(response.reasonPhrase);
+}
+
+  }
+
+  Future<void> deleteannouncement(int id) async {
+    var request = http.Request('DELETE',
+        Uri.parse('http://192.168.48.209:8000/announcement/announcements/$id/'));
+    request.body = '''''';
+
+    http.StreamedResponse response = await request.send();
+
+    if (response.statusCode == 204 ) {
+      print(await response.stream.bytesToString());
+    } else {
+      print(response.reasonPhrase);
+    }
   }
 }

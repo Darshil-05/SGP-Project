@@ -83,7 +83,7 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
 
       try {
         final response = await http.post(
-          Uri.parse("$url/submit"),
+          Uri.parse("$serverurl/submit"),
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode(studentData),
         );

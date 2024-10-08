@@ -1,8 +1,10 @@
+import 'package:charusat_recruitment/Providers/announcement_provider.dart';
 import 'package:charusat_recruitment/screens/auth/detailpage.dart';
 import 'package:charusat_recruitment/screens/home.dart';
 import 'package:charusat_recruitment/screens/screens_after_auth/announcement_manage.dart';
 import 'package:charusat_recruitment/screens/screens_after_auth/company/company.dart';
 import 'package:charusat_recruitment/screens/screens_after_auth/company/company_details.dart';
+import 'package:charusat_recruitment/screens/screens_after_auth/company/company_manager.dart';
 import 'package:charusat_recruitment/screens/screens_after_auth/home_after_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -34,8 +36,9 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => Themechange()),
+        ChangeNotifierProvider(create: (_) => PieChartProvider()),
         ChangeNotifierProvider(
-            create: (_) => PieChartProvider()), // Add PieChartProvider here
+            create: (_) => AnnouncementProvider()), // Add PieChartProvider here
       ],
       child: Builder(
         builder: (context) {
@@ -50,6 +53,7 @@ class MyApp extends StatelessWidget {
               '/otp': (context) => const OtpPage(),
               '/companydetails': (context) => CompanyDetailsPage(),
               '/announcement': (context) => const AnnouncementManagement(),
+              '/companymanager': (context) => const CompanyManager(),
             },
             debugShowCheckedModeBanner: false,
             title: 'Flutter Demo',
