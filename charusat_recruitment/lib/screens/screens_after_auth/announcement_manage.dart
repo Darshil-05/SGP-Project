@@ -162,19 +162,8 @@ class _AnnouncementManagementState extends State<AnnouncementManagement> {
                   ),
                   const SizedBox(height: 20),
 
-                  // Color picker row
-                  const Text(
-                    'Select Announcement Color:',
-                    style: TextStyle(fontSize: 16, color: Color(0xff0f1d2c)),
-                  ),
-                  const SizedBox(height: 10),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _buildColorOption(const Color(0xff7850f0), 'Purple'),
-                      _buildColorOption(const Color(0xff6792ff), 'Light blue'),
-                      _buildColorOption(const Color(0xff005fe7), 'Dark blue'),
-                    ],
                   ),
                   const SizedBox(height: 20),
 
@@ -221,41 +210,7 @@ class _AnnouncementManagementState extends State<AnnouncementManagement> {
     );
   }
 
-  // Widget to build individual color options
-  Widget _buildColorOption(Color color, String label) {
-    return InkWell(
-      onTap: () {
-        setState(() {
-          _selectedColor = color; // Update the selected color
-        });
-      },
-      child: Column(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: color,
-              shape: BoxShape.circle,
-              border: Border.all(
-                color:
-                    _selectedColor == color ? Colors.black : Colors.transparent,
-                width: 3,
-              ),
-            ),
-          ),
-          const SizedBox(height: 5),
-          Text(
-            label,
-            style: TextStyle(
-              color: _selectedColor == color ? Colors.black : Colors.grey,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
+  
   // Method to show delete confirmation dialog
   void _showDeleteDialog(AnnouncementModel announcement) {
     showDialog(

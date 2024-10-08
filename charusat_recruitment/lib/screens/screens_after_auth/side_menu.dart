@@ -1,4 +1,4 @@
-import 'package:flutter/cupertino.dart';
+import 'package:charusat_recruitment/const.dart';
 import 'package:flutter/material.dart';
 
 class SideMenu extends StatefulWidget {
@@ -9,8 +9,6 @@ class SideMenu extends StatefulWidget {
 }
 
 class _SideMenuState extends State<SideMenu> {
-  // State variable to manage the CupertinoSwitch
-  bool _isDarkMode = false;
 
   @override
   Widget build(BuildContext context) {
@@ -36,17 +34,17 @@ class _SideMenuState extends State<SideMenu> {
                   child: const Icon(Icons.person_outlined),
                 ),
                 const SizedBox(width: 10),
-                const Column(
+                 Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "Darshil Patel",
-                      style: TextStyle(color: Colors.white, fontSize: 17),
+                      name,
+                      style: const TextStyle(color: Colors.white, fontSize: 17),
                     ),
                     Text(
-                      "Flutter developer",
-                      style: TextStyle(color: Colors.white, fontSize: 15),
+                      domain,
+                      style: const TextStyle(color: Colors.white, fontSize: 15),
                     ),
                   ],
                 ),
@@ -102,29 +100,6 @@ class _SideMenuState extends State<SideMenu> {
                   ),
                 ),
                 Divider(thickness: 0.5),
-              ],
-            ),
-          ),
-          // CupertinoSwitch placed under "Company drive"
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 15),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Dark Mode',
-                  style: TextStyle(color: Colors.white, fontSize: 17),
-                ),
-                CupertinoSwitch(
-                  value: _isDarkMode,
-                  onChanged: (bool value) {
-                    setState(() {
-                      _isDarkMode = value;
-                    });
-                    // Here you can add the logic to change the theme
-                  },
-                  activeColor: Colors.blue, // Color when the switch is active
-                ),
               ],
             ),
           ),

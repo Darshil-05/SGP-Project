@@ -47,30 +47,34 @@ class _OtpPageState extends State<OtpPage> {
       }
     });
   }
-
-  void _submitOtp() async {
+void _submitOtp() async {
   // Collect OTP from controllers
   String otp = _otpControllers.map((controller) => controller.text).join();
 
-  
   // Prepare the data to send
   Map<String, String> data = {
-    "email": email, 
-    "otp": otp,
+    "email": email,               // Assuming email is already available globally
+    "name": name,               // You can replace with dynamic value if required
+    "password": password,   // You can replace with dynamic value if required
+    "otp_code": otp,              // OTP collected from the controllers
   };
 
   try {
-    // Send OTP to the server
-    final response = await http.post(
-      Uri.parse("$serverurl/verify-otp"),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(data),
-    );
+    debugPrint("Sending OTP verification request");
+
+    // Set up the headers and body
+    var headers = {'Content-Type': 'application/json'};
+    var request = http.Request('POST', Uri.parse('$serverurl/user/verify-otp/'));
+    request.body = jsonEncode(data);  // JSON encode the body
+    request.headers.addAll(headers);  // Add headers
+
+    http.StreamedResponse response = await request.send().timeout(const Duration(seconds: 10));
 
     if (response.statusCode == 200 || response.statusCode == 201) {
-      // Assuming success response
-      print('OTP verification successful');
-      // After successful OTP verification, clear all previous pages from the stack and push the home page
+      String responseBody = await response.stream.bytesToString();
+      debugPrint('OTP verification successful: $responseBody');
+      name= "";
+      password = "";
       if (mounted) {
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (context) => const StudentDetailsPage()), // Replace with your home page
@@ -78,15 +82,18 @@ class _OtpPageState extends State<OtpPage> {
         );
       }
     } else {
-      // If verification fails, handle error
-      final error = jsonDecode(response.body)['error'] ?? 'Verification failed';
-      _showErrorDialog(context, error);
+      // Handle error response and print the reason phrase
+      debugPrint("Error: ${response.reasonPhrase}");
+      _showErrorDialog(context, "Verification failed: ${response.reasonPhrase}");
     }
   } catch (e) {
     // Handle any error in communication or unexpected issues
+    debugPrint("Error occurred: $e");
     _showErrorDialog(context, 'An error occurred. Please try again.');
   }
 }
+
+
 
 
   void _showErrorDialog(BuildContext context, String errorMessage) {
@@ -117,7 +124,7 @@ class _OtpPageState extends State<OtpPage> {
       _showTimer = true;
     });
     _startTimer();
-    print('Resend OTP');
+    debugPrint('Resend OTP');
   }
 
   @override
@@ -135,7 +142,7 @@ class _OtpPageState extends State<OtpPage> {
   Widget _buildOtpField(int index) {
     return Expanded(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12.0),
+        padding: const EdgeInsets.symmetric(horizontal: 6.0),
         child: TextFormField(
           controller: _otpControllers[index],
           focusNode: _focusNodes[index],

@@ -56,7 +56,7 @@ class _AnnounceCardState extends State<AnnounceCard> {
           const SizedBox(
             height: 8,
           ),
-          Text(widget.announce.companyName ?? "",
+          Text(widget.announce.companyName,
               style: const TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w600,

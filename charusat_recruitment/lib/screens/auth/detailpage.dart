@@ -1,9 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:charusat_recruitment/screens/models/institute_model.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 
 import '../../const.dart';
 
@@ -21,7 +19,6 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
   final TextEditingController _firstnameController = TextEditingController();
   final TextEditingController _lastnameController = TextEditingController();
   final TextEditingController _studentIdController = TextEditingController();
-  final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _dobController = TextEditingController();
   final TextEditingController _cgpaController = TextEditingController();
   final TextEditingController _cityController = TextEditingController();
@@ -56,7 +53,9 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
     );
     if (picked != null) {
       setState(() {
-        _dobController.text = "${picked.day}/${picked.month}/${picked.year}";
+        _dobController.text =
+            "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
+        debugPrint(_dobController.text);
       });
     }
   }
@@ -72,32 +71,50 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
       setState(() {
         _isLoading = true; // Show loading indicator
       });
-
       // Collect student details from text controllers
       final Map<String, String> studentData = {
-        "firstname": _firstnameController.text,
-        "lastname": _lastnameController.text,
-        "student_id": _studentIdController.text,
-        "phone": _phoneController.text,
+        "id_no": _studentIdController.text,
+        "last_name": _lastnameController.text,
+        "first_name": _firstnameController.text,
+        "birthdate": _dobController.text,
+        "institute": _selectedInstitute!,
+        "department": _selectedDepartment!,
+        "cgpa": _cgpaController.text,
+        "passing_year": _selectedYear!,
+        "domains": _domainController.text,
+        "programming_skill": _programmingskillController.text,
+        "tech_skill": _otherskillController.text,
       };
-
       try {
-        final response = await http.post(
-          Uri.parse("$serverurl/submit"),
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode(studentData),
-        );
+        var headers = {'Content-Type': 'application/json'};
+        var request =
+            http.Request('POST', Uri.parse('$serverurl/student/students/'));
+        request.body = jsonEncode(studentData);
+        request.headers.addAll(headers);
 
-        if (response.statusCode == 201 || response.statusCode == 200) {
-          print('Submission successful');
+        http.StreamedResponse response = await request.send();
+
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          String responseBody = await response.stream.bytesToString();
+          debugPrint('Submission successful: $responseBody');
+          studentid = _studentIdController.text;
+          name = _lastnameController.text + _firstnameController.text;
+          dob = _dobController.text;
+          institute = _selectedInstitute!;
+          department = _selectedDepartment!;
+          cgpa = _cgpaController.text;
+          passingyear = _selectedYear!;
+          domain = _domainController.text;
+          programmingskill = _programmingskillController.text;
+          otherskill = _otherskillController.text;
           if (mounted) {
-            // You can redirect or show a success message here
-            Navigator.of(context).popAndPushNamed('/student_detail');
+            Navigator.of(context).popAndPushNamed('/home');
           }
         } else {
-          final error =
-              jsonDecode(response.body)['error'] ?? 'Unknown error occurred';
-          _showErrorDialog(context, error);
+          debugPrint("Error: ${response.reasonPhrase}");
+          String responseBody =
+              await response.stream.bytesToString(); // Get the response body
+          debugPrint("Error: ${response.reasonPhrase}, Body: $responseBody");
         }
       } catch (e) {
         _showErrorDialog(
@@ -233,7 +250,7 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
                     Expanded(
                       child: DropdownButtonFormField<String>(
                         decoration: const InputDecoration(
-                          labelText: 'Current Year',
+                          labelText: 'Passing Year',
                           labelStyle: TextStyle(color: Color(0xff0f1d2c)),
                           enabledBorder: OutlineInputBorder(
                             borderSide: BorderSide(color: Colors.grey),
@@ -243,7 +260,7 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
                           ),
                         ),
                         value: _selectedYear,
-                        items: ['1', '2', '3', '4']
+                        items: ['2023', '2024', '2025', '2026']
                             .map((year) => DropdownMenuItem(
                                   value: year,
                                   child: Text(year),
@@ -256,7 +273,7 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
                         },
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Please select your current year';
+                            return 'Please select your passing year';
                           }
                           return null;
                         },
@@ -328,8 +345,7 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
                 const SizedBox(height: 16.0),
                 TextFormField(
                   controller: _cityController,
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType: TextInputType.text,
                   decoration: const InputDecoration(
                     labelText: 'City',
                     labelStyle: TextStyle(color: Color(0xff0f1d2c)),
@@ -350,8 +366,7 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
                 const SizedBox(height: 16.0),
                 TextFormField(
                   controller: _domainController,
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType: TextInputType.text,
                   decoration: const InputDecoration(
                     labelText: 'Domain',
                     labelStyle: TextStyle(color: Color(0xff0f1d2c)),
@@ -372,8 +387,7 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
                 const SizedBox(height: 16.0),
                 TextFormField(
                   controller: _programmingskillController,
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType: TextInputType.text,
                   decoration: const InputDecoration(
                     labelText: 'Programming skills',
                     labelStyle: TextStyle(color: Color(0xff0f1d2c)),
@@ -394,8 +408,7 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
                 const SizedBox(height: 16.0),
                 TextFormField(
                   controller: _otherskillController,
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType: TextInputType.text,
                   decoration: const InputDecoration(
                     labelText: 'Other skills',
                     labelStyle: TextStyle(color: Color(0xff0f1d2c)),
@@ -463,7 +476,7 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
                 ),
                 const SizedBox(height: 16.0),
                 GestureDetector(
-                  onTap: _submitForm, // Submit form on tap
+                  onTap: _isLoading ? null : _submitForm, // Submit form on tap
                   child: Container(
                     width: double.infinity,
                     height: 50.0,
@@ -471,12 +484,19 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
                       color: const Color(0xff0f1d2c),
                       borderRadius: BorderRadius.circular(8.0),
                     ),
-                    child: const Center(
-                      child: Text(
-                        'Submit',
-                        style: TextStyle(color: Colors.white, fontSize: 16),
-                      ),
-                    ),
+                    child: _isLoading
+                        ? const Center(
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Center(
+                            child: Text(
+                              'Submit',
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 16),
+                            ),
+                          ),
                   ),
                 ),
               ],

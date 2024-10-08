@@ -1,11 +1,8 @@
 import 'package:charusat_recruitment/Providers/announcement_provider.dart';
-import 'package:charusat_recruitment/screens/auth/detailpage.dart';
 import 'package:charusat_recruitment/screens/home.dart';
 import 'package:charusat_recruitment/screens/screens_after_auth/announcement_manage.dart';
-import 'package:charusat_recruitment/screens/screens_after_auth/company/company.dart';
 import 'package:charusat_recruitment/screens/screens_after_auth/company/company_details.dart';
 import 'package:charusat_recruitment/screens/screens_after_auth/company/company_manager.dart';
-import 'package:charusat_recruitment/screens/screens_after_auth/home_after_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/services.dart';
@@ -60,7 +57,7 @@ class MyApp extends StatelessWidget {
             themeMode: themechanger.themeMode,
             theme: ThemeManager.lightmode,
             darkTheme: ThemeManager.darkmode,
-            home: Home(), // Change to Home for skip login
+            home: const Welcome(), // Change to Home for skip login
           );
         },
       ),

@@ -113,7 +113,7 @@ class _CompanyManagerState extends State<CompanyManager> {
                         focusedBorder: const OutlineInputBorder(
                           borderSide: BorderSide(color: Color(0xff0f1d2c)),
                         ),
-                        border
+                        
                       ),
         validator: (value) {
           if (value == null || value.isEmpty) {

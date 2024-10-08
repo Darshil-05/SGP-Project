@@ -64,47 +64,63 @@ class _RegisterPageState extends State<RegisterPage> {
     return null;
   }
 
-  void _register() async {
-    if (_formKey.currentState?.validate() ?? false) {
-      setState(() {
-        _isLoading = true; // Show loading indicator
-      });
+ void _register() async {
+  if (_formKey.currentState?.validate() ?? false) {
+    setState(() {
+      _isLoading = true; // Show loading indicator
+    });
 
-      final Map<String, String> data = {
-        "name": _nameController.text,
-        "email": _emailController.text,
-        "password": _passwordController.text,
-        "confirm_password": _passwordController.text,
-      };
+    final Map<String, String> data = {
+      "name": _nameController.text,
+      "email": _emailController.text,
+      "password": _passwordController.text,
+      "confirm_password": _passwordController.text,
+    };
 
-      try {
-        final response = await http.post(
-          Uri.parse("{$serverurl}user/signup"),
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode(data),
-        );
+    try {
+      debugPrint("Sending registration request");
 
-        if (response.statusCode == 201 || response.statusCode == 200) {
-          print('Registration successful');
-          email = _emailController.text;
-          if (mounted) {
-            Navigator.of(context).pushNamed('/otp');
-          }
-        } else {
-          final error = jsonDecode(response.body)['error'] ?? 'Unknown error occurred';
-          _showErrorDialog(context, error);
-        }
-      } catch (e) {
-        _showErrorDialog(context, 'An error occurred. Please try again. ${e.toString()}');
-      } finally {
+      // Set up the headers and body
+      var headers = {'Content-Type': 'application/json'};
+      var request = http.Request('POST', Uri.parse('$serverurl/user/signup/'));
+      request.body = jsonEncode(data);
+      request.headers.addAll(headers);
+
+      // Send the request and handle the streamed response
+      http.StreamedResponse response = await request.send().timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        // Handle successful response
+        String responseBody = await response.stream.bytesToString();
+        debugPrint('Registration successful: $responseBody');
+        
+        // Proceed to OTP screen
+        email = _emailController.text;
+        name =_nameController.text;
+        password = _passwordController.text;
         if (mounted) {
-          setState(() {
-            _isLoading = false; 
-          });
+          Navigator.of(context).pushNamed('/otp');
         }
+      } else {
+        // Handle error response
+        debugPrint("Error: ${response.reasonPhrase}");
+        _showErrorDialog(context, "Error: ${response.reasonPhrase}");
+      }
+    } catch (e) {
+      // Handle any exceptions
+      debugPrint("Error occurred: $e");
+      _showErrorDialog(context, 'An error occurred. Please try again. ${e.toString()}');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false; // Hide loading indicator
+        });
       }
     }
   }
+}
+
+
 
   void _showErrorDialog(BuildContext context, String errorMessage) {
     showDialog(
@@ -282,7 +298,7 @@ class _RegisterPageState extends State<RegisterPage> {
                               ),
                       ),
                     ),
-                    SizedBox(height: 20,),
+                    const SizedBox(height: 20,),
                      Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [

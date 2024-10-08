@@ -1,4 +1,3 @@
-import 'dart:ffi';
 import 'dart:math' as math;
 import 'package:charusat_recruitment/screens/screens_after_auth/company/company.dart';
 import 'package:charusat_recruitment/screens/screens_after_auth/notification.dart';

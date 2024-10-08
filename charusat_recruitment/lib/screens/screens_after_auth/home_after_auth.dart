@@ -18,63 +18,70 @@ class HomeApp extends StatefulWidget {
 }
 
 class _HomeAppState extends State<HomeApp> {
-Future<void> getAnnouncements() async {
-  print("calling geting");
+  Future<void> getAnnouncements() async {
+    print("calling geting");
 
-  var request = http.Request('GET', Uri.parse('$serverurl/announcement/announcements/'));
-  request.body = ''''''; // You can add any necessary body content if required
+    var request = http.Request(
+        'GET', Uri.parse('$serverurl/announcement/announcements/'));
+    request.body = ''''''; // You can add any necessary body content if required
 
-  try {
-    // Send the request and wait for the response
-    http.StreamedResponse streamedResponse = await request.send().timeout(Duration(seconds: 15));
+    try {
+      // Send the request and wait for the response
+      http.StreamedResponse streamedResponse =
+          await request.send().timeout(Duration(seconds: 10));
 
-    // Convert streamed response to regular response
-    final response = await http.Response.fromStream(streamedResponse);
+      // Convert streamed response to regular response
+      final response = await http.Response.fromStream(streamedResponse);
 
-    print("wait over");
+      print("wait over");
 
-    if (response.statusCode == 201 || response.statusCode == 200) {
-      List<dynamic> responseData = json.decode(response.body);
-      print("inside");
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        List<dynamic> responseData = json.decode(response.body);
+        print("inside");
 
-      // Map response data to the AnnouncementModel
-      List<AnnouncementModel> announce = responseData.map<AnnouncementModel>((item) {
-        print(item['title']);
-        return AnnouncementModel(
-          id: item['id'],
-          title: item['title'],
-          subtitle: item['description'],
-          companyName: item['comapny_name'],
-          color: Colors.blue, // Assigning a default color or handle based on data
-        );
-      }).toList();
+        // Map response data to the AnnouncementModel
+        List<AnnouncementModel> announce =
+            responseData.map<AnnouncementModel>((item) {
+          print(item['title']);
+          return AnnouncementModel(
+            id: item['id'],
+            title: item['title'],
+            subtitle: item['description'],
+            companyName: item['comapny_name'],
+            color: Colors
+                .blue, // Assigning a default color or handle based on data
+          );
+        }).toList();
 
-      // Adding the `announce` list to your provider
-      Provider.of<AnnouncementProvider>(context, listen: false).announcements = announce;
-    } else {
+        // Adding the `announce` list to your provider
+        Provider.of<AnnouncementProvider>(context, listen: false)
+            .announcements = announce;
+      } else {
+        showErrorDialog(context, "Error loading announcements");
+      }
+    } catch (e) {
+      print("Error occurred: $e");
       showErrorDialog(context, "Error loading announcements");
     }
-  } catch (e) {
-    print("Error occurred: $e");
-    showErrorDialog(context, "Error loading announcements");
   }
-}
 
   @override
   void initState() {
     getAnnouncements();
     super.initState();
   }
+
   @override
   Widget build(BuildContext context) {
-    List<AnnouncementModel> announcements = Provider.of<AnnouncementProvider>(context).announcements;
+    List<AnnouncementModel> announcements =
+        Provider.of<AnnouncementProvider>(context).announcements;
     return Scaffold(
       body: RefreshIndicator.adaptive(
         edgeOffset: 20,
         color: Color(0xff0f1d2c),
         backgroundColor: Colors.white,
         onRefresh: () {
-getAnnouncements();
+          getAnnouncements();
           return Future.delayed(Duration(seconds: 2), () {
             print("Hello World");
           });

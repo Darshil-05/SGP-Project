@@ -6,7 +6,7 @@ class Institute {
 }
 
 final List<Institute> institutes = [
-  Institute(name: 'CSPIT', departments: ['Mechanical', 'Electrical']),
+  Institute(name: 'CSPIT', departments: ['CS', 'CE', 'IT','Mechanical', 'Electrical']),
   Institute(name: 'DEPSTAR', departments: ['CS', 'CE', 'IT']),
   Institute(name: 'RPCP', departments: ['Pharmacy']),
 ];

@@ -1,3 +1,4 @@
+import 'package:charusat_recruitment/const.dart';
 import 'package:flutter/material.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -122,34 +123,34 @@ class _ProfilePageState extends State<ProfilePage> {
                 ],
               ),
               width: MediaQuery.sizeOf(context).width,
-              child: const Column(
+              child:  Column(
                 children: [
-                  SizedBox(
+                  const SizedBox(
                     height: 8,
                   ),
                   CircleAvatar(
-                    backgroundColor: Color.fromARGB(255, 49, 62, 99),
+                    backgroundColor: const Color.fromARGB(255, 49, 62, 99),
                     radius: 50,
                     child: Text(
-                      "DP",
-                      style: TextStyle(color: Colors.white, fontSize: 18),
+                      name[0],
+                      style: const TextStyle(color: Colors.white, fontSize: 18),
                     ),
                   ),
-                  SizedBox(
+                  const SizedBox(
                     height: 8,
                   ),
                   Text(
-                    "Darshil Patel",
-                    style: TextStyle(fontSize: 24),
+                    name,
+                    style: const TextStyle(fontSize: 24),
                   ),
-                  SizedBox(
+                  const SizedBox(
                     height: 8,
                   ),
-                  Text(
+                  const Text(
                     "ID : 22IT092",
                     style: TextStyle(fontSize: 18),
                   ),
-                  SizedBox(
+                  const SizedBox(
                     height: 8,
                   ),
                 ],
@@ -168,15 +169,15 @@ class _ProfilePageState extends State<ProfilePage> {
               },
               content: Column(
                 children: [
-                  buildDetailItem(Icons.person_2_rounded, 'Full Name',
-                      'Patel Darshil Pankajbhai'),
+                  buildDetailItem(Icons.person_2_rounded, 'Name',
+                      name),
                   buildDetailItem(
-                      Icons.assignment_ind_rounded, 'ID Number', '22IT092'),
-                  buildDetailItem(Icons.phone, 'Phone', '9574257200'),
+                      Icons.assignment_ind_rounded, 'ID Number', studentid),
+                  buildDetailItem(Icons.phone, 'Phone', '9876543210'),
                   buildDetailItem(
-                      Icons.email, 'Email', 'darshilpatel5505@gmail.com'),
+                      Icons.email, 'Email', email),
                   buildDetailItem(
-                      Icons.location_on, 'City', 'Mahesana , Gujarat'),
+                      Icons.location_on, 'City', city),
                 ],
               ),
             ),
@@ -192,9 +193,8 @@ class _ProfilePageState extends State<ProfilePage> {
               },
               content: Column(
                 children: [
-                  buildDetailItem(Icons.school, 'Degree', 'B.Tech in IT'),
-                  buildDetailItem(Icons.calendar_today, 'Year', '2020 - 2024'),
-                  buildDetailItem(Icons.grade, 'CGPA', '8.5 / 10'),
+                  buildDetailItem(Icons.school, 'Degree', department),
+                  buildDetailItem(Icons.grade, 'CGPA', '$cgpa / 10'),
                 ],
               ),
             ),
@@ -211,9 +211,9 @@ class _ProfilePageState extends State<ProfilePage> {
               content: Column(
                 children: [
                   buildDetailItem(Icons.code, 'Programming',
-                      'Flutter, Dart, Python, React.js'),
-                  buildDetailItem(Icons.build, 'Technologies',
-                      'Firebase, Git, MongoDB, Node.js'),
+                      programmingskill),
+                  buildDetailItem(Icons.build, 'Other Skill',
+                      otherskill),
                 ],
               ),
             ),
@@ -231,8 +231,6 @@ class _ProfilePageState extends State<ProfilePage> {
                 children: [
                   buildDetailItem(Icons.work, 'Flutter Developer Intern',
                       'Helium Automation (2023)'),
-                  buildDetailItem(Icons.work, 'React.js Developer Intern',
-                      'Sparks to Idea (2023)'),
                 ],
               ),
             ),

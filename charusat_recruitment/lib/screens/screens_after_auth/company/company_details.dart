@@ -1,9 +1,8 @@
-import 'package:charusat_recruitment/screens/screens_after_auth/profile.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 
 class CompanyDetailsPage extends StatefulWidget {
+  const CompanyDetailsPage({super.key});
+
   @override
   _CompanyDetailsPageState createState() => _CompanyDetailsPageState();
 }
@@ -141,7 +140,7 @@ class _CompanyDetailsPageState extends State<CompanyDetailsPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
                Padding(
-                padding: EdgeInsets.only(left: 10.0, bottom: 10),
+                padding: const EdgeInsets.only(left: 10.0, bottom: 10),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
@@ -154,10 +153,10 @@ class _CompanyDetailsPageState extends State<CompanyDetailsPage> {
                         color: Colors.black,
                       ),
                     ),
-                    SizedBox(
+                    const SizedBox(
                       width: 18,
                     ),
-                    Text(
+                    const Text(
                       "Tech Mahindra",
                       style: TextStyle(fontSize: 22, fontFamily: "pop"),
                     ),
