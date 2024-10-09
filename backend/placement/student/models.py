@@ -52,6 +52,7 @@ class Student_details(models.Model):
     city = models.CharField(max_length=255,null=True)
     programming_skill = models.CharField(max_length=255)
     tech_skill = models.CharField(max_length=255)
+    phone_no=models.BigIntegerField(null=True)
     # experience = models.CharField(max_length=500,null=False,blank=True)
     # certification = ArrayField(models.CharField(max_length=255),blank=True,default=list)
     # city,prog-skill and tech-skill,experince,certification

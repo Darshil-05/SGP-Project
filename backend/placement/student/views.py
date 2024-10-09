@@ -34,17 +34,17 @@ class ExperienceList(generics.ListCreateAPIView):
 class ExperienceDetails(generics.RetrieveUpdateDestroyAPIView):
     queryset = Experience.objects.all()
     serializer_class = ExperienceSerializer
-      
+
 class ExportStudentData(APIView):
+    
     def get(self, request):
-        # Get all student details
-        students= Student_details.objects.all().values()
-        
+        # Get all student details with related fields
+        students = Student_details.objects.prefetch_related('certificates', 'experience').all()
+
+        # Prepare data for each student
         data = []
 
-        # Prepare lists for each section
         for student in students:
-            # Gather student info including related fields like certificates and experience
             student_info = {
                 'Student ID': student.id_no,
                 'First Name': student.first_name,
@@ -59,29 +59,70 @@ class ExportStudentData(APIView):
                 'Programming Skill': student.programming_skill,
                 'Tech Skill': student.tech_skill,
                 'Certificates': [
-                    {
-                        'Certificate': cert.name,
-                        'Platform': cert.platform
-                    } for cert in student.certificates.all()
+                    f"{cert.name} - {cert.platform}" for cert in student.certificates.all()
                 ],
                 'Experience': [
-                    {
-                        'Position': exp.role,
-                        'Organization': exp.organization
-                    } for exp in student.experience.all()
+                    f"{exp.role} at {exp.organization}" for exp in student.experience.all()
                 ]
             }
             data.append(student_info)
 
-        # Convert the QuerySet to a Pandas DataFrame
-        df = pd.DataFrame(students)
+        # Convert the list of student data into a Pandas DataFrame
+        df = pd.DataFrame(data)
 
         # Export DataFrame to Excel
         response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
         response['Content-Disposition'] = 'attachment; filename=students.xlsx'
         df.to_excel(response, index=False, engine='openpyxl')
         
-        return response
+        return response  
+# class ExportStudentData(APIView):
+#     def get(self, request):
+#         # Get all student details
+#         students= Student_details.objects.all().values()
+        
+#         data = []
+
+#         # Prepare lists for each section
+#         for student in students:
+#             # Gather student info including related fields like certificates and experience
+#             student_info = {
+#                 'Student ID': student['id_no'],
+#                 'First Name': student['first_name'],
+#                 'Last Name': student['last_name'],
+#                 'Birthdate': student['birthdate'],
+#                 'Institute': student['institute'],
+#                 'Department': student['department'],
+#                 'CGPA': student['cgpa'],
+#                 'Passing Year': student['passing_year'],
+#                 'Domains': student['domains'],
+#                 'City': student['city'],
+#                 'Programming Skill': student['programming_skill'],
+#                 'Tech Skill': student['tech_skill'],
+#                 'Certificates': [
+#                     {
+#                         'Certificate': cert['name'],
+#                         'Platform': cert['platform']
+#                     } for cert in student['certificates']
+#                 ],
+#                 'Experience': [
+#                     {
+#                         'Position': exp['role'],
+#                         'Organization': exp['organization']
+#                     } for exp in student.experience.all()
+#                 ]
+#             }
+#             data.append(student_info)
+
+#         # Convert the QuerySet to a Pandas DataFrame
+#         df = pd.DataFrame(students)
+
+#         # Export DataFrame to Excel
+#         response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+#         response['Content-Disposition'] = 'attachment; filename=students.xlsx'
+#         df.to_excel(response, index=False, engine='openpyxl')
+        
+#         return response
 
 
 # class ImportStudentData(APIView):

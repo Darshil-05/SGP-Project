@@ -49,7 +49,7 @@ class CompanyDetails(models.Model):
     skills = models.CharField(max_length=200,null=True)
     job_location = models.CharField(max_length=200)
     # job_salary = models.CharField(max_length=100,null=True)
-    job_type = models.CharField(max_length=20)
+    job_type = models.CharField(max_length=20 , null=True)
     min_package = models.BigIntegerField()
     max_package = models.BigIntegerField()
     # company_contact = models.CharField(max_length=15)
