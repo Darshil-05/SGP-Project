@@ -171,12 +171,12 @@ class SigninView(APIView):
             try:
                 user = Student_auth.objects.get(email=email)
                 if user.check_password(password):  # Use the method to verify hashed passwords
-                    refresh = RefreshToken.for_user(user)  # Generate JWT tokens
+                    # refresh = RefreshToken.for_user(user)  # Generate JWT tokens
                     return Response({
                         'status': 'success',
                         'message': 'User authenticated',
-                        'access': str(refresh.access_token),  # Access token
-                        'refresh': str(refresh),               # Refresh token
+                        # 'access': str(refresh.access_token),  # Access token
+                        # 'refresh': str(refresh),               # Refresh token
                     }, status=status.HTTP_200_OK)
                 else:
                     return Response({'status': 'failure', 'message': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
@@ -187,12 +187,12 @@ class SigninView(APIView):
             try:
                 user = Faculty_auth.objects.get(email=email)
                 if user.check_password(password):  # Use the method to verify hashed passwords
-                    refresh = RefreshToken.for_user(user)  # Generate JWT tokens
+                    # refresh = RefreshToken.for_user(user)  # Generate JWT tokens
                     return Response({
                         'status': 'success',
                         'message': 'User authenticated',
-                        'access': str(refresh.access_token),  # Access token
-                        'refresh': str(refresh),               # Refresh token
+                        # 'access': str(refresh.access_token),  # Access token
+                        # 'refresh': str(refresh),               # Refresh token
                     }, status=status.HTTP_200_OK)
                 else:
                     return Response({'status': 'failure', 'message': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
