@@ -25,7 +25,7 @@ class Student_auth(AbstractBaseUser):
     name = models.CharField(max_length=255)
     email = models.EmailField(unique=True)
     password = models.CharField(max_length=255)
-    last_login = models.DateTimeField(null=True, blank=True, default=timezone.now)
+    last_login = models.DateTimeField(null=True, blank=True)
 
     objects = StudentManager()
 
@@ -39,10 +39,10 @@ class Student_auth(AbstractBaseUser):
     
 class Student_details(models.Model):
    
-    # student_auth = models.OneToOneField(Student_auth, on_delete=models.CASCADE)    
-    id_no = models.CharField(max_length=15)
-    last_name = models.CharField(max_length=255)
+
+    id_no = models.CharField(max_length=15,unique=True)
     first_name = models.CharField(max_length=255)
+    last_name = models.CharField(max_length=255)
     birthdate = models.DateField()
     institute = models.CharField(max_length=255)
     department = models.CharField(max_length=255)
@@ -52,7 +52,7 @@ class Student_details(models.Model):
     city = models.CharField(max_length=255,null=True)
     programming_skill = models.CharField(max_length=255)
     tech_skill = models.CharField(max_length=255)
-    phone_no=models.BigIntegerField(null=True)
+    # phone_no=models.BigIntegerField(null=True)
     # experience = models.CharField(max_length=500,null=False,blank=True)
     # certification = ArrayField(models.CharField(max_length=255),blank=True,default=list)
     # city,prog-skill and tech-skill,experince,certification

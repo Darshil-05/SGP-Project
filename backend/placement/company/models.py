@@ -2,6 +2,7 @@ from django.db import models
 import re
 import phonenumbers
 from django.core.exceptions import ValidationError
+from student.models import Student_auth,Student_details
 
 
 # def validate_number(mobile_number):
@@ -23,7 +24,7 @@ from django.core.exceptions import ValidationError
 
 class CompanyDetails(models.Model):
     company_id = models.AutoField(primary_key=True)
-    comapny_name = models.CharField(max_length=255)
+    company_name = models.CharField(max_length=255)
     company_website = models.CharField(max_length=255,null=True)
     headquarters = models.CharField(max_length=255,null=True)
     industry = models.CharField(max_length=255,null=True)
@@ -80,19 +81,15 @@ class InterviewRound(models.Model):
     def __str__(self):
         return f"Round {self.round_number} for {self.company.company_name} - Status: {self.status}"
 
-# # class CompanyPlacementDrive(models.Model):
-# #     company = models.ForeignKey(CompanyDetails, on_delete=models.CASCADE)  # Relation
-# #     date = models.DateField()
-# #     recruiter_name = models.CharField(max_length=255)
-# #     recruiter_email = models.EmailField()
-# #     form_last_date = models.DateTimeField()
-# #     form_filled = models.IntegerField()
-# #     venue = models.CharField(max_length=255)
-# #     no_of_rounds = models.SmallIntegerField()
-# #     form_start_date = models.DateTimeField()
-# #     no_of_student = models.IntegerField()
 
-# #     def __str__(self):
-# #         return f"{self.company.comapny_name} - {self.date}"
+class CompanyRegistration(models.Model):
+    student = models.ForeignKey(Student_details, on_delete=models.CASCADE, related_name='company_registrations')
+    company = models.ForeignKey(CompanyDetails, on_delete=models.CASCADE, related_name='registered_students')
+    registration_date = models.DateField(auto_now_add=True)
 
+    class Meta:
+        unique_together = ('student', 'company')  # Ensures that a student can register only once per company
+
+    def __str__(self):
+        return f"{self.student.name} registered for {self.company.company_name}"
 

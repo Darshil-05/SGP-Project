@@ -116,6 +116,7 @@ class SignupView(APIView):
         if serializer.is_valid():
             # Generate OTP
             otp_code = generate_otp()
+            
 
             # Save OTP with user_type, name, and password in the OTP model
             OTP.objects.update_or_create(

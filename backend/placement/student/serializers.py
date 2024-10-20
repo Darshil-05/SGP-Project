@@ -27,7 +27,7 @@ class CertificateSerializer(serializers.ModelSerializer):
 
 class ExperienceSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Certificate
+        model = Experience
         fields = '__all__'
 
 class StudentDetailsSerializer(serializers.ModelSerializer):
