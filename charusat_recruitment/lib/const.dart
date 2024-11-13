@@ -1,28 +1,26 @@
-
-
 import 'package:flutter/material.dart';
 
-const String serverurl = 'http://192.168.48.209:8000/';
+const String serverurl = 'http://172.28.184.209:8000/';
 late String email;
-late String name;
+String name = "";
 late String password;
 late String studentid;
-late String dob;
-late String cgpa;
-late String city;
-late String domain;
-late String programmingskill;
-late String otherskill;
-late String institute;
-late String department;
-late String passingyear;
+String dob = " ";
+String cgpa = " ";
+String city = " ";
+String domain = " ";
+String programmingskill = " ";
+String otherskill = " ";
+String institute = " ";
+String department = " ";
+String passingyear = " ";
 // late final List<AnnouncementModel> announce ;
 void showErrorDialog(BuildContext context, String errorMessage) {
   showDialog(
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(
-        title:  Text('Error'),
+        title: Text('Error'),
         content: Text(errorMessage),
         actions: <Widget>[
           TextButton(

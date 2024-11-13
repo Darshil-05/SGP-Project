@@ -98,7 +98,7 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
           String responseBody = await response.stream.bytesToString();
           debugPrint('Submission successful: $responseBody');
           studentid = _studentIdController.text;
-          name = _lastnameController.text + _firstnameController.text;
+          name = "${_lastnameController.text} ${_firstnameController.text}";
           dob = _dobController.text;
           institute = _selectedInstitute!;
           department = _selectedDepartment!;

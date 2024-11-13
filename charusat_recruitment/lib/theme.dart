@@ -3,6 +3,10 @@ import 'package:flutter/material.dart';
 class ThemeManager {
   static ThemeData lightmode = ThemeData(
     brightness: Brightness.light,
+    colorScheme: const ColorScheme.light(
+            primary:  Color(0xff0f1d2c), // Line and active circle color
+            onSurface: Colors.grey,       // Inactive circle and line color
+          ),
     primaryColor: const Color(0xff0f1d2c),
     textTheme: const TextTheme(
       bodyLarge: TextStyle(fontFamily: "regularfont", color: Colors.black),

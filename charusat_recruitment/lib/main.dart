@@ -1,4 +1,5 @@
 import 'package:charusat_recruitment/Providers/announcement_provider.dart';
+import 'package:charusat_recruitment/Providers/company_provider.dart';
 import 'package:charusat_recruitment/screens/home.dart';
 import 'package:charusat_recruitment/screens/screens_after_auth/announcement_manage.dart';
 import 'package:charusat_recruitment/screens/screens_after_auth/company/company_details.dart';
@@ -48,7 +49,7 @@ class MyApp extends StatelessWidget {
               '/register': (context) => const RegisterPage(),
               '/forgot': (context) => const ForgotPage(),
               '/otp': (context) => const OtpPage(),
-              '/companydetails': (context) => CompanyDetailsPage(),
+              '/companydetails': (context) => const CompanyDetailsPage(),
               '/announcement': (context) => const AnnouncementManagement(),
               '/companymanager': (context) => const CompanyManager(),
             },

@@ -132,7 +132,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     backgroundColor: const Color.fromARGB(255, 49, 62, 99),
                     radius: 50,
                     child: Text(
-                      name[0],
+                      name.isNotEmpty ? name[0] : '',  
                       style: const TextStyle(color: Colors.white, fontSize: 18),
                     ),
                   ),
@@ -146,9 +146,9 @@ class _ProfilePageState extends State<ProfilePage> {
                   const SizedBox(
                     height: 8,
                   ),
-                  const Text(
-                    "ID : 22IT092",
-                    style: TextStyle(fontSize: 18),
+                  Text(
+                    "ID : ${studentid.toUpperCase()}",
+                    style: const TextStyle(fontSize: 18),
                   ),
                   const SizedBox(
                     height: 8,
@@ -172,7 +172,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   buildDetailItem(Icons.person_2_rounded, 'Name',
                       name),
                   buildDetailItem(
-                      Icons.assignment_ind_rounded, 'ID Number', studentid),
+                      Icons.assignment_ind_rounded, 'ID Number', studentid.toUpperCase()),
                   buildDetailItem(Icons.phone, 'Phone', '9876543210'),
                   buildDetailItem(
                       Icons.email, 'Email', email),

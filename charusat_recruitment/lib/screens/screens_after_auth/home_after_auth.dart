@@ -28,7 +28,7 @@ class _HomeAppState extends State<HomeApp> {
     try {
       // Send the request and wait for the response
       http.StreamedResponse streamedResponse =
-          await request.send().timeout(Duration(seconds: 10));
+          await request.send().timeout(const Duration(seconds: 10));
 
       // Convert streamed response to regular response
       final response = await http.Response.fromStream(streamedResponse);

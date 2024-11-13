@@ -87,7 +87,7 @@ class _RegisterPageState extends State<RegisterPage> {
       request.headers.addAll(headers);
 
       // Send the request and handle the streamed response
-      http.StreamedResponse response = await request.send().timeout(const Duration(seconds: 10));
+      http.StreamedResponse response = await request.send().timeout(const Duration(seconds: 15));
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         // Handle successful response

@@ -1,6 +1,9 @@
+import 'dart:convert';
+
+import 'package:charusat_recruitment/const.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'loginheader.dart';
+import 'package:http/http.dart' as http;
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -14,15 +17,95 @@ class _LoginPageState extends State<LoginPage> {
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
-  void _login() {
+Future<void> studentDetails(String studentId) async {
 
-    if (_formKey.currentState?.validate() ?? false) {
-      // Perform login logic
-      debugPrint('Login successful');
+  var request = http.Request('GET', Uri.parse('$serverurl/student/students/'));
+
+  http.StreamedResponse response = await request.send();
+
+  if (response.statusCode == 200) {
+    // Step 2: Parse the response
+    String responseBody = await response.stream.bytesToString();
+    List<dynamic> jsonData = json.decode(responseBody);
+  // debugPrint(jsonData.toString());
+    // Step 3: Search for student by id and initialize variables
+    for (var student in jsonData) {
+      debugPrint(student['id_no'].toString().toLowerCase());
+      if (student['id_no'].toString().toLowerCase() == studentId.toLowerCase()) {
+        debugPrint("here");
+        name = student['first_name'] + " " + student ['last_name'] ?? " ";
+        dob = student['birthdate'] ?? '';
+        cgpa = student['cgpa'].toString();
+        city = student['city'] ?? '';
+        domain = student['domains'] ?? '';
+        programmingskill = student['programming_skill'] ?? '';
+        otherskill = student['tech_skill'] ?? '';
+        institute = student['institute'] ?? '';
+        department = student['department'] ?? '';
+        passingyear = student['passing_year'].toString();
+        print("Data initialized for student ID: $studentId");
+        return; // Exit the function once data is found and initialized
+      }
+    }
+    print("Student ID not found.");
+  } else {
+    print("Failed to fetch data: ${response.reasonPhrase}");
+  }
+}
+String extractStudentID(String email) {
+  
+  if (email.contains('@')) {
+    return email.split('@')[0]; 
+  } else {
+    return 'Invalid email';
+  }
+}
+  void _login() async {
+  if (_formKey.currentState?.validate() ?? false) {
+   
+    final String password = _passwordController.text;  // Assuming you have a TextEditingController for password
+    email = _emailController.text ;
+    // Set up the API request
+    var headers = {
+      'Content-Type': 'application/json'
+    };
+    var request = http.Request(
+      'POST', 
+      Uri.parse('$serverurl/user/signin/')
+    );
+    
+    request.body = json.encode({
+      "email":  _emailController.text,
+      "password": password
+    });
+    
+    request.headers.addAll(headers);
+
+    // Send the request and handle the response
+    http.StreamedResponse response = await request.send();
+      debugPrint("Started Login nn process");
 
 
+    if (response.statusCode == 200) {
+      var responseBody = await response.stream.bytesToString();
+      debugPrint('Login successful: $responseBody');
+
+      studentid = extractStudentID(email);
+
+
+ await studentDetails(studentid);
+
+
+
+
+       if (mounted) {
+            Navigator.of(context).popAndPushNamed('/home');
+          }
+    } else {
+      debugPrint('Login failed: ${response.reasonPhrase}');
     }
   }
+}
 
   String? _validateEmail(String? value) {
     if (value == null || value.isEmpty) {

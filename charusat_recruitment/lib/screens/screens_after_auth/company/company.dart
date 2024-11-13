@@ -1,6 +1,10 @@
+import 'dart:convert';
+
+import 'package:charusat_recruitment/const.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:http/http.dart' as http;
 
 class CompanyPage extends StatefulWidget {
   const CompanyPage({super.key});
@@ -54,28 +58,33 @@ class _CompanyPageState extends State<CompanyPage> {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: GestureDetector(
-        onTap: (){
-           Navigator.of(context).pushNamed('/companydetails');
+        onTap: () {
+          Navigator.of(context).pushNamed('/companydetails');
         },
         child: Column(
           children: companies.map((company) {
             return Column(
               children: [
-                 ClipRRect(
-                    clipBehavior: Clip.hardEdge,
-                  borderRadius: const BorderRadius.only(topLeft: Radius.circular(5) , topRight: Radius.circular(5)),
-                    child: Image.network(
-                      company['image']!,
-                      height: 150,
-                      width: MediaQuery.sizeOf(context).width,
-                      fit: BoxFit.cover,alignment: Alignment.centerLeft,
-                    ),
+                ClipRRect(
+                  clipBehavior: Clip.hardEdge,
+                  borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(5),
+                      topRight: Radius.circular(5)),
+                  child: Image.network(
+                    company['image']!,
+                    height: 150,
+                    width: MediaQuery.sizeOf(context).width,
+                    fit: BoxFit.cover,
+                    alignment: Alignment.centerLeft,
                   ),
+                ),
                 Card(
                   color: Colors.white70,
                   margin: const EdgeInsets.only(bottom: 15),
                   shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.only(bottomLeft: Radius.circular(5) , bottomRight: Radius.circular(5)),
+                    borderRadius: BorderRadius.only(
+                        bottomLeft: Radius.circular(5),
+                        bottomRight: Radius.circular(5)),
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(15.0),
@@ -103,13 +112,15 @@ class _CompanyPageState extends State<CompanyPage> {
                                       size: 14, color: Colors.black),
                                   const SizedBox(width: 5),
                                   Text(company['date']!,
-                                      style: const TextStyle(color: Colors.black)),
+                                      style:
+                                          const TextStyle(color: Colors.black)),
                                   const SizedBox(width: 10),
                                   const Icon(Icons.location_on,
                                       size: 14, color: Colors.black),
                                   const SizedBox(width: 5),
                                   Text(company['location']!,
-                                      style: const TextStyle(color: Colors.black)),
+                                      style:
+                                          const TextStyle(color: Colors.black)),
                                 ],
                               ),
                               const SizedBox(height: 5),
@@ -136,35 +147,93 @@ class _CompanyPageState extends State<CompanyPage> {
     );
   }
 
+  void getcompanies() async {
+    var request =
+        http.Request('GET', Uri.parse('$serverurl/company/companies/'));
+    request.body = '''''';
+
+    http.StreamedResponse response = await request.send();
+    String responseBody = await response.stream.bytesToString();
+    List<dynamic> jsonData = json.decode(responseBody);
+
+    for (var company in jsonData) {
+      String companyDateStr = company['date_placementdrive'].toString();
+      DateTime companyDate = DateTime.parse(companyDateStr);
+      DateTime currentDate = DateTime.now();
+
+      Map<String, String> companyDetails = {
+        'name': company['comapny_name'].toString(),
+        'date': companyDateStr,
+        'location': company['headquarters'].toString(),
+        'description': company['details'].toString(),
+        'image':
+            'https://i.pinimg.com/736x/c4/70/80/c4708087930bd454d3013335c3eadf24.jpg'
+      };
+
+      if (companyDate.isAfter(currentDate)) {
+        upcomingCompanies.add(companyDetails);
+      } else {
+        recentCompanies.add(companyDetails);
+      }
+    }
+
+    if (response.statusCode == 200) {
+      print('Data fetched successfully');
+      setState(() {});
+    } else {
+      print(response.reasonPhrase);
+    }
+  }
+
+  @override
+  void initState() {
+    getcompanies();
+    // TODO: implement initState
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SingleChildScrollView(
-        padding: EdgeInsets.only(
-          top: MediaQuery.of(context).padding.top + 25,
-          bottom: MediaQuery.of(context).padding.bottom,
-        ),
-        physics: const BouncingScrollPhysics(),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Padding(
-              padding: EdgeInsets.only(left: 80.0),
-              child: Text(
-                "Companies",
-                style: TextStyle(fontSize: 25, fontFamily: "pop"),
+      body: RefreshIndicator.adaptive(
+        edgeOffset: 20,
+        color: Color(0xff0f1d2c),
+        backgroundColor: Colors.white,
+        onRefresh: () {
+          getcompanies();
+          return Future.delayed(const Duration(seconds: 2), () {
+            print("Compines refreshed");
+          });
+        },
+        child: SingleChildScrollView(
+          padding: EdgeInsets.only(
+            top: MediaQuery.of(context).padding.top + 25,
+            bottom: MediaQuery.of(context).padding.bottom,
+          ),
+          physics: const BouncingScrollPhysics(),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Padding(
+                padding: EdgeInsets.only(left: 80.0),
+                child: Text(
+                  "Companies",
+                  style: TextStyle(fontSize: 25, fontFamily: "pop"),
+                ),
               ),
-            ),
-            const SizedBox(height: 20),
-             Padding(
-              padding: const EdgeInsets.only(left: 20.0),
-              child: Row(
-                children: [
-                  const Text(
-                    "Upcomming",
-                    style: TextStyle(fontSize: 20, fontFamily: "pop"),
-                  ),
-                  InkWell(
+              const SizedBox(height: 20),
+              Padding(
+                padding: const EdgeInsets.only(left: 20.0),
+                child: Row(
+                  children: [
+                    const Text(
+                      "Upcomming",
+                      style: TextStyle(fontSize: 20, fontFamily: "pop"),
+                    ),
+                    const SizedBox(
+                      width: 15,
+                    ),
+                    InkWell(
                       onTap: () {
                         Navigator.of(context).pushNamed('/companymanager');
                       },
@@ -180,21 +249,22 @@ class _CompanyPageState extends State<CompanyPage> {
                         ),
                       ),
                     )
-                ],
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 10),
-            _buildCompanyList(upcomingCompanies),
-            const SizedBox(height: 10),
-            const Padding(
-              padding: EdgeInsets.only(left: 20.0),
-              child: Text(
-                "Recent",
-                style: TextStyle(fontSize: 20, fontFamily: "pop"),
+              const SizedBox(height: 10),
+              _buildCompanyList(upcomingCompanies),
+              const SizedBox(height: 10),
+              const Padding(
+                padding: EdgeInsets.only(left: 20.0),
+                child: Text(
+                  "Recent",
+                  style: TextStyle(fontSize: 20, fontFamily: "pop"),
+                ),
               ),
-            ),
-            _buildCompanyList(recentCompanies),
-          ],
+              _buildCompanyList(recentCompanies),
+            ],
+          ),
         ),
       ),
     );

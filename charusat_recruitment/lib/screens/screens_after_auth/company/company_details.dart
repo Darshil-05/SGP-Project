@@ -14,7 +14,7 @@ class _CompanyDetailsPageState extends State<CompanyDetailsPage> {
     "Form Open",
     "Aptitude Started",
   ];
-
+  int _currentStep = 2;
   bool detailsVisible = false;
   bool jobDetailsVisible = false;
   bool selectionProcessVisible = false;
@@ -22,6 +22,34 @@ class _CompanyDetailsPageState extends State<CompanyDetailsPage> {
   bool timelineVisible = false;
   bool contactVisible = false;
   bool additionalInfoVisible = false;
+  List<Step> _buildSteps() {
+    return [
+      Step(
+        title: Text('Applied'),
+        content: Text('You applied on 27 September 2024.'),
+        isActive: _currentStep >= 0,
+        state: _currentStep > 0 ? StepState.complete : StepState.indexed,
+      ),
+      Step(
+        title: Text('Round 1: Technical Interview'),
+        content: Text('Technical interview is ongoing.'),
+        isActive: _currentStep >= 1,
+        state: _currentStep > 1 ? StepState.complete : StepState.indexed,
+      ),
+      Step(
+        title: Text('Round 2: HR Interview'),
+        content: Text('HR interview will take place on 30 September 2024.'),
+        isActive: _currentStep >= 2,
+        state: _currentStep > 2 ? StepState.complete : StepState.indexed,
+      ),
+      Step(
+        title: Text('Final List'),
+        content: Text('Final offer will be sent on 1 October 2024.'),
+        isActive: _currentStep >= 3,
+        state: _currentStep == 3 ? StepState.complete : StepState.indexed,
+      ),
+    ];
+  }
 
   Widget buildDetailItem(IconData icon, String title, String value) {
     return Padding(
@@ -139,14 +167,14 @@ class _CompanyDetailsPageState extends State<CompanyDetailsPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-               Padding(
+              Padding(
                 padding: const EdgeInsets.only(left: 10.0, bottom: 10),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     GestureDetector(
                       onTap: () {
-                         Navigator.of(context).pop();
+                        Navigator.of(context).pop();
                       },
                       child: const Icon(
                         Icons.arrow_back_ios_new_rounded,
@@ -367,52 +395,21 @@ class _CompanyDetailsPageState extends State<CompanyDetailsPage> {
                           ),
                         ),
                         // Dynamic Company Status List
-                        ListView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: statuses.length,
-                          itemBuilder: (context, index) {
-                            return _buildStatusTile(index + 1, statuses[index]);
+                        Stepper(
+                          currentStep: _currentStep,
+                          onStepTapped: (step) => setState(() {
+                            _currentStep = step;
+                          }),
+                          controlsBuilder: (context, ControlsDetails details) {
+                            return Container(); // Hide next/previous buttons
                           },
+                          steps: _buildSteps(),
                         ),
                       ],
                     ),
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  // Widget to build each status tile with a number and status description
-  Widget _buildStatusTile(int number, String status) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        children: [
-          // Circle with number inside
-          CircleAvatar(
-            backgroundColor: const Color(0xff0f1d2c),
-            radius: 20,
-            child: Text(
-              '$number',
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-          const SizedBox(width: 10),
-
-          // Status text
-          Text(
-            status,
-            style: const TextStyle(
-              fontSize: 16,
-              color: Color(0xff0f1d2c),
-            ),
-          ),
-        ],
       ),
     );
   }
