@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CompanyDetails,InterviewRound,CompanyRegistration
+from .models import CompanyDetails,InterviewRound,CompanyRegistration,CompanyApplications
 from student.models import Student_details
 
 class CompanyDetailsSerializer(serializers.ModelSerializer):
@@ -19,7 +19,7 @@ class CompanyDetailsSerializer(serializers.ModelSerializer):
 
 class InterviewRoundSerializer(serializers.Serializer):
     company_name = serializers.CharField()  # Input for company name
-    round_number = serializers.IntegerField()  # Input for round number
+    round_name = serializers.IntegerField()  # Input for round number
     status = serializers.ChoiceField(choices=InterviewRound.ROUND_STATUS_CHOICES)  # Input for status
 
     def validate_company_name(self, value):
@@ -33,7 +33,7 @@ class InterviewRoundSerializer(serializers.Serializer):
         company = CompanyDetails.objects.get(company_name__iexact=validated_data['company_name'])
         return InterviewRound.objects.create(
             company=company,
-            round_number=validated_data['round_number'],
+            round_name=validated_data['round_name'],
             status=validated_data['status']
         )
 
@@ -41,52 +41,36 @@ class InterviewRoundSerializer(serializers.Serializer):
         """Format the output as desired."""
         return {
             "company_name": instance.company.company_name,
-            "round_number": instance.round_number,
+            "round_name": instance.round_name,
             "status": instance.status,
         }
-
-# class InterviewRoundSerializer(serializers.ModelSerializer):
-#     company_name = serializers.CharField(write_only=True)  # Accept company name as input
-#     round_number = serializers.IntegerField()  # Accept round number as input
-#     status = serializers.ChoiceField(choices=InterviewRound.ROUND_STATUS_CHOICES)  # Accept status as input
     
-#     # Fields to return in the response
-#     output_company_name = serializers.CharField(source='company.company_name', read_only=True)  # Fetch company name for output
+from rest_framework import serializers
+from .models import StudentInterviewProgress, InterviewRound
 
-#     class Meta:
-#         model = InterviewRound
-#         fields = ['company_name', 'round_number', 'status', 'output_company_name']
-#         extra_kwargs = {
-#             'output_company_name': {'read_only': True}  # Company name is read-only in the response
-#         }
+class StudentProgressSerializer(serializers.ModelSerializer):
+    student_name = serializers.CharField(source="student.name", read_only=True)
+    company_name = serializers.CharField(source="company.company_name", read_only=True)
+    round_name = serializers.CharField(source="round.round_name", read_only=True)
 
-#     def create(self, validated_data):
-#         company_name = validated_data.pop('company_name')  # Get the company name from input
+    class Meta:
+        model = StudentInterviewProgress
+        fields = ['id', 'student', 'student_name', 'company', 'company_name', 'round', 'round_name', 'is_passed', 'is_present']
+
         
-#         # Fetch the company based on the provided name
-#         try:
-#             company = CompanyDetails.objects.get(company_name=company_name)  # Ensure to use correct field name
-#         except CompanyDetails.DoesNotExist:
-#             raise serializers.ValidationError({"company_name": "Company with this name does not exist."})
+class InterviewRoundSerializer(serializers.ModelSerializer):
+    company_name = serializers.CharField(source='company.company_name', read_only=True)  # Read-only for display
+    company = serializers.PrimaryKeyRelatedField(queryset=CompanyDetails.objects.all())  # Select company by ID
 
-#         # Create the InterviewRound instance
-#         interview_round = InterviewRound.objects.create(company=company, **validated_data)
-#         return interview_round
-
-# class CompanyRegistrationSerializer(serializers.ModelSerializer):
-#     student_name = serializers.CharField(source='student.first_name', read_only=True)  # Get student first name
-#     student_id = serializers.CharField(source='student.id_no', read_only=True)  # Get student ID (id_no)
-#     company_name = serializers.CharField(source='company.comapny_name', read_only=True)  # Get company name
-
-#     class Meta:
-#         model = CompanyRegistration
-#         fields = ['student_name', 'student_id','company_name', 'registration_date']
+    class Meta:
+        model = InterviewRound
+        fields = ['company', 'company_name', 'round_name', 'status']
 
 class CompanyRegistrationSerializer(serializers.ModelSerializer):
     # Fields to display in the response
     student_name = serializers.CharField(source='student.first_name', read_only=True)  # Get student first name
     student_id = serializers.CharField(source='student.id_no', read_only=True)  # Get student ID (id_no)
-    company_name = serializers.CharField(source='company.comapny_name', read_only=True)  # Get company name
+    company_name = serializers.CharField(source='company.company_name', read_only=True)  # Get company name
 
     # Fields to accept from the request
     input_student_id = serializers.CharField(write_only=True)  # Accept student_id from request
@@ -111,7 +95,7 @@ class CompanyRegistrationSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"student_id": "Student with this ID does not exist."})
 
         try:
-            company = CompanyDetails.objects.get(comapny_name=company_name)
+            company = CompanyDetails.objects.get(company_name=company_name)
         except CompanyDetails.DoesNotExist:
             raise serializers.ValidationError({"company_name": "Company with this name does not exist."})
 
@@ -124,3 +108,29 @@ class CompanyRegistrationSerializer(serializers.ModelSerializer):
         representation = super().to_representation(instance)
         representation['company_name'] = instance.company.company_name  # Ensure company_name is included
         return representation
+    
+class ApplyForCompanySerializer(serializers.Serializer):
+    student_id = serializers.CharField()  # Changed to CharField to match `student_unique_id`
+    company_id = serializers.IntegerField()
+
+    def validate(self, data):
+        student_id = data.get('student_id')
+        company_id = data.get('company_id')
+
+        # Validate student existence
+        try:
+            data['student'] = Student_details.objects.get(id_no=student_id)  # Use `id_no` to find the student
+        except Student_details.DoesNotExist:
+            raise serializers.ValidationError({"student_id": "Student not found."})
+
+        # Validate company existence
+        try:
+            data['company'] = CompanyDetails.objects.get(company_id=company_id)
+        except CompanyDetails.DoesNotExist:
+            raise serializers.ValidationError({"company_id": "Company not found."})
+
+        # Check if student already applied
+        if CompanyApplications.objects.filter(student=data['student'], company=data['company']).exists():
+            raise serializers.ValidationError("Student has already applied to this company.")
+
+        return data

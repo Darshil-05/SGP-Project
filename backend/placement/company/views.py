@@ -3,11 +3,12 @@
 from rest_framework import viewsets
 from rest_framework.exceptions import NotFound
 from rest_framework import generics
-from .models import CompanyDetails,InterviewRound,CompanyRegistration
-from .serializers import CompanyDetailsSerializer,InterviewRoundSerializer,CompanyRegistrationSerializer
+from .models import CompanyDetails,InterviewRound,CompanyRegistration,StudentInterviewProgress
+from .serializers import CompanyDetailsSerializer,InterviewRoundSerializer,CompanyRegistrationSerializer,StudentInterviewProgress,ApplyForCompanySerializer,StudentProgressSerializer
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import serializers
+from rest_framework.views import APIView
 
 
 class CompanyDetailsList(generics.ListCreateAPIView):
@@ -70,7 +71,85 @@ class RegisteredStudentsByCompanyList(generics.ListAPIView):
 
         return CompanyRegistration.objects.filter(company=company)
 
-# class CompanyPlacementDriveViewSet(viewsets.ModelViewSet):
-#     queryset = CompanyPlacementDrive.objects.all()
-#     serializer_class = CompanyPlacementDriveSerializer
 
+from rest_framework.generics import ListAPIView, UpdateAPIView
+
+class RetrieveEligibleStudentsView(ListAPIView):
+    serializer_class = StudentProgressSerializer
+
+    def get_queryset(self):
+     company_id = self.request.query_params.get('company_id', None)
+     round_id = self.request.query_params.get('round_id', None)
+
+     if not company_id or not round_id:
+        return StudentInterviewProgress.objects.none()  # Return empty if params are missing
+
+     round_id = int(round_id)
+
+     if round_id == 1:
+        # Get students from CompanyRegistration for the first round
+        registered_students = CompanyRegistration.objects.filter(company_id=company_id).values_list('student_id', flat=True)
+
+        return StudentInterviewProgress.objects.filter(
+            company_id=company_id,
+            student_id__in=registered_students
+        )
+
+    # Other Rounds: Only students who passed the previous round
+     previous_round_id = round_id - 1
+     passed_students = StudentInterviewProgress.objects.filter(
+        company_id=company_id,
+        round_id=previous_round_id,
+        is_passed=True
+     ).values_list('student_id', flat=True)
+
+     return StudentInterviewProgress.objects.filter(
+        company_id=company_id,
+        round_id=round_id,
+        student_id__in=passed_students
+     )
+
+        
+class UpdateStudentInterviewProgressView(UpdateAPIView):
+    queryset = StudentInterviewProgress.objects.all()
+    serializer_class = StudentProgressSerializer
+
+    def put(self, request, *args, **kwargs):
+        instance = self.get_object()
+        is_present = request.data.get("is_present", instance.is_present)
+        is_passed = request.data.get("is_passed", instance.is_passed)
+
+        instance.is_present = is_present
+        instance.is_passed = is_passed
+        instance.save()
+
+        return Response({"message": "Attendance and pass status updated successfully."}, status=status.HTTP_200_OK)
+
+
+# class ApplyForCompanyView(APIView):
+#     def post(self, request):
+#         serializer = ApplyForCompanySerializer(data=request.data)
+
+#         if serializer.is_valid():
+#             # Extract validated data
+#             student = serializer.validated_data['student']
+#             company = serializer.validated_data['company']
+
+#             # Create the application
+#             application = CompanyApplications.objects.create(
+#                 student=student,
+#                 company=company,
+#                 student_unique_id=student.id_no,  # Save the student's unique ID
+#                 company_name=company.company_name,  # Save the company's name
+#                 first_name=student.first_name,
+#                 last_name=student.last_name
+#             )
+
+#             # Return success response with additional details
+#             return Response({
+#                 "message": "Application successful!",
+#                 "student_id": application.student_id,
+#                 "company_name": application.company_name
+#             }, status=status.HTTP_201_CREATED)
+        
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

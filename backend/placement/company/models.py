@@ -2,25 +2,9 @@ from django.db import models
 import re
 import phonenumbers
 from django.core.exceptions import ValidationError
-from student.models import Student_auth,Student_details
-
-
-# def validate_number(mobile_number):
-#     """Validator for international mobile numbers."""
-#     try:
-#         # Parse the phone number with a default region (you can set it to 'IN' for India or use dynamic country code)
-#         parsed_number = phonenumbers.parse(phone_number, None)
-        
-#         # Check if the number is valid
-#         if not phonenumbers.is_valid_number(parsed_number):
-#             raise ValidationError(f"{phone_number} is not a valid mobile number.")
-        
-#         # Optionally, you can check if the number is a mobile number specifically
-#         if not phonenumbers.is_valid_number_for_region(parsed_number, 'IN'):
-#             raise ValidationError(f"{phone_number} is not a valid mobile number for the specified region.")
-        
-#     except phonenumbers.NumberParseException:
-#         raise ValidationError(f"{phone_number} is not a valid mobile number format.")
+from student.models import Student_details
+from django.db import models
+from django.utils.timezone import now
 
 class CompanyDetails(models.Model):
     company_id = models.AutoField(primary_key=True)
@@ -53,12 +37,11 @@ class CompanyDetails(models.Model):
     job_type = models.CharField(max_length=20 , null=True)
     min_package = models.BigIntegerField()
     max_package = models.BigIntegerField()
-    # company_contact = models.CharField(max_length=15)
-    # company_contact = models.CharField(max_length=15)
+  
 
 
     def __str__(self):
-        return self.comapny_name 
+        return self.company_name 
 
 
 
@@ -67,29 +50,70 @@ class InterviewRound(models.Model):
         ('pending', 'Pending'),
         ('completed', 'Completed'),
         ('running', 'Running'),
-        
     ]
 
     company = models.ForeignKey(CompanyDetails, related_name='interview_rounds', on_delete=models.CASCADE)
-    round_number = models.PositiveIntegerField()
+    round_name = models.CharField(max_length=255)  # Changed from round_number to round_name
     status = models.CharField(max_length=10, choices=ROUND_STATUS_CHOICES, default='pending')
-    # scheduled_date = models.DateField(null=True, blank=True)
 
     class Meta:
-        unique_together = ('company', 'round_number')  # Ensure a company can't have the same round number multiple times
+        unique_together = ('company', 'round_name')  # Ensure unique round names per company
 
     def __str__(self):
-        return f"Round {self.round_number} for {self.company.company_name} - Status: {self.status}"
+        return f"{self.round_name} for {self.company.company_name} - Status: {self.status}"
+
 
 
 class CompanyRegistration(models.Model):
     student = models.ForeignKey(Student_details, on_delete=models.CASCADE, related_name='company_registrations')
+    student_id_no = models.CharField(max_length=15)  # Store student ID explicitly
     company = models.ForeignKey(CompanyDetails, on_delete=models.CASCADE, related_name='registered_students')
+    company_name = models.CharField(max_length=255)  # Store company name explicitly
     registration_date = models.DateField(auto_now_add=True)
 
+
+    
     class Meta:
         unique_together = ('student', 'company')  # Ensures that a student can register only once per company
 
+    def save(self, *args, **kwargs):
+        """ Override save method to auto-populate student_id_no and company_name """
+        if not self.student_id_no:
+            self.student_id_no = self.student.id_no
+        if not self.company_name:
+            self.company_name = self.company.company_name
+        super().save(*args, **kwargs)
+
+
     def __str__(self):
-        return f"{self.student.name} registered for {self.company.company_name}"
+        return f"Student ID: {self.student_id_no} registered for {self.company_name}"
+
+
+class StudentInterviewProgress(models.Model):
+    student = models.ForeignKey(Student_details, on_delete=models.CASCADE, related_name='interview_progress')
+    company = models.ForeignKey(CompanyDetails, on_delete=models.CASCADE, related_name='student_progress')
+    round = models.ForeignKey(InterviewRound, on_delete=models.CASCADE, related_name='student_progress')
+    is_passed = models.BooleanField(default=False)
+    is_present = models.BooleanField(default=False)
+    date_updated = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('student', 'company', 'round')  # Ensure unique records per student per round
+
+    def __str__(self):
+        return f"{self.student.student_id} - {self.company.company_name} - Round {self.round.round_name}"
+
+
+class CompanyApplications(models.Model):
+    student = models.ForeignKey(Student_details, on_delete=models.CASCADE, related_name='applications')
+    company = models.ForeignKey(CompanyDetails, on_delete=models.CASCADE, related_name='applications')
+    student_unique_id = models.CharField(max_length=15)   # Store the student's unique ID
+    company_name = models.CharField(max_length=255)  # Store the company's name
+    first_name = models.CharField(max_length=255)
+    last_name = models.CharField(max_length=255)
+    applied_date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Student {self.student_id} applied to {self.company_name}"
+
 
