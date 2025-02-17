@@ -87,6 +87,35 @@ class CompanyRegistration(models.Model):
 
     def __str__(self):
         return f"Student ID: {self.student_id_no} registered for {self.company_name}"
+    
+class sortlisted(models.Model):
+    student = models.ForeignKey(Student_details, on_delete=models.CASCADE, related_name='sortlisted_registrations')
+    student_id_no = models.CharField(max_length=15)  # Store student ID explicitly
+    company = models.ForeignKey(CompanyDetails, on_delete=models.CASCADE, related_name='sortlisted_students')
+    company_name = models.CharField(max_length=255)  # Store company name explicitly
+    registration_date = models.DateField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('student', 'company')  # Ensures that a student can register only once per company
+
+    def save(self, *args, **kwargs):
+        """ Override save method to auto-populate student_id_no and company_name """
+        if not self.student_id_no:
+            self.student_id_no = self.student.id_no
+        if not self.company_name:
+            self.company_name = self.company.company_name
+        super().save(*args, **kwargs)
+    
+        if not sortlisted.objects.filter(student=self.student, company=self.company).exists():
+            sortlisted.objects.create(
+                student=self.student,
+                student_id_no=self.student_id_no,
+                company=self.company,
+                company_name=self.company_name
+            )
+
+    def __str__(self):
+        return f"Student ID: {self.student_id_no} registered for {self.company_name}"
 
 
 class StudentInterviewProgress(models.Model):

@@ -74,11 +74,11 @@ class CompanyRegistrationSerializer(serializers.ModelSerializer):
 
     # Fields to accept from the request
     input_student_id = serializers.CharField(write_only=True)  # Accept student_id from request
-    input_company_name = serializers.CharField(write_only=True)  # Accept company name from request
+    input_company_id = serializers.CharField(write_only=True)  # Accept company name from request
 
     class Meta:
         model = CompanyRegistration
-        fields = ['student_name', 'student_id', 'company_name', 'registration_date', 'input_student_id', 'input_company_name']
+        fields = ['student_name', 'student_id', 'company_name', 'registration_date', 'input_student_id', 'input_company_id']
         extra_kwargs = {
             'registration_date': {'read_only': True}  # Registration date should be automatically set
         }
@@ -86,7 +86,7 @@ class CompanyRegistrationSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         # Extract student_id and company_name from validated data
         student_id = validated_data.pop('input_student_id')
-        company_name = validated_data.pop('input_company_name')
+        company_id = validated_data.pop('input_company_id')
 
         # Fetch the student and company based on the provided values
         try:
@@ -95,9 +95,9 @@ class CompanyRegistrationSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"student_id": "Student with this ID does not exist."})
 
         try:
-            company = CompanyDetails.objects.get(company_name=company_name)
+            company = CompanyDetails.objects.get(company_id=company_id)
         except CompanyDetails.DoesNotExist:
-            raise serializers.ValidationError({"company_name": "Company with this name does not exist."})
+            raise serializers.ValidationError({"company_id": "Company with this name does not exist."})
 
         # Create the CompanyRegistration instance
         registration = CompanyRegistration.objects.create(student=student, company=company, **validated_data)

@@ -44,6 +44,15 @@ class CompanyRegistrationListCreate(generics.ListCreateAPIView):
     queryset = CompanyRegistration.objects.all()
     serializer_class = CompanyRegistrationSerializer
 
+    def get_queryset(self):
+        queryset = CompanyRegistration.objects.all()
+        company_id = self.request.query_params.get('company_id')
+
+        if company_id:
+            queryset = queryset.filter(company__company_id=company_id)
+
+        return queryset
+
 class InterviewRoundByCompanyList(generics.ListAPIView):
     serializer_class = InterviewRoundSerializer
 
@@ -57,7 +66,7 @@ class InterviewRoundByCompanyList(generics.ListAPIView):
 
         # Return all interview rounds for the specified company
         return InterviewRound.objects.filter(company=company)
-    
+   
 
 class RegisteredStudentsByCompanyList(generics.ListAPIView):
     serializer_class = CompanyRegistrationSerializer
