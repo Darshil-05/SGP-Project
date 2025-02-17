@@ -117,3 +117,4 @@ class CompanyApplications(models.Model):
         return f"Student {self.student_id} applied to {self.company_name}"
 
 
+
