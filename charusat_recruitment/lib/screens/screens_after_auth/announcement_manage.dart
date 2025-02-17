@@ -161,20 +161,20 @@ class _AnnouncementManagementState extends State<AnnouncementManagement> {
                     },
                   ),
                   const SizedBox(height: 20),
-
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   ),
                   const SizedBox(height: 20),
-
                   ElevatedButton(
                     onPressed: () {
                       if (_formKey.currentState!.validate()) {
                         setState(() {
                           // Add the announcement with a unique id
                           print("Calling announcement");
-                         addAnnouncement(_titleController.text , _descriptionController.text ,  _organizationController.text);
-
+                          addAnnouncement(
+                              _titleController.text,
+                              _descriptionController.text,
+                              _organizationController.text);
 
                           Provider.of<AnnouncementProvider>(context,
                                   listen: false)
@@ -210,7 +210,6 @@ class _AnnouncementManagementState extends State<AnnouncementManagement> {
     );
   }
 
-  
   // Method to show delete confirmation dialog
   void _showDeleteDialog(AnnouncementModel announcement) {
     showDialog(
@@ -243,39 +242,39 @@ class _AnnouncementManagementState extends State<AnnouncementManagement> {
       },
     );
   }
-  Future<void> addAnnouncement(String title, String description , String companyName )async{
 
+  Future<void> addAnnouncement(
+      String title, String description, String companyName) async {
     print("started adding");
-    var headers = {
-  'Content-Type': 'application/json'
-};
-var request = http.Request('post', Uri.parse('$serverurl/announcement/announcements/'));
-request.body = json.encode({
-  "title": title,
-  "description": description,
-  "comapny_name": companyName
-});
-request.headers.addAll(headers);
+    var headers = {'Content-Type': 'application/json'};
+    var request = http.Request('POST',
+        Uri.parse('$serverurl/announcement/announcements/'));
+    request.body = json.encode({
+      "title": title,
+      "description": description,
+      "company_name": companyName
+    });
+    request.headers.addAll(headers);
 
-http.StreamedResponse response = await request.send();
-print("added");
-if (response.statusCode == 201) {
-  print(await response.stream.bytesToString());
-}
-else {
-  print(response.reasonPhrase);
-}
+    http.StreamedResponse response = await request.send();
 
+    if (response.statusCode == 200) {
+      print(await response.stream.bytesToString());
+    } else {
+      print(response.reasonPhrase);
+    }
   }
 
   Future<void> deleteannouncement(int id) async {
-    var request = http.Request('DELETE',
-        Uri.parse('http://192.168.48.209:8000/announcement/announcements/$id/'));
+    var request = http.Request(
+        'DELETE',
+        Uri.parse(
+            '$serverurl/announcement/announcements/$id/'));
     request.body = '''''';
 
     http.StreamedResponse response = await request.send();
 
-    if (response.statusCode == 204 ) {
+    if (response.statusCode == 204) {
       print(await response.stream.bytesToString());
     } else {
       print(response.reasonPhrase);

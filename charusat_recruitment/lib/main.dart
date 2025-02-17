@@ -1,9 +1,12 @@
 import 'package:charusat_recruitment/Providers/announcement_provider.dart';
 import 'package:charusat_recruitment/Providers/company_provider.dart';
+import 'package:charusat_recruitment/Providers/menu_provider.dart';
 import 'package:charusat_recruitment/screens/home.dart';
 import 'package:charusat_recruitment/screens/screens_after_auth/announcement_manage.dart';
 import 'package:charusat_recruitment/screens/screens_after_auth/company/company_details.dart';
 import 'package:charusat_recruitment/screens/screens_after_auth/company/company_manager.dart';
+import 'package:charusat_recruitment/screens/screens_after_auth/company/company_round.dart';
+import 'package:charusat_recruitment/screens/screens_after_auth/company/student_list.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/services.dart';
@@ -35,8 +38,10 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => Themechange()),
         ChangeNotifierProvider(create: (_) => PieChartProvider()),
+        ChangeNotifierProvider(create: (_)=> MenuProvider()),
         ChangeNotifierProvider(
             create: (_) => AnnouncementProvider()), // Add PieChartProvider here
+            
       ],
       child: Builder(
         builder: (context) {
@@ -52,13 +57,15 @@ class MyApp extends StatelessWidget {
               '/companydetails': (context) => const CompanyDetailsPage(),
               '/announcement': (context) => const AnnouncementManagement(),
               '/companymanager': (context) => const CompanyManager(),
+              '/round': (context) => const RoundManager(),
+              '/studentlist': (context) => const StudentListManager(),
             },
             debugShowCheckedModeBanner: false,
-            title: 'Flutter Demo',
+            title: 'Charusat Placement App',
             themeMode: themechanger.themeMode,
             theme: ThemeManager.lightmode,
             darkTheme: ThemeManager.darkmode,
-            home: const Welcome(), // Change to Home for skip login
+            home: const Home(), // Change to Home for skip login and starting from welcome
           );
         },
       ),

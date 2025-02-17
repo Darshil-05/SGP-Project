@@ -47,7 +47,7 @@ class _HomeAppState extends State<HomeApp> {
             id: item['id'],
             title: item['title'],
             subtitle: item['description'],
-            companyName: item['comapny_name'],
+            companyName: item['company_name'],
             color: Colors
                 .blue, // Assigning a default color or handle based on data
           );
@@ -83,7 +83,6 @@ class _HomeAppState extends State<HomeApp> {
         onRefresh: () {
           getAnnouncements();
           return Future.delayed(Duration(seconds: 2), () {
-            print("Hello World");
           });
         },
         child: SingleChildScrollView(

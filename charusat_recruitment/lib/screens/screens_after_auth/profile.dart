@@ -253,6 +253,15 @@ class _ProfilePageState extends State<ProfilePage> {
                 ],
               ),
             ),
+            Container(
+              width: MediaQuery.sizeOf(context).width -20,
+              padding: const EdgeInsets.all(5),
+              decoration: const BoxDecoration(
+                color: Color(0xff0f1d2c),
+                borderRadius: BorderRadius.all(Radius.circular(10))
+              ),
+              child: const Text("Log Out" , style: TextStyle(color: Colors.white),) ,
+            )
           ],
         ),
       ),

@@ -199,7 +199,6 @@ class _CompanyManagerState extends State<CompanyManager> {
               _buildTextField('Job Salary', _jobSalaryController),
               _buildTextField('Minimum Package', _minPackageController),
               _buildTextField('Maximum Package', _maxPackageController),
-
               const SizedBox(height: 20),
               InkWell(
                 onTap: () {
@@ -235,7 +234,7 @@ class _CompanyManagerState extends State<CompanyManager> {
                         maxPackage: int.parse(_maxPackageController.text),
                       ),
                     );
-
+                    Navigator.of(context).pushNamed( '/round');
                   }
                 },
                 child: Container(
