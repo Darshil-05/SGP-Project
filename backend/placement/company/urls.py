@@ -1,6 +1,7 @@
 from django.urls import path
 from .views import *
 
+
 urlpatterns = [
     path('companies/', CompanyDetailsList.as_view(), name='company-list'),
     path('companies/<int:pk>/', CompanyDetailsDetail.as_view(), name='company-detail'),
@@ -11,17 +12,6 @@ urlpatterns = [
     path('students/registered/<str:company_name>/', RegisteredStudentsByCompanyList.as_view(), name='registered-students-by-company'),
     path('get-eligible-students/', RetrieveEligibleStudentsView.as_view(), name='get_eligible_students'),
     path('update-progress/<int:pk>/', UpdateStudentInterviewProgressView.as_view(), name='update_progress'),
+    path('company/company-info/', CompanyInfoView.as_view(), name='company-details'),
 
-]
-
-
-# {
-#     "comapny_name": "Patel @ sons",
-#     "details": "JS,REACT",
-#     "min_package": "300000",
-#     "max_package": "800000",
-#     "comapny_hq_location": "Ahemdvad",
-#     "work_locations": "Nadiad",
-#     "comapny_web": "www.neel.com",
-#     "company_contact": "123465879"
-# }
+] 

@@ -4,7 +4,7 @@ from rest_framework import viewsets
 from rest_framework.exceptions import NotFound
 from rest_framework import generics
 from .models import CompanyDetails,InterviewRound,CompanyRegistration,StudentInterviewProgress
-from .serializers import CompanyDetailsSerializer,InterviewRoundSerializer,CompanyRegistrationSerializer,StudentInterviewProgress,ApplyForCompanySerializer,StudentProgressSerializer
+from .serializers import CompanyDetailsSerializer,InterviewRoundSerializer,CompanyRegistrationSerializer,StudentInterviewProgress,CompanyInfoSerializer,StudentProgressSerializer
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import serializers
@@ -67,6 +67,29 @@ class InterviewRoundByCompanyList(generics.ListAPIView):
         # Return all interview rounds for the specified company
         return InterviewRound.objects.filter(company=company)
    
+
+
+class CompanyInfoView(generics.ListAPIView):  # Using ListAPIView to allow filtering
+    # serializer_class = CompanyInfoSerializer
+
+    # def get_queryset(self):
+    #     company_id = self.request.query_params.get('company_id')
+
+    #     if company_id:
+    #         return CompanyDetails.objects.filter(company_id=company_id).only(
+    #             'company_name', 'date_placementdrive', 'job_location', 'job_description',
+    #         )
+    #     return CompanyDetails.objects.none()
+    serializer_class = CompanyInfoSerializer
+
+    def get_queryset(self):
+        company_id = self.request.query_params.get('company_id')
+
+        if company_id:
+            return CompanyDetails.objects.filter(company_id=company_id)
+        return CompanyDetails.objects.all()
+    
+
 
 class RegisteredStudentsByCompanyList(generics.ListAPIView):
     serializer_class = CompanyRegistrationSerializer

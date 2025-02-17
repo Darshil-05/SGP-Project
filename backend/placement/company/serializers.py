@@ -3,9 +3,12 @@ from .models import CompanyDetails,InterviewRound,CompanyRegistration,CompanyApp
 from student.models import Student_details
 
 class CompanyDetailsSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = CompanyDetails
         fields = '__all__'
+
+    
 
 
 # class InterviewRoundSerializer(serializers.ModelSerializer):
@@ -108,6 +111,24 @@ class CompanyRegistrationSerializer(serializers.ModelSerializer):
         representation = super().to_representation(instance)
         representation['company_name'] = instance.company.company_name  # Ensure company_name is included
         return representation
+
+from rest_framework import serializers
+from .models import CompanyDetails
+from django.conf import settings
+
+
+class CompanyInfoSerializer(serializers.ModelSerializer):
+    image_url = serializers.SerializerMethodField()
+    class Meta:
+        model = CompanyDetails
+        fields = ['company_name', 'date_placementdrive', 'job_location', 'job_description', 'image_url']
+
+    def get_image_url(self, obj):
+        # Check if the image exists and access the related image object
+        if obj.image:
+            return f"{settings.MEDIA_URL}{obj.image.image.url.lstrip('/')}"
+        return None
+
     
 class ApplyForCompanySerializer(serializers.Serializer):
     student_id = serializers.CharField()  # Changed to CharField to match `student_unique_id`

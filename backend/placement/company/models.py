@@ -3,8 +3,14 @@ import re
 import phonenumbers
 from django.core.exceptions import ValidationError
 from student.models import Student_details
-from django.db import models
 from django.utils.timezone import now
+
+class CompanyImages(models.Model):
+    id = models.AutoField(primary_key=True)
+    image = models.ImageField(upload_to="company_images/")  # Store images in media folder
+
+    def __str__(self):
+        return self.image.name
 
 class CompanyDetails(models.Model):
     company_id = models.AutoField(primary_key=True)
@@ -13,7 +19,7 @@ class CompanyDetails(models.Model):
     headquarters = models.CharField(max_length=255,null=True)
     industry = models.CharField(max_length=255,null=True)
     details = models.TextField(null=True)
-    date_placementdrive = models.DateField(null=True)
+    date_placementdrive = models.DateField()
     application_deadline = models.DateField(null=True)
     joining_date = models.DateField(null=True)
     hr_name = models.CharField(max_length=255,null=True)
@@ -30,7 +36,7 @@ class CompanyDetails(models.Model):
     duration_internship = models.CharField(max_length=20,null=True)
     stipend = models.IntegerField(null=True)
     job_role = models.CharField(max_length=255,null=True)
-    job_description = models.CharField(max_length=255,null=True)
+    job_description = models.CharField(max_length=255)
     skills = models.CharField(max_length=200,null=True)
     job_location = models.CharField(max_length=200)
     # job_salary = models.CharField(max_length=100,null=True)
@@ -38,10 +44,21 @@ class CompanyDetails(models.Model):
     min_package = models.BigIntegerField()
     max_package = models.BigIntegerField()
   
+    image = models.ForeignKey(CompanyImages, on_delete=models.SET_NULL, null=True, blank=True)
 
+    def save(self, *args, **kwargs):
+        if not self.image:  # Assign an image only if it's not already set
+            total_images = CompanyImages.objects.count()
+            if total_images > 0:
+                image_list = list(CompanyImages.objects.all())  # Get all images
+                assigned_image = image_list[self.company_id % total_images]  # Apply Modulo 10 logic
+                self.image = assigned_image  
 
-    def __str__(self):
-        return self.company_name 
+        super().save(*args, **kwargs)  # Call the default save method
+ 
+    # def __str__(self):
+    #     return self.company_name 
+    
 
 
 
@@ -144,6 +161,8 @@ class CompanyApplications(models.Model):
 
     def __str__(self):
         return f"Student {self.student_id} applied to {self.company_name}"
+
+
 
 
 
