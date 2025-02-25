@@ -12,11 +12,22 @@ from rest_framework.views import APIView
 
 
 class CompanyDetailsList(generics.ListCreateAPIView):
-    queryset = CompanyDetails.objects.all()
+    queryset = CompanyDetails.objects.prefetch_related('interview_rounds')
     serializer_class = CompanyDetailsSerializer
 
+    def create(self, request, *args, **kwargs):
+        # Check if the request contains multiple records
+        if isinstance(request.data, list):
+            serializer = self.get_serializer(data=request.data, many=True)
+        else:
+            serializer = self.get_serializer(data=request.data)
+        
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
 class CompanyDetailsDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = CompanyDetails.objects.all()
+    queryset = CompanyDetails.objects.prefetch_related('interview_rounds')
     serializer_class = CompanyDetailsSerializer
 
 class InterviewRoundCreateView(generics.CreateAPIView):

@@ -15,50 +15,51 @@ class CompanyImages(models.Model):
 class CompanyDetails(models.Model):
     company_id = models.AutoField(primary_key=True)
     company_name = models.CharField(max_length=255)
-    company_website = models.CharField(max_length=255,null=True)
-    headquarters = models.CharField(max_length=255,null=True)
-    industry = models.CharField(max_length=255,null=True)
+    company_website = models.CharField(max_length=255, null=True)
+    headquarters = models.CharField(max_length=255, null=True)
+    industry = models.CharField(max_length=255, null=True)
     details = models.TextField(null=True)
     date_placementdrive = models.DateField()
     application_deadline = models.DateField(null=True)
     joining_date = models.DateField(null=True)
-    hr_name = models.CharField(max_length=255,null=True)
-    hr_email = models.EmailField(unique=True,null=True)
-    hr_contact = models.CharField(max_length=15,null=True)
+    hr_name = models.CharField(max_length=255, null=True)
+    hr_email = models.EmailField(unique=True, null=True)
+    hr_contact = models.CharField(max_length=15, null=True)
     bond = models.IntegerField(null=True)
-    benefits = models.CharField(max_length=255,null=True)
-    doc_required = models.CharField(max_length=255,null=True)
-    process_stages = models.CharField(max_length=255,null=True)
-    eligibility_criteria = models.CharField(max_length=255,null=True)
+    benefits = models.CharField(max_length=255, null=True)
+    doc_required = models.CharField(max_length=255, null=True)
+    process_stages = models.CharField(max_length=255, null=True)
+    eligibility_criteria = models.CharField(max_length=255, null=True)
     no_round = models.IntegerField()
-    cutoff_marks = models.CharField(max_length=200,null=True)
-    selection_ratio = models.CharField(max_length=20,null=True)
-    duration_internship = models.CharField(max_length=20,null=True)
+    cutoff_marks = models.CharField(max_length=200, null=True)
+    selection_ratio = models.CharField(max_length=20, null=True)
+    duration_internship = models.CharField(max_length=20, null=True)
     stipend = models.IntegerField(null=True)
-    job_role = models.CharField(max_length=255,null=True)
+    job_role = models.CharField(max_length=255, null=True)
     job_description = models.CharField(max_length=255)
-    skills = models.CharField(max_length=200,null=True)
+    skills = models.CharField(max_length=200, null=True)
     job_location = models.CharField(max_length=200)
-    # job_salary = models.CharField(max_length=100,null=True)
-    job_type = models.CharField(max_length=20 , null=True)
+    job_type = models.CharField(max_length=20, null=True)
     min_package = models.BigIntegerField()
     max_package = models.BigIntegerField()
-  
+
     image = models.ForeignKey(CompanyImages, on_delete=models.SET_NULL, null=True, blank=True)
 
     def save(self, *args, **kwargs):
-        if not self.image:  # Assign an image only if it's not already set
+        is_new = self.pk is None  # Check if object is new
+
+        super().save(*args, **kwargs)  # Save first to generate company_id
+
+        if is_new and not self.image:  # Assign an image only if it's a new entry
             total_images = CompanyImages.objects.count()
             if total_images > 0:
                 image_list = list(CompanyImages.objects.all())  # Get all images
-                assigned_image = image_list[self.company_id % total_images]  # Apply Modulo 10 logic
+                assigned_image = image_list[self.company_id % total_images]  # Now company_id is assigned
                 self.image = assigned_image  
+                super().save(update_fields=['image'])  # Update only the image field
 
-        super().save(*args, **kwargs)  # Call the default save method
- 
-    # def __str__(self):
-    #     return self.company_name 
-    
+    def __str__(self):
+        return self.company_name 
 
 
 

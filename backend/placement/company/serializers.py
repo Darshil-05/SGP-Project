@@ -2,11 +2,6 @@ from rest_framework import serializers
 from .models import CompanyDetails,InterviewRound,CompanyRegistration,CompanyApplications
 from student.models import Student_details
 
-class CompanyDetailsSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = CompanyDetails
-        fields = '__all__'
 
     
 
@@ -20,34 +15,57 @@ class CompanyDetailsSerializer(serializers.ModelSerializer):
 
 
 
-class InterviewRoundSerializer(serializers.Serializer):
-    company_name = serializers.CharField()  # Input for company name
-    round_name = serializers.IntegerField()  # Input for round number
-    status = serializers.ChoiceField(choices=InterviewRound.ROUND_STATUS_CHOICES)  # Input for status
+from rest_framework import serializers
+from .models import CompanyDetails, InterviewRound
 
-    def validate_company_name(self, value):
-        """Validate if the company exists in the database."""
-        if not CompanyDetails.objects.filter(company_name__iexact=value).exists():
-            raise serializers.ValidationError(f"Company '{value}' does not exist.")
-        return value
+class InterviewRoundSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = InterviewRound
+        fields = ['round_name', 'status']
+
+class CompanyDetailsSerializer(serializers.ModelSerializer):
+    interview_rounds = InterviewRoundSerializer(many=True, required=False)
+
+    class Meta:
+        model = CompanyDetails
+        fields = '__all__'  # Includes interview_rounds
 
     def create(self, validated_data):
-        """Create an InterviewRound entry using validated data."""
-        company = CompanyDetails.objects.get(company_name__iexact=validated_data['company_name'])
-        return InterviewRound.objects.create(
-            company=company,
-            round_name=validated_data['round_name'],
-            status=validated_data['status']
-        )
+        # Extract interview rounds data
+        interview_rounds_data = validated_data.pop('interview_rounds', [])
 
-    def to_representation(self, instance):
-        """Format the output as desired."""
-        return {
-            "company_name": instance.company.company_name,
-            "round_name": instance.round_name,
-            "status": instance.status,
-        }
-    
+        # Create company
+        company = CompanyDetails.objects.create(**validated_data)
+
+        # Create interview rounds
+        for round_data in interview_rounds_data:
+            InterviewRound.objects.create(company=company, **round_data)
+
+        return company
+
+    def update(self, instance, validated_data):
+        # Extract interview rounds data
+        interview_rounds_data = validated_data.pop('interview_rounds', [])
+
+        # Update company details
+        instance.company_name = validated_data.get('company_name', instance.company_name)
+        instance.date_placementdrive = validated_data.get('date_placementdrive', instance.date_placementdrive)
+        instance.job_role = validated_data.get('job_role', instance.job_role)
+        instance.job_location = validated_data.get('job_location', instance.job_location)
+        instance.job_type = validated_data.get('job_type', instance.job_type)
+        instance.min_package = validated_data.get('min_package', instance.min_package)
+        instance.max_package = validated_data.get('max_package', instance.max_package)
+        instance.save()
+
+        # Clear old rounds and add new ones
+        instance.interview_rounds.all().delete()
+        for round_data in interview_rounds_data:
+            InterviewRound.objects.create(company=instance, **round_data)
+
+        return instance
+
+
+
 from rest_framework import serializers
 from .models import StudentInterviewProgress, InterviewRound
 
