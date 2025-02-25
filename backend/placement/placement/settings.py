@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-weoln7tb8z8-2%7=*4gx$m=q-1h()6(^grf)_9=ol9i5rknj96
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["172.25.197.173"]
+ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -156,6 +156,9 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
          'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',  # Requires authentication for all APIs
+    ),
     # Other settings...
 }
 
@@ -190,4 +193,16 @@ MIDDLEWARE = [
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 SESSION_COOKIE_SECURE = True
 
+from datetime import timedelta
 
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    'USER_ID_FIELD': 'id',  # Ensure tokens use `id` instead of default `user`
+    'USER_ID_CLAIM': 'user_id',# Token will store `user_id` instead of `user`
+}
+
+AUTH_USER_MODEL = 'student.Student_auth'  # Change 'your_app' to your actual app name
