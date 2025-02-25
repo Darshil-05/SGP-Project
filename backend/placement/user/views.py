@@ -34,6 +34,7 @@ def generate_otp():
 
 
 class SignupView(APIView):
+    permission_classes = [IsAuthenticated]
     def post(self, request):
         email = request.data.get('email')
         password = request.data.get('password')
@@ -152,6 +153,7 @@ class SignupView(APIView):
 from rest_framework_simplejwt.tokens import RefreshToken
 
 class SigninView(APIView):
+    permission_classes = [IsAuthenticated]
     def post(self, request):
         email = request.data.get('email')
         password = request.data.get('password')
@@ -325,6 +327,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import get_user_model
 
 class VerifyOTPView(APIView):
+    permission_classes = [IsAuthenticated]
     def post(self, request):
         otp_code = request.data.get('otp_code')
         email = request.data.get('email')
@@ -380,6 +383,7 @@ class VerifyOTPView(APIView):
 
 
 class ResendOTPView(APIView):
+    permission_classes = [IsAuthenticated]
     def post(self, request):
         email = request.data.get('email')  # Get the email from the request
         name = request.data.get('name')      # Get the name from the request
