@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:charusat_recruitment/const.dart';
 import 'package:charusat_recruitment/screens/auth/detailpage.dart';
+import 'package:charusat_recruitment/service/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../auth/registerheader.dart';
@@ -47,51 +48,22 @@ class _OtpPageState extends State<OtpPage> {
       }
     });
   }
-void _submitOtp() async {
-  // Collect OTP from controllers
+void verifyOtpCode() async {
+  AuthenticationService authService = AuthenticationService();
   String otp = _otpControllers.map((controller) => controller.text).join();
+  debugPrint("OTP verification started : $email , $otp");
+  bool success = await authService.verifyOtp(email, otp);
 
-  // Prepare the data to send
-  Map<String, String> data = {
-    "email": email,               // Assuming email is already available globally
-    "name": name,               // You can replace with dynamic value if required
-    "password": password,   // You can replace with dynamic value if required
-    "otp_code": otp,              // OTP collected from the controllers
-  };
-
-  try {
-    debugPrint("Sending OTP verification request");
-
-    // Set up the headers and body
-    var headers = {'Content-Type': 'application/json'};
-    var request = http.Request('POST', Uri.parse('$serverurl/user/verify-otp/'));
-    request.body = jsonEncode(data);  // JSON encode the body
-    request.headers.addAll(headers);  // Add headers
-
-    http.StreamedResponse response = await request.send().timeout(const Duration(seconds: 10));
-
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      String responseBody = await response.stream.bytesToString();
-      debugPrint('OTP verification successful: $responseBody');
-      name= "";
-      password = "";
-      if (mounted) {
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => const StudentDetailsPage()), // Replace with your home page
-          (Route<dynamic> route) => false, // This clears all previous routes
-        );
-      }
-    } else {
-      // Handle error response and print the reason phrase
-      debugPrint("Error: ${response.reasonPhrase}");
-      _showErrorDialog(context, "Verification failed: ${response.reasonPhrase}");
+  if (success) {
+    debugPrint("OTP Verified Successfully");
+    if (mounted) {
+      Navigator.of(context).pushReplacementNamed('/studentDetails');
     }
-  } catch (e) {
-    // Handle any error in communication or unexpected issues
-    debugPrint("Error occurred: $e");
-    _showErrorDialog(context, 'An error occurred. Please try again.');
+  } else {
+    debugPrint("OTP Verification Failed");
   }
 }
+
 
 
 
@@ -232,7 +204,7 @@ void _submitOtp() async {
             ),
             SizedBox(height: screenHeight * 0.05),
             GestureDetector(
-              onTap: _submitOtp,
+              onTap: verifyOtpCode,
               child: Container(
                 height: screenHeight * 0.07,
                 width: screenWidth * 0.8,

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:charusat_recruitment/const.dart';
+import 'package:charusat_recruitment/service/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'loginheader.dart';
 import 'package:http/http.dart' as http;
@@ -61,51 +62,18 @@ String extractStudentID(String email) {
   }
 }
   void _login() async {
-  if (_formKey.currentState?.validate() ?? false) {
-   
-    final String password = _passwordController.text;  // Assuming you have a TextEditingController for password
-    email = _emailController.text ;
-    // Set up the API request
-    var headers = {
-      'Content-Type': 'application/json'
-    };
-    var request = http.Request(
-      'POST', 
-      Uri.parse('$serverurl/user/signin/')
-    );
-    
-    request.body = json.encode({
-      "email":  _emailController.text,
-      "password": password
-    });
-    
-    request.headers.addAll(headers);
-
-    // Send the request and handle the response
-    http.StreamedResponse response = await request.send();
-      debugPrint("Started Login nn process");
-
-
-    if (response.statusCode == 200) {
-      var responseBody = await response.stream.bytesToString();
-      debugPrint('Login successful: $responseBody');
-
-      studentid = extractStudentID(email);
-
-
- await studentDetails(studentid);
-
-
-
-
-       if (mounted) {
-            Navigator.of(context).popAndPushNamed('/home');
-          }
-    } else {
-      debugPrint('Login failed: ${response.reasonPhrase}');
+  AuthenticationService authService = AuthenticationService();
+  bool success = await authService.login(_emailController.text, _passwordController.text);
+  if (success) {
+    debugPrint("Login Successful");
+    if (mounted) {
+      Navigator.of(context).pushReplacementNamed('/home');
     }
+  } else {
+    debugPrint("Login Failed");
   }
 }
+
 
   String? _validateEmail(String? value) {
     if (value == null || value.isEmpty) {

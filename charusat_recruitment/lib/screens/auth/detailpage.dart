@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:charusat_recruitment/service/student_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:charusat_recruitment/screens/models/institute_model.dart';
 import 'package:flutter/material.dart';
@@ -67,67 +68,30 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
   }
 
   void _submitForm() async {
-    if (_formKey.currentState?.validate() ?? false) {
-      setState(() {
-        _isLoading = true; // Show loading indicator
-      });
-      // Collect student details from text controllers
-      final Map<String, String> studentData = {
-        "id_no": _studentIdController.text,
-        "last_name": _lastnameController.text,
-        "first_name": _firstnameController.text,
-        "birthdate": _dobController.text,
-        "institute": _selectedInstitute!,
-        "department": _selectedDepartment!,
-        "cgpa": _cgpaController.text,
-        "passing_year": _selectedYear!,
-        "domains": _domainController.text,
-        "programming_skill": _programmingskillController.text,
-        "tech_skill": _otherskillController.text,
-      };
-      try {
-        var headers = {'Content-Type': 'application/json'};
-        var request =
-            http.Request('POST', Uri.parse('$serverurl/student/students/'));
-        request.body = jsonEncode(studentData);
-        request.headers.addAll(headers);
+  if (_formKey.currentState?.validate() ?? false) {
+    final studentService = StudentService();
+    
+    // Collect student details from text controllers
+    final Map<String, String> studentData = {
+      "id_no": _studentIdController.text,
+      "last_name": _lastnameController.text,
+      "first_name": _firstnameController.text,
+      "birthdate": _dobController.text,
+      "institute": _selectedInstitute!,
+      "department": _selectedDepartment!,
+      "cgpa": _cgpaController.text,
+      "passing_year": _selectedYear!,
+      "domains": _domainController.text,
+      "programming_skill": _programmingskillController.text,
+      "tech_skill": _otherskillController.text,
+    };
 
-        http.StreamedResponse response = await request.send();
-
-        if (response.statusCode == 200 || response.statusCode == 201) {
-          String responseBody = await response.stream.bytesToString();
-          debugPrint('Submission successful: $responseBody');
-          studentid = _studentIdController.text;
-          name = "${_lastnameController.text} ${_firstnameController.text}";
-          dob = _dobController.text;
-          institute = _selectedInstitute!;
-          department = _selectedDepartment!;
-          cgpa = _cgpaController.text;
-          passingyear = _selectedYear!;
-          domain = _domainController.text;
-          programmingskill = _programmingskillController.text;
-          otherskill = _otherskillController.text;
-          if (mounted) {
-            Navigator.of(context).popAndPushNamed('/home');
-          }
-        } else {
-          debugPrint("Error: ${response.reasonPhrase}");
-          String responseBody =
-              await response.stream.bytesToString(); // Get the response body
-          debugPrint("Error: ${response.reasonPhrase}, Body: $responseBody");
-        }
-      } catch (e) {
-        _showErrorDialog(
-            context, 'An error occurred. Please try again. ${e.toString()}');
-      } finally {
-        if (mounted) {
-          setState(() {
-            _isLoading = false; // Hide loading indicator
-          });
-        }
-      }
+    bool success = await studentService.addStudent(context, studentData);
+    if (!success) {
+      _showErrorDialog(context, "Failed to add student. Please try again.");
     }
   }
+}
 
   void _showErrorDialog(BuildContext context, String errorMessage) {
     showDialog(

@@ -5,6 +5,7 @@ import 'package:charusat_recruitment/const.dart';
 import 'package:charusat_recruitment/screens/Components/announcecard.dart';
 import 'package:charusat_recruitment/screens/models/announcement_model.dart';
 import 'package:charusat_recruitment/screens/screens_after_auth/pie_chart.dart';
+import 'package:charusat_recruitment/service/annoncement_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../Providers/pie_chart_provider.dart';
@@ -18,56 +19,10 @@ class HomeApp extends StatefulWidget {
 }
 
 class _HomeAppState extends State<HomeApp> {
-  Future<void> getAnnouncements() async {
-    print("calling geting");
-
-    var request = http.Request(
-        'GET', Uri.parse('$serverurl/announcement/announcements/'));
-    request.body = ''''''; // You can add any necessary body content if required
-
-    try {
-      // Send the request and wait for the response
-      http.StreamedResponse streamedResponse =
-          await request.send().timeout(const Duration(seconds: 10));
-
-      // Convert streamed response to regular response
-      final response = await http.Response.fromStream(streamedResponse);
-
-      print("wait over");
-
-      if (response.statusCode == 201 || response.statusCode == 200) {
-        List<dynamic> responseData = json.decode(response.body);
-        print("inside");
-
-        // Map response data to the AnnouncementModel
-        List<AnnouncementModel> announce =
-            responseData.map<AnnouncementModel>((item) {
-          print(item['title']);
-          return AnnouncementModel(
-            id: item['id'],
-            title: item['title'],
-            subtitle: item['description'],
-            companyName: item['company_name'],
-            color: Colors
-                .blue, // Assigning a default color or handle based on data
-          );
-        }).toList();
-
-        // Adding the `announce` list to your provider
-        Provider.of<AnnouncementProvider>(context, listen: false)
-            .announcements = announce;
-      } else {
-        showErrorDialog(context, "Error loading announcements");
-      }
-    } catch (e) {
-      print("Error occurred: $e");
-      showErrorDialog(context, "Error loading announcements");
-    }
-  }
-
+  
   @override
   void initState() {
-    getAnnouncements();
+    AnnouncementService().getAnnouncements(context);
     super.initState();
   }
 
@@ -78,12 +33,11 @@ class _HomeAppState extends State<HomeApp> {
     return Scaffold(
       body: RefreshIndicator.adaptive(
         edgeOffset: 20,
-        color: Color(0xff0f1d2c),
+        color:const Color(0xff0f1d2c),
         backgroundColor: Colors.white,
         onRefresh: () {
-          getAnnouncements();
-          return Future.delayed(Duration(seconds: 2), () {
-          });
+          
+          return AnnouncementService().getAnnouncements(context);
         },
         child: SingleChildScrollView(
           padding: EdgeInsets.only(

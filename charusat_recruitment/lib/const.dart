@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-
-const String serverurl = 'http://192.168.62.173:8000/';
+const String serverurl = 'http://172.25.197.173:8000';
 String email="22IT092@charusat.edu.in";
 String name = "Darshil Patel";
 late String password;
@@ -20,7 +19,7 @@ void showErrorDialog(BuildContext context, String errorMessage) {
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(
-        title: Text('Error'),
+        title: const Text('Error'),
         content: Text(errorMessage),
         actions: <Widget>[
           TextButton(

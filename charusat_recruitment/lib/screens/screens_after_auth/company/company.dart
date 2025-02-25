@@ -1,10 +1,5 @@
-import 'dart:convert';
-
-import 'package:charusat_recruitment/const.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
-import 'package:http/http.dart' as http;
+import 'package:charusat_recruitment/service/company_service.dart';
 
 class CompanyPage extends StatefulWidget {
   const CompanyPage({super.key});
@@ -14,46 +9,20 @@ class CompanyPage extends StatefulWidget {
 }
 
 class _CompanyPageState extends State<CompanyPage> {
-  final List<Map<String, String>> upcomingCompanies = [
-    {
-      'name': 'Tech Corp',
-      'date': '2024-09-20',
-      'location': 'San Francisco, CA',
-      'description': 'A leading tech company in AI and cloud computing.',
-      'image':
-          'https://i.pinimg.com/736x/c4/70/80/c4708087930bd454d3013335c3eadf24.jpg', // Sample image URL
-    },
-    {
-      'name': 'InnovateX',
-      'date': '2024-10-01',
-      'location': 'New York, NY',
-      'description': 'A rising startup specializing in innovative solutions.',
-      'image':
-          'https://i.pinimg.com/736x/c4/70/80/c4708087930bd454d3013335c3eadf24.jpg',
-    },
-  ];
+  late Future<Map<String, List<Map<String, String>>>> companyData;
 
-  final List<Map<String, String>> recentCompanies = [
-    {
-      'name': 'Green Energy Inc.',
-      'date': '2024-09-10',
-      'location': 'Austin, TX',
-      'description': 'Pioneers in renewable energy and sustainability.',
-      'image':
-          'https://i.pinimg.com/736x/c4/70/80/c4708087930bd454d3013335c3eadf24.jpg',
-    },
-    {
-      'name': 'FinTech Solutions',
-      'date': '2024-08-28',
-      'location': 'Boston, MA',
-      'description':
-          'Financial technology experts offering digital payment solutions.',
-      'image':
-          'https://i.pinimg.com/736x/c4/70/80/c4708087930bd454d3013335c3eadf24.jpg',
-    },
-  ];
+  @override
+  void initState() {
+    super.initState();
+    companyData = CompanyService().getCompanies();
+  }
 
-  // Widget to build the list of companies
+  Future<void> _refresh() async {
+    setState(() {
+      companyData = CompanyService().getCompanies();
+    });
+  }
+
   Widget _buildCompanyList(List<Map<String, String>> companies) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
@@ -147,124 +116,104 @@ class _CompanyPageState extends State<CompanyPage> {
     );
   }
 
-  void getcompanies() async {
-    var request =
-        http.Request('GET', Uri.parse('$serverurl/company/companies/'));
-    request.body = '''''';
-
-    http.StreamedResponse response = await request.send();
-    String responseBody = await response.stream.bytesToString();
-    List<dynamic> jsonData = json.decode(responseBody);
-
-    for (var company in jsonData) {
-      String companyDateStr = company['date_placementdrive'].toString();
-      DateTime companyDate = DateTime.parse(companyDateStr);
-      DateTime currentDate = DateTime.now();
-
-      Map<String, String> companyDetails = {
-        'name': company['comapny_name'].toString(),
-        'date': companyDateStr,
-        'location': company['headquarters'].toString(),
-        'description': company['details'].toString(),
-        'image':
-            'https://i.pinimg.com/736x/c4/70/80/c4708087930bd454d3013335c3eadf24.jpg'
-      };
-
-      if (companyDate.isAfter(currentDate)) {
-        upcomingCompanies.add(companyDetails);
-      } else {
-        recentCompanies.add(companyDetails);
-      }
-    }
-
-    if (response.statusCode == 200) {
-      print('Data fetched successfully');
-      setState(() {});
-    } else {
-      print(response.reasonPhrase);
-    }
-  }
-
-  @override
-  void initState() {
-    getcompanies();
-    // TODO: implement initState
-    super.initState();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: RefreshIndicator.adaptive(
-        edgeOffset: 20,
-        color: Color(0xff0f1d2c),
-        backgroundColor: Colors.white,
-        onRefresh: () {
-          getcompanies();
-          return Future.delayed(const Duration(seconds: 2), () {
-            print("Compines refreshed");
-          });
-        },
-        child: SingleChildScrollView(
-          padding: EdgeInsets.only(
-            top: MediaQuery.of(context).padding.top + 25,
-            bottom: MediaQuery.of(context).padding.bottom,
-          ),
-          physics: const BouncingScrollPhysics(),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Padding(
-                padding: EdgeInsets.only(left: 80.0),
-                child: Text(
-                  "Companies",
-                  style: TextStyle(fontSize: 25, fontFamily: "pop"),
+      body: RefreshIndicator(
+        onRefresh: _refresh,
+        child: FutureBuilder(
+          future: companyData,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(
+                child: CircularProgressIndicator(),
+              );
+            } else if (snapshot.hasError) {
+              return SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.8,
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.error, color: Colors.red, size: 50),
+                        const SizedBox(height: 10),
+                        Text(
+                          'Error: ${snapshot.error}',
+                          style: const TextStyle(fontSize: 16, color: Colors.red),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 20),
+                        ElevatedButton(
+                          onPressed: _refresh,
+                          child: const Text("Retry"),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
+              );
+            }
+
+            var companies = snapshot.data!;
+            return SingleChildScrollView(
+              padding: EdgeInsets.only(
+                top: MediaQuery.of(context).padding.top + 25,
+                bottom: MediaQuery.of(context).padding.bottom,
               ),
-              const SizedBox(height: 20),
-              Padding(
-                padding: const EdgeInsets.only(left: 20.0),
-                child: Row(
-                  children: [
-                    const Text(
-                      "Upcomming",
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Center(
+                    child: Text(
+                      "Companies",
+                      style: TextStyle(fontSize: 25, fontFamily: "pop"),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 20),
+                    child: Row(
+                      children: [
+                        const Text(
+                          "Upcomming",
+                          style: TextStyle(fontSize: 20, fontFamily: "pop"),
+                        ),
+                        const SizedBox(width: 15),
+                        InkWell(
+                          onTap: () {
+                            Navigator.of(context).pushNamed('/companymanager');
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(5),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.grey.shade300,
+                            ),
+                            child: const Icon(
+                              Icons.add,
+                              size: 30,
+                            ),
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                  _buildCompanyList(companies['upcoming']!),
+                  const SizedBox(height: 10),
+                  const Padding(
+                    padding: EdgeInsets.only(left: 20.0),
+                    child: Text(
+                      "Recent",
                       style: TextStyle(fontSize: 20, fontFamily: "pop"),
                     ),
-                    const SizedBox(
-                      width: 15,
-                    ),
-                    InkWell(
-                      onTap: () {
-                        Navigator.of(context).pushNamed('/companymanager');
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.all(5),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.grey.shade300,
-                        ),
-                        child: const Icon(
-                          Icons.add,
-                          size: 30,
-                        ),
-                      ),
-                    )
-                  ],
-                ),
+                  ),
+                  _buildCompanyList(companies['recent']!),
+                ],
               ),
-              const SizedBox(height: 10),
-              _buildCompanyList(upcomingCompanies),
-              const SizedBox(height: 10),
-              const Padding(
-                padding: EdgeInsets.only(left: 20.0),
-                child: Text(
-                  "Recent",
-                  style: TextStyle(fontSize: 20, fontFamily: "pop"),
-                ),
-              ),
-              _buildCompanyList(recentCompanies),
-            ],
-          ),
+            );
+          },
         ),
       ),
     );

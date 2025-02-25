@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:charusat_recruitment/const.dart';
 import 'package:charusat_recruitment/screens/auth/registerheader.dart';
+import 'package:charusat_recruitment/service/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -64,61 +65,21 @@ class _RegisterPageState extends State<RegisterPage> {
     return null;
   }
 
- void _register() async {
-  if (_formKey.currentState?.validate() ?? false) {
-    setState(() {
-      _isLoading = true; // Show loading indicator
-    });
+void registerUser() async {
+  AuthenticationService authService = AuthenticationService();
+  email =_emailController.text;
+  bool success = await authService.register(_nameController.text, _emailController.text, _passwordController.text);
 
-    final Map<String, String> data = {
-      "name": _nameController.text,
-      "email": _emailController.text,
-      "password": _passwordController.text,
-      "confirm_password": _passwordController.text,
-    };
-
-    try {
-      debugPrint("Sending registration request");
-
-      // Set up the headers and body
-      var headers = {'Content-Type': 'application/json'};
-      var request = http.Request('POST', Uri.parse('$serverurl/user/signup/'));
-      request.body = jsonEncode(data);
-      request.headers.addAll(headers);
-
-      // Send the request and handle the streamed response
-      http.StreamedResponse response = await request.send().timeout(const Duration(seconds: 15));
-            
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        // Handle successful response
-        String responseBody = await response.stream.bytesToString();
-        debugPrint('Registration successful: $responseBody');
-        
-        // Proceed to OTP screen
-        email = _emailController.text;
-        name =_nameController.text;
-        password = _passwordController.text;
-        if (mounted) {
-          Navigator.of(context).pushNamed('/otp');
-        }
-      } else {
-        // Handle error response
-        debugPrint("Error: ${response.reasonPhrase}");
-        _showErrorDialog(context, "Error: ${response.reasonPhrase}");
-      }
-    } catch (e) {
-      // Handle any exceptions
-      debugPrint("Error occurred: $e");
-      _showErrorDialog(context, 'An error occurred. Please try again. ${e.toString()}');
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false; // Hide loading indicator
-        });
-      }
+  if (success) {
+    debugPrint("Registration Successful. Redirecting to OTP verification.");
+    if (mounted) {
+      Navigator.of(context).pushNamed('/otp');
     }
+  } else {
+    debugPrint("Registration Failed");
   }
 }
+
 
 
 
@@ -266,7 +227,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                     SizedBox(height: screenHeight * 0.035),
                     GestureDetector(
-                      onTap: _isLoading ? null : _register,
+                      onTap: _isLoading ? null : registerUser,
                       child: Container(
                         height: screenHeight * 0.07,
                         width: screenWidth * 0.8,
