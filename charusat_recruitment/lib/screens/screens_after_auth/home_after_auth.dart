@@ -19,7 +19,6 @@ class HomeApp extends StatefulWidget {
 }
 
 class _HomeAppState extends State<HomeApp> {
-  
   @override
   void initState() {
     AnnouncementService().getAnnouncements(context);
@@ -33,10 +32,9 @@ class _HomeAppState extends State<HomeApp> {
     return Scaffold(
       body: RefreshIndicator.adaptive(
         edgeOffset: 20,
-        color:const Color(0xff0f1d2c),
+        color: const Color(0xff0f1d2c),
         backgroundColor: Colors.white,
         onRefresh: () {
-          
           return AnnouncementService().getAnnouncements(context);
         },
         child: SingleChildScrollView(
@@ -94,12 +92,13 @@ class _HomeAppState extends State<HomeApp> {
                     : Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: AnnounceCard(
-                            announce: AnnouncementModel(
-                                id: 0,
-                                title: "No Announcement",
-                                subtitle: " ",
-                                companyName: " ",
-                                color: const Color(0xff005fe7))),
+                          announce: AnnouncementModel(
+                            id: 0,
+                            title: "No Announcement",
+                            subtitle: " ",
+                            companyName: " ",
+                          ),
+                        ),
                       ),
               ),
               const SizedBox(height: 10),

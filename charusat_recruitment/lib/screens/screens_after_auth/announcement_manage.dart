@@ -1,7 +1,7 @@
 import 'dart:convert';
-
 import 'package:charusat_recruitment/Providers/announcement_provider.dart';
 import 'package:charusat_recruitment/const.dart';
+import 'package:charusat_recruitment/service/annoncement_service.dart';
 import 'package:flutter/material.dart';
 import 'package:charusat_recruitment/screens/Components/announcecard.dart';
 import 'package:charusat_recruitment/screens/models/announcement_model.dart';
@@ -171,22 +171,10 @@ class _AnnouncementManagementState extends State<AnnouncementManagement> {
                         setState(() {
                           // Add the announcement with a unique id
                           print("Calling announcement");
-                          addAnnouncement(
+                          AnnouncementService().addAnnouncement(context ,
                               _titleController.text,
                               _descriptionController.text,
                               _organizationController.text);
-
-                          Provider.of<AnnouncementProvider>(context,
-                                  listen: false)
-                              .addAnnouncement(
-                            AnnouncementModel(
-                              id: 2, // Generate unique ID
-                              title: _titleController.text,
-                              subtitle: _descriptionController.text,
-                              companyName: _organizationController.text,
-                              color: _selectedColor, // User-selected color
-                            ),
-                          );
                         });
 
                         // Clear the text fields after adding the announcement
@@ -229,7 +217,7 @@ class _AnnouncementManagementState extends State<AnnouncementManagement> {
             TextButton(
               onPressed: () {
                 setState(() {
-                  deleteannouncement(announcement.id);
+                  AnnouncementService().deleteAnnouncement(context ,announcement.id);
                   Provider.of<AnnouncementProvider>(context, listen: false)
                       .removeAnnouncementById(announcement.id);
                 });
@@ -241,43 +229,5 @@ class _AnnouncementManagementState extends State<AnnouncementManagement> {
         );
       },
     );
-  }
-
-  Future<void> addAnnouncement(
-      String title, String description, String companyName) async {
-    print("started adding");
-    var headers = {'Content-Type': 'application/json'};
-    var request = http.Request('POST',
-        Uri.parse('$serverurl/announcement/announcements/'));
-    request.body = json.encode({
-      "title": title,
-      "description": description,
-      "company_name": companyName
-    });
-    request.headers.addAll(headers);
-
-    http.StreamedResponse response = await request.send();
-
-    if (response.statusCode == 200) {
-      print(await response.stream.bytesToString());
-    } else {
-      print(response.reasonPhrase);
-    }
-  }
-
-  Future<void> deleteannouncement(int id) async {
-    var request = http.Request(
-        'DELETE',
-        Uri.parse(
-            '$serverurl/announcement/announcements/$id/'));
-    request.body = '''''';
-
-    http.StreamedResponse response = await request.send();
-
-    if (response.statusCode == 204) {
-      print(await response.stream.bytesToString());
-    } else {
-      print(response.reasonPhrase);
-    }
   }
 }

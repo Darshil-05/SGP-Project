@@ -18,18 +18,18 @@ class _AnnounceCardState extends State<AnnounceCard> {
       padding: EdgeInsets.all(15),
       decoration: BoxDecoration(
           gradient: LinearGradient(colors: [
-            widget.announce.color,
-            widget.announce.color.withOpacity(0.5)
+            Colors.blue,
+            Colors.blue.withOpacity(0.5)
           ], 
           begin: Alignment.topLeft, 
           end: Alignment.bottomRight,
           ),
             boxShadow: [ BoxShadow(
-              color: widget.announce.color.withOpacity(0.3),
+              color: Colors.blue.withOpacity(0.3),
               blurRadius: 1,
               offset: Offset(1, 4)
             ), BoxShadow(
-              color: widget.announce.color.withOpacity(0.3),
+              color: Colors.blue.withOpacity(0.3),
               blurRadius: 1,
               offset: const Offset(2, 6)
             ),],
