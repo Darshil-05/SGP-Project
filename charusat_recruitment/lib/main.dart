@@ -2,6 +2,7 @@ import 'package:charusat_recruitment/Providers/announcement_provider.dart';
 import 'package:charusat_recruitment/Providers/menu_provider.dart';
 import 'package:charusat_recruitment/Providers/pie_chart_provider.dart';
 import 'package:charusat_recruitment/Providers/theme_provider.dart';
+import 'package:charusat_recruitment/notification_service.dart';
 import 'package:charusat_recruitment/screens/auth/detailpage.dart';
 import 'package:charusat_recruitment/screens/auth/forgotpage.dart';
 import 'package:charusat_recruitment/screens/auth/login.dart';
@@ -17,11 +18,21 @@ import 'package:charusat_recruitment/screens/welcome.dart';
 import 'package:charusat_recruitment/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
-void main() {
+void main() async{
+  print("Step 1");
   WidgetsFlutterBinding.ensureInitialized();
+  print("Step 2");
+  await dotenv.load(fileName: ".env");
+print("Step 3");
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    await NotificationService().initNotifications();
+print("Step 4");
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,

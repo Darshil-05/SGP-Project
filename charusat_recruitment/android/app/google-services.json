@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1042154514909",
+    "project_id": "charusat-recruitment",
+    "storage_bucket": "charusat-recruitment.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1042154514909:android:2d4782c04225655e5c2e34",
+        "android_client_info": {
+          "package_name": "com.example.charusat_recruitment"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB20Sevytsd8pUXuG-I_CRUxImRnLdKnuc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
