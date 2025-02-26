@@ -24,7 +24,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import BlacklistMixin
 
 
-
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.permissions import AllowAny
 
 
 
@@ -34,7 +35,7 @@ def generate_otp():
 
 
 class SignupView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     def post(self, request):
         email = request.data.get('email')
         password = request.data.get('password')
@@ -150,10 +151,10 @@ class SignupView(APIView):
 
 #         return Response({'status': 'failure', 'message': 'Invalid email domain'}, status=status.HTTP_400_BAD_REQUEST)
 
-from rest_framework_simplejwt.tokens import RefreshToken
+
 
 class SigninView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     def post(self, request):
         email = request.data.get('email')
         password = request.data.get('password')
@@ -256,7 +257,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
 
 class SignoutView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def post(self, request):
         try:
@@ -331,10 +332,10 @@ class VerifyOTPView(APIView):
     def post(self, request):
         otp_code = request.data.get('otp_code')
         email = request.data.get('email')
-        name = request.data.get('name')
-        password = request.data.get('password')
+        # name = request.data.get('name')
+        # password = request.data.get('password')
 
-        if not otp_code or not email or not name or not password:
+        if not otp_code or not email:
             return Response({'error': 'OTP, email, name, and password are required'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
@@ -348,14 +349,14 @@ class VerifyOTPView(APIView):
                 if user_type == 'faculty':
                     user = Faculty_auth.objects.create(
                         email=email,
-                        password=make_password(password),
-                        name=name
+                        # password=make_password(password),
+                        # name=name
                     )
                 elif user_type == 'student':
                     user = Student_auth.objects.create(
                         email=email,
-                        password=make_password(password),
-                        name=name
+                        # password=make_password(password),
+                        # name=name
                     )
 
                 otp_instance.delete()

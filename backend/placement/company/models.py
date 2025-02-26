@@ -30,7 +30,7 @@ class CompanyDetails(models.Model):
     doc_required = models.CharField(max_length=255, null=True)
     process_stages = models.CharField(max_length=255, null=True)
     eligibility_criteria = models.CharField(max_length=255, null=True)
-    no_round = models.IntegerField()
+    # no_round = models.IntegerField()
     cutoff_marks = models.CharField(max_length=200, null=True)
     selection_ratio = models.CharField(max_length=20, null=True)
     duration_internship = models.CharField(max_length=20, null=True)
@@ -73,7 +73,14 @@ class InterviewRound(models.Model):
     company = models.ForeignKey(CompanyDetails, related_name='interview_rounds', on_delete=models.CASCADE)
     round_name = models.CharField(max_length=255)  # Changed from round_number to round_name
     status = models.CharField(max_length=10, choices=ROUND_STATUS_CHOICES, default='pending')
+    index =  models.IntegerField()
 
+    def save(self, *args, **kwargs):
+        if self.index is None:  # Ensure the index is assigned only when not set
+            last_round = InterviewRound.objects.filter(company=self.company).order_by('-index').first()
+            self.index = (last_round.index + 1) if last_round else 0  # Increment index for the company
+        super().save(*args, **kwargs)
+        
     class Meta:
         unique_together = ('company', 'round_name')  # Ensure unique round names per company
 

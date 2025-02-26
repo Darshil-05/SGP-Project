@@ -19,9 +19,12 @@ from rest_framework import serializers
 from .models import CompanyDetails, InterviewRound
 
 class InterviewRoundSerializer(serializers.ModelSerializer):
+    # company_name = serializers.CharField(source='company.company_name', read_only=True)  # Read-only for display
+    # company = serializers.PrimaryKeyRelatedField(queryset=CompanyDetails.objects.all())  # Select company by ID
     class Meta:
         model = InterviewRound
-        fields = ['round_name', 'status']
+        fields = ['round_name', 'status','index']
+        read_only_fields = ['index']
 
 class CompanyDetailsSerializer(serializers.ModelSerializer):
     interview_rounds = InterviewRoundSerializer(many=True, required=False)
@@ -44,25 +47,22 @@ class CompanyDetailsSerializer(serializers.ModelSerializer):
         return company
 
     def update(self, instance, validated_data):
-        # Extract interview rounds data
-        interview_rounds_data = validated_data.pop('interview_rounds', [])
+    # Extract interview rounds data
+     interview_rounds_data = validated_data.pop('interview_rounds', [])
 
-        # Update company details
-        instance.company_name = validated_data.get('company_name', instance.company_name)
-        instance.date_placementdrive = validated_data.get('date_placementdrive', instance.date_placementdrive)
-        instance.job_role = validated_data.get('job_role', instance.job_role)
-        instance.job_location = validated_data.get('job_location', instance.job_location)
-        instance.job_type = validated_data.get('job_type', instance.job_type)
-        instance.min_package = validated_data.get('min_package', instance.min_package)
-        instance.max_package = validated_data.get('max_package', instance.max_package)
-        instance.save()
+    # Update company details dynamically
+     for attr, value in validated_data.items():
+        setattr(instance, attr, value)  # Set each field dynamically
 
-        # Clear old rounds and add new ones
-        instance.interview_rounds.all().delete()
+     instance.save()
+
+    # Handle interview rounds
+     if interview_rounds_data:
+        instance.interview_rounds.all().delete()  # Remove old rounds if updating all
         for round_data in interview_rounds_data:
             InterviewRound.objects.create(company=instance, **round_data)
 
-        return instance
+     return instance
 
 
 
@@ -79,13 +79,13 @@ class StudentProgressSerializer(serializers.ModelSerializer):
         fields = ['id', 'student', 'student_name', 'company', 'company_name', 'round', 'round_name', 'is_passed', 'is_present']
 
         
-class InterviewRoundSerializer(serializers.ModelSerializer):
-    company_name = serializers.CharField(source='company.company_name', read_only=True)  # Read-only for display
-    company = serializers.PrimaryKeyRelatedField(queryset=CompanyDetails.objects.all())  # Select company by ID
+# class InterviewRoundSerializer(serializers.ModelSerializer):
+#     company_name = serializers.CharField(source='company.company_name', read_only=True)  # Read-only for display
+#     company = serializers.PrimaryKeyRelatedField(queryset=CompanyDetails.objects.all())  # Select company by ID
 
-    class Meta:
-        model = InterviewRound
-        fields = ['company', 'company_name', 'round_name', 'status']
+#     class Meta:
+#         model = InterviewRound
+#         fields = ['company', 'company_name', 'round_name', 'status']
 
 class CompanyRegistrationSerializer(serializers.ModelSerializer):
     # Fields to display in the response

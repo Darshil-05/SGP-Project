@@ -13,5 +13,4 @@ urlpatterns = [
     path('get-eligible-students/', RetrieveEligibleStudentsView.as_view(), name='get_eligible_students'),
     path('update-progress/<int:pk>/', UpdateStudentInterviewProgressView.as_view(), name='update_progress'),
     path('company/company-info/', CompanyInfoView.as_view(), name='company-details'),
-
 ] 

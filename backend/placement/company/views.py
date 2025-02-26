@@ -33,12 +33,20 @@ class CompanyDetailsDetail(generics.RetrieveUpdateDestroyAPIView):
 class InterviewRoundCreateView(generics.CreateAPIView):
     serializer_class = InterviewRoundSerializer
 
-    def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid():
-            interview_round = serializer.save()
-            return Response(serializer.to_representation(interview_round), status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    # def post(self, request, *args, **kwargs):
+    #     serializer = self.get_serializer(data=request.data)
+    #     if serializer.is_valid():
+    #         interview_round = serializer.save()
+    #         return Response(serializer.to_representation(interview_round), status=status.HTTP_201_CREATED)
+    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def perform_create(self, serializer):
+        company = serializer.validated_data['company']
+
+        last_round = InterviewRound.objects.filter(company=company).order_by('-index').first()
+        
+        index = (last_round.index + 1) if last_round else 0  # Assign the next index
+        serializer.save(index=index)
 
 class InterviewRoundList(generics.ListCreateAPIView):
     queryset = InterviewRound.objects.all()
