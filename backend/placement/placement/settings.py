@@ -26,9 +26,11 @@ SECRET_KEY = 'django-insecure-weoln7tb8z8-2%7=*4gx$m=q-1h()6(^grf)_9=ol9i5rknj96
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+
 ALLOWED_HOSTS = []
 
 
+  
 # Application definition
 
 INSTALLED_APPS = [
@@ -52,10 +54,13 @@ INSTALLED_APPS = [
 ]
 
 
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'placement.csrf_middleware.DisableCSRFCheck',
+    'placement.middleware.DisableCSRFForAPIMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -153,6 +158,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 REST_FRAMEWORK = {
+
     'DEFAULT_AUTHENTICATION_CLASSES': [
          'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
@@ -206,3 +212,8 @@ SIMPLE_JWT = {
 }
 
 AUTH_USER_MODEL = 'student.Student_auth'  # Change 'your_app' to your actual app name
+
+
+CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1:8000']
+CSRF_COOKIE_SECURE = False
+CSRF_USE_SESSIONS = False

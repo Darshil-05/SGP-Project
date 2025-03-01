@@ -15,7 +15,7 @@ class StudentDetailsList(generics.ListCreateAPIView):
     queryset = Student_details.objects.all()
     serializer_class = StudentDetailsSerializer
 
-class StudentDetailsDetail(generics.RetrieveUpdateDestroyAPIView):
+class StudentDetailsEdit(generics.RetrieveUpdateDestroyAPIView):
     queryset = Student_details.objects.all()
     serializer_class = StudentDetailsSerializer
 

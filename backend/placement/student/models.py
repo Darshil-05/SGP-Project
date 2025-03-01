@@ -64,6 +64,9 @@ class Certificate(models.Model):
     student = models.ForeignKey(Student_details, related_name='certificates', on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
     platform = models.CharField(max_length=255)
+    
+    class Meta:
+        unique_together = ('student', 'name')
 
     def __str__(self):
         return f"{self.name} - {self.student.id_no}"
@@ -72,6 +75,8 @@ class Experience(models.Model):
     student = models.ForeignKey(Student_details, related_name='experience', on_delete=models.CASCADE)
     role = models.CharField(max_length=255)
     organization = models.CharField(max_length=255)
+
+    
 
     def __str__(self):
         return f"{self.role} - {self.student.id_no}"

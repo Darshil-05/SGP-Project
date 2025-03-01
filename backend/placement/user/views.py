@@ -224,34 +224,34 @@ class SigninView(APIView):
 #         return Response({'status': 'failure', 'message': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
 
 
-# class SignoutView(APIView):
-#     # permission_classes = (IsAuthenticated,)  # Ensure the user is authenticated
+class SignoutView(APIView):
+    # permission_classes = (IsAuthenticated,)  # Ensure the user is authenticated
 
-#     def post(self, request):
-#         try:
-#             # Get the refresh token from the request data
-#             refresh_token = request.data.get('refresh_token')
-#             if refresh_token is None:
-#                 return Response({
-#                     'status': 'failure',
-#                     'message': 'Refresh token is required to sign out.'
-#                 }, status=status.HTTP_400_BAD_REQUEST)
+    def post(self, request):
+        try:
+            # Get the refresh token from the request data
+            refresh_token = request.data.get('refresh_token')
+            if refresh_token is None:
+                return Response({
+                    'status': 'failure',
+                    'message': 'Refresh token is required to sign out.'
+                }, status=status.HTTP_400_BAD_REQUEST)
 
-#             # Blacklist the refresh token
-#             token = RefreshToken(refresh_token)
-#             token.blacklist()
+            # Blacklist the refresh token
+            token = RefreshToken(refresh_token)
+            token.blacklist()
 
-#             return Response({
-#                 'status': 'success',
-#                 'message': 'User signed out successfully.'
-#             }, status=status.HTTP_200_OK)
+            return Response({
+                'status': 'success',
+                'message': 'User signed out successfully.'
+            }, status=status.HTTP_200_OK)
 
-#         except Exception as e:
-#             return Response({
-#                 'status': 'failure',
-#                 'message': 'Failed to sign out.',
-#                 'error': str(e)
-#             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        except Exception as e:
+            return Response({
+                'status': 'failure',
+                'message': 'Failed to sign out.',
+                'error': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
@@ -328,7 +328,8 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import get_user_model
 
 class VerifyOTPView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
+    
     def post(self, request):
         otp_code = request.data.get('otp_code')
         email = request.data.get('email')
@@ -336,12 +337,12 @@ class VerifyOTPView(APIView):
         # password = request.data.get('password')
 
         if not otp_code or not email:
-            return Response({'error': 'OTP, email, name, and password are required'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'Please Enter OTP'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             otp_instance = OTP.objects.filter(email=email, otp_code=otp_code).first()
             if otp_instance is None:
-                return Response({'error': 'Invalid OTP or email'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'error': 'Invalid OTP'}, status=status.HTTP_400_BAD_REQUEST)
 
             if otp_instance.is_valid():
                 user_type = otp_instance.user_type
@@ -384,16 +385,16 @@ class VerifyOTPView(APIView):
 
 
 class ResendOTPView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     def post(self, request):
         email = request.data.get('email')  # Get the email from the request
-        name = request.data.get('name')      # Get the name from the request
+           # Get the name from the request
         password = request.data.get('password')  # Get the password from the request
 
-        if not email or not name or not password:
+        if not email  or not password:
             return Response({
                 'status': 'failure',
-                'message': 'Email, name, and password are required to resend OTP.'
+                'message': 'Email and password are required to resend OTP.'
             }, status=status.HTTP_400_BAD_REQUEST)
 
         try:

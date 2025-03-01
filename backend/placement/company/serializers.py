@@ -21,10 +21,13 @@ from .models import CompanyDetails, InterviewRound
 class InterviewRoundSerializer(serializers.ModelSerializer):
     # company_name = serializers.CharField(source='company.company_name', read_only=True)  # Read-only for display
     # company = serializers.PrimaryKeyRelatedField(queryset=CompanyDetails.objects.all())  # Select company by ID
+    company_id = serializers.IntegerField(source='company.id', read_only=True)
+
+
     class Meta:
         model = InterviewRound
-        fields = ['round_name', 'status','index']
-        read_only_fields = ['index']
+        fields = ['round_name', 'status', 'index', 'company_id']
+        read_only_fields = ['index', 'company_id']
 
 class CompanyDetailsSerializer(serializers.ModelSerializer):
     interview_rounds = InterviewRoundSerializer(many=True, required=False)

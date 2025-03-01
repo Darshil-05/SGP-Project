@@ -9,7 +9,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import serializers
 from rest_framework.views import APIView
-
+from django.views.decorators.csrf import csrf_exempt
+import logging
 
 class CompanyDetailsList(generics.ListCreateAPIView):
     queryset = CompanyDetails.objects.prefetch_related('interview_rounds')
@@ -26,38 +27,128 @@ class CompanyDetailsList(generics.ListCreateAPIView):
         self.perform_create(serializer)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.permissions import IsAuthenticated
+
 class CompanyDetailsDetail(generics.RetrieveUpdateDestroyAPIView):
+  
+
     queryset = CompanyDetails.objects.prefetch_related('interview_rounds')
     serializer_class = CompanyDetailsSerializer
+
+# class InterviewRoundCreateView(generics.CreateAPIView):
+    
+#     serializer_class = InterviewRoundSerializer
+
+    
+#     def perform_create(self, serializer):
+#         company = serializer.validated_data['company']
+
+#         last_round = InterviewRound.objects.filter(company=company).order_by('-index').first()
+        
+#         index = (last_round.index + 1) if last_round else 0  # Assign the next index
+#         serializer.save(index=index)
+
+# class InterviewRoundList(generics.ListCreateAPIView):
+#     queryset = InterviewRound.objects.all()
+#     serializer_class = InterviewRoundSerializer
+
+# class InterviewRoundDetail(generics.RetrieveUpdateDestroyAPIView):
+    
+#     serializer_class = InterviewRoundSerializer
+    
+#     def get_queryset(self):
+#         return InterviewRound.objects.all()
+
+#     def get_object(self):
+#         company_id = self.kwargs.get('company_id')
+#         index = self.kwargs.get('index')
+
+#         try:
+#             return InterviewRound.objects.get(company_id=company_id, index=index)
+#         except InterviewRound.DoesNotExist:
+#             raise NotFound("Interview round not found for the given company_id and index.")
+from rest_framework.exceptions import ValidationError, NotFound
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.permissions import IsAuthenticated
+from rest_framework import generics, status
+from rest_framework.response import Response
+from rest_framework.exceptions import ValidationError, NotFound
+from .models import InterviewRound
+from .serializers import InterviewRoundSerializer
 
 class InterviewRoundCreateView(generics.CreateAPIView):
     serializer_class = InterviewRoundSerializer
 
-    # def post(self, request, *args, **kwargs):
-    #     serializer = self.get_serializer(data=request.data)
-    #     if serializer.is_valid():
-    #         interview_round = serializer.save()
-    #         return Response(serializer.to_representation(interview_round), status=status.HTTP_201_CREATED)
-    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
     def perform_create(self, serializer):
         company = serializer.validated_data['company']
+        round_name = serializer.validated_data['round_name']
 
+        # Check if an interview round already exists for the company
+        if InterviewRound.objects.filter(company=company, round_name=round_name).exists():
+            raise ValidationError({"error": "An interview round with this name already exists for this company."})
+
+        # Assign the next index
         last_round = InterviewRound.objects.filter(company=company).order_by('-index').first()
+        index = (last_round.index + 1) if last_round else 0  
         
-        index = (last_round.index + 1) if last_round else 0  # Assign the next index
         serializer.save(index=index)
 
 class InterviewRoundList(generics.ListCreateAPIView):
     queryset = InterviewRound.objects.all()
     serializer_class = InterviewRoundSerializer
 
-class InterviewRoundDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = InterviewRound.objects.all()
-    serializer_class = InterviewRoundSerializer
+# class InterviewRoundDetail(generics.RetrieveUpdateDestroyAPIView):
+#     authentication_classes = [JWTAuthentication]
+#     permission_classes = [IsAuthenticated]
+#     serializer_class = InterviewRoundSerializer
 
-    # views.py
+#     def get_queryset(self):
+#         return InterviewRound.objects.all()
 
+#     def get_object(self):
+#         company_id = self.kwargs.get('company_id')
+#         index = self.kwargs.get('index')
+
+#         try:
+#             return InterviewRound.objects.get(company_id=company_id, index=index)
+#         except InterviewRound.DoesNotExist:
+#             raise NotFound("Interview round not found for the given company_id and index.")
+
+#     def patch(self, request, *args, **kwargs):
+#         """Update the status of an interview round using company_id and index."""
+#         interview_round = self.get_object()
+        
+#         # Allow updating only the status field
+#         new_status = request.data.get('status')
+#         if new_status is not None:
+#             interview_round.status = new_status
+#             interview_round.save()
+#             return Response({"message": "Interview round status updated successfully!"}, status=status.HTTP_200_OK)
+#         else:
+#             return Response({"error": "Status field is required!"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+class InterviewRoundDetail(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request, company_id, index):
+        try:
+            interview_round = InterviewRound.objects.get(company_id=company_id, index=index)
+        except InterviewRound.DoesNotExist:
+            return Response({"error": "Interview round not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        new_status = request.data.get('status')
+        if new_status is not None:
+            interview_round.status = new_status
+            interview_round.save()
+            return Response({"message": "Interview round status updated successfully!"}, status=status.HTTP_200_OK)
+        else:
+            return Response({"error": "Status field is required!"}, status=status.HTTP_400_BAD_REQUEST)
 
 class CompanyRegistrationListCreate(generics.ListCreateAPIView):
     queryset = CompanyRegistration.objects.all()
