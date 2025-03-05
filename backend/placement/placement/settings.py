@@ -59,9 +59,6 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'placement.csrf_middleware.DisableCSRFCheck',
-    'placement.middleware.DisableCSRFForAPIMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -191,7 +188,6 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',  # This middleware is required
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -213,7 +209,34 @@ SIMPLE_JWT = {
 
 AUTH_USER_MODEL = 'student.Student_auth'  # Change 'your_app' to your actual app name
 
-
-CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1:8000']
+CSRF_EXEMPT = True
 CSRF_COOKIE_SECURE = False
+CSRF_COOKIE_HTTPONLY = False
 CSRF_USE_SESSIONS = False
+CSRF_COOKIE_NAME = None
+
+# CORS settings
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
+# CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1:8000']
+# CSRF_COOKIE_SECURE = False
+# CSRF_USE_SESSIONS = False

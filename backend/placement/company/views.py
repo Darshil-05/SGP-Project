@@ -9,8 +9,6 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import serializers
 from rest_framework.views import APIView
-from django.views.decorators.csrf import csrf_exempt
-import logging
 
 class CompanyDetailsList(generics.ListCreateAPIView):
     queryset = CompanyDetails.objects.prefetch_related('interview_rounds')

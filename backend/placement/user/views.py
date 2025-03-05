@@ -224,34 +224,34 @@ class SigninView(APIView):
 #         return Response({'status': 'failure', 'message': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
 
 
-class SignoutView(APIView):
-    # permission_classes = (IsAuthenticated,)  # Ensure the user is authenticated
+# class SignoutView(APIView):
+#     # permission_classes = (IsAuthenticated,)  # Ensure the user is authenticated
 
-    def post(self, request):
-        try:
-            # Get the refresh token from the request data
-            refresh_token = request.data.get('refresh_token')
-            if refresh_token is None:
-                return Response({
-                    'status': 'failure',
-                    'message': 'Refresh token is required to sign out.'
-                }, status=status.HTTP_400_BAD_REQUEST)
+#     def post(self, request):
+#         try:
+#             # Get the refresh token from the request data
+#             refresh_token = request.data.get('refresh_token')
+#             if refresh_token is None:
+#                 return Response({
+#                     'status': 'failure',
+#                     'message': 'Refresh token is required to sign out.'
+#                 }, status=status.HTTP_400_BAD_REQUEST)
 
-            # Blacklist the refresh token
-            token = RefreshToken(refresh_token)
-            token.blacklist()
+#             # Blacklist the refresh token
+#             token = RefreshToken(refresh_token)
+#             token.blacklist()
 
-            return Response({
-                'status': 'success',
-                'message': 'User signed out successfully.'
-            }, status=status.HTTP_200_OK)
+#             return Response({
+#                 'status': 'success',
+#                 'message': 'User signed out successfully.'
+#             }, status=status.HTTP_200_OK)
 
-        except Exception as e:
-            return Response({
-                'status': 'failure',
-                'message': 'Failed to sign out.',
-                'error': str(e)
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+#         except Exception as e:
+#             return Response({
+#                 'status': 'failure',
+#                 'message': 'Failed to sign out.',
+#                 'error': str(e)
+#             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
@@ -333,10 +333,10 @@ class VerifyOTPView(APIView):
     def post(self, request):
         otp_code = request.data.get('otp_code')
         email = request.data.get('email')
-        # name = request.data.get('name')
-        # password = request.data.get('password')
+        name = request.data.get('name')
+        password = request.data.get('password')
 
-        if not otp_code or not email:
+        if not otp_code or not email or not name or not password:
             return Response({'error': 'Please Enter OTP'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
@@ -350,14 +350,14 @@ class VerifyOTPView(APIView):
                 if user_type == 'faculty':
                     user = Faculty_auth.objects.create(
                         email=email,
-                        # password=make_password(password),
-                        # name=name
+                        password=make_password(password),
+                        name=name
                     )
                 elif user_type == 'student':
                     user = Student_auth.objects.create(
                         email=email,
-                        # password=make_password(password),
-                        # name=name
+                        password=make_password(password),
+                        name=name
                     )
 
                 otp_instance.delete()
