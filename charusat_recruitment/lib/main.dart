@@ -27,12 +27,9 @@ import 'firebase_options.dart';
 void main() async{
   print("Step 1");
   WidgetsFlutterBinding.ensureInitialized();
-  print("Step 2");
   await dotenv.load(fileName: ".env");
-print("Step 3");
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-    await NotificationService().initNotifications();
-print("Step 4");
+  await NotificationService().initNotifications();
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
@@ -49,15 +46,13 @@ class MyApp extends StatefulWidget {
 }
 class _MyAppState extends State<MyApp> {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
-  late Future<bool> _isLoggedIn; // Future to track login status
-
+  late Future<bool> _isLoggedIn;
   @override
   void initState() {
     super.initState();
     _isLoggedIn = _checkLoginStatus();
   }
 
-  /// **Checks Secure Storage for JWT Token & Email**
   Future<bool> _checkLoginStatus() async {
     String? accessToken = await _storage.read(key: 'access_token');
     String? email = await _storage.read(key: 'email');
@@ -70,14 +65,31 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<bool>(
-      future: _isLoggedIn,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const CircularProgressIndicator(); // Show loading while checking
-        }
-
-        bool isLoggedIn = snapshot.data ?? false;
-        return MultiProvider(
+    future: _isLoggedIn,
+    builder: (context, snapshot) {
+      if (snapshot.connectionState == ConnectionState.waiting) {
+        return const MaterialApp(
+          debugShowCheckedModeBanner: false,
+          home: Scaffold(
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    width: 200,
+                    height: 200,
+                    child: CircularProgressIndicator()
+                    ),
+                  SizedBox(height: 20),
+                  Text('Checking authentication...')
+                ],
+              ),
+            ),
+          ),
+        );
+      }
+      bool isLoggedIn = snapshot.data ?? false;
+      return MultiProvider(
           providers: [
             ChangeNotifierProvider(create: (_) => Themechange()),
             ChangeNotifierProvider(create: (_) => PieChartProvider()),

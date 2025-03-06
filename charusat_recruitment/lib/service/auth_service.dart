@@ -127,7 +127,7 @@ Future<bool> verifyOtp(String email, String otp) async {
 
     try {
       var response = await http.post(
-        Uri.parse('YOUR_SERVER_URL/user/token/refresh/'), // Replace with actual endpoint
+        Uri.parse('$serverurl/user/token/refresh/'), // Replace with actual endpoint
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({"refresh": refreshToken}),
       );
@@ -135,8 +135,7 @@ Future<bool> verifyOtp(String email, String otp) async {
       if (response.statusCode == 200) {
         var responseBody = jsonDecode(response.body);
         await _storage.write(key: 'access_token', value: responseBody['access']);
-
-        return true; // Access token successfully refreshed
+        return true; 
       } else if (response.statusCode == 401) {
         _redirectToLogin(context);
       }
@@ -152,5 +151,4 @@ Future<bool> verifyOtp(String email, String otp) async {
     _storage.deleteAll(); // Clear stored tokens
     Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
   }
-
 }

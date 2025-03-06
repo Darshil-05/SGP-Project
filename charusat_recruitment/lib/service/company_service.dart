@@ -1,63 +1,81 @@
 import 'dart:convert';
 import 'package:charusat_recruitment/screens/models/company_model.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:charusat_recruitment/const.dart';
 
 class CompanyService {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
-  Future<Map<String, List<Map<String, String>>>> getCompanies() async {
-    var url = Uri.parse('$serverurl/company/company/company-info/');
-    var response = await http.get(url);
 
-    List<Map<String, String>> upcomingCompanies = [];
-    List<Map<String, String>> recentCompanies = [];
-    if (response.statusCode == 200) {
-      List<dynamic> jsonData = json.decode(response.body);
+  Future<Map<String, List<Map<String, String>>>> getCompanies(BuildContext context) async {
+    try {
+      var url = Uri.parse('$serverurl/company/company/company-info/');
+      var response = await http.get(url).timeout(const Duration(seconds: 10));
 
-      for (var company in jsonData) {
-        String companyDateStr = company['date_placementdrive'].toString();
-        DateTime companyDate = DateTime.parse(companyDateStr);
-        DateTime currentDate = DateTime.now();
-        Map<String, String> companyDetails = {
-          'name': company['company_name'],
-          'date': companyDateStr,
-          'location': company['job_location'],
-          'description': company['job_description'],
-          'image': serverurl + company['image_url']
+      List<Map<String, String>> upcomingCompanies = [];
+      List<Map<String, String>> recentCompanies = [];
+
+      if (response.statusCode == 200) {
+        List<dynamic> jsonData = json.decode(response.body);
+
+        for (var company in jsonData) {
+          String companyDateStr = company['date_placementdrive'].toString();
+          DateTime companyDate = DateTime.parse(companyDateStr);
+          DateTime currentDate = DateTime.now();
+
+          Map<String, String> companyDetails = {
+            'id': company['id'].toString(),
+            'name': company['company_name'],
+            'date': companyDateStr,
+            'location': company['job_location'],
+            'description': company['job_description'],
+            'image': serverurl + company['image_url']
+          };
+
+          if (companyDate.isAfter(currentDate)) {
+            upcomingCompanies.add(companyDetails);
+          } else {
+            recentCompanies.add(companyDetails);
+          }
+        }
+
+        return {
+          'upcoming': upcomingCompanies,
+          'recent': recentCompanies,
         };
 
-        if (companyDate.isAfter(currentDate)) {
-          upcomingCompanies.add(companyDetails);
-        } else {
-          recentCompanies.add(companyDetails);
-        }
+      } else {
+        _showErrorDialog(context, "Failed to load companies", response.statusCode);
+        return {
+          'upcoming': [],
+          'recent': [],
+        };
       }
-    } else {
-      throw Exception("Failed to load companies");
+    } catch (e) {
+      _showErrorDialog(context, "Error fetching companies: $e", null);
+      return {
+        'upcoming': [],
+        'recent': [],
+      };
     }
-
-    return {
-      'upcoming': upcomingCompanies,
-      'recent': recentCompanies,
-    };
   }
 
-Future<bool> addCompany(CompanyModel company) async {
+  Future<bool> addCompany(BuildContext context, CompanyModel company) async {
     print("Calling addCompany... ${company.companyName}");
 
     try {
       // Retrieve JWT token
       String? accessToken = await _storage.read(key: 'access_token');
       if (accessToken == null) {
-        print("Error: No access token found.");
+        _showErrorDialog(context, "Error: No access token found", null);
         return false;
       }
 
       // Set up request headers
       var headers = {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer $accessToken', // Attach JWT token
+        'Authorization': 'Bearer $accessToken',
       };
 
       // Create request
@@ -68,7 +86,7 @@ Future<bool> addCompany(CompanyModel company) async {
 
       // Set request body
       request.body = json.encode({
-        "company_name": company.companyName, // Fixed typo from "comapny_name"
+        "company_name": company.companyName,
         "company_website": company.companyWebsite,
         "headquarters": company.headquarters,
         "industry": company.industry,
@@ -111,12 +129,28 @@ Future<bool> addCompany(CompanyModel company) async {
         print("Company added successfully");
         return true;
       } else {
-        print("Failed to add company: ${response.reasonPhrase}");
+        _showErrorDialog(context, "Failed to add company", response.statusCode);
         return false;
       }
     } catch (e) {
-      print("Error adding company: $e");
+      _showErrorDialog(context, "Error adding company: $e", null);
       return false;
     }
+  }
+
+  void _showErrorDialog(BuildContext context, String message, int? statusCode) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Error"),
+        content: Text(statusCode != null ? "$message\nStatus Code: $statusCode" : message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text("OK"),
+          ),
+        ],
+      ),
+    );
   }
 }

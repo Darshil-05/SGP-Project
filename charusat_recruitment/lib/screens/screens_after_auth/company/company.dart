@@ -14,12 +14,12 @@ class _CompanyPageState extends State<CompanyPage> {
   @override
   void initState() {
     super.initState();
-    companyData = CompanyService().getCompanies();
+    companyData = CompanyService().getCompanies(context);
   }
 
   Future<void> _refresh() async {
     setState(() {
-      companyData = CompanyService().getCompanies();
+      companyData = CompanyService().getCompanies(context);
     });
   }
 
