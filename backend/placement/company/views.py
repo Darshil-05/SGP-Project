@@ -1,14 +1,15 @@
-
 # Create your views here.
 from rest_framework import viewsets
 from rest_framework.exceptions import NotFound
 from rest_framework import generics
-from .models import CompanyDetails,InterviewRound,CompanyRegistration,StudentInterviewProgress
-from .serializers import CompanyDetailsSerializer,InterviewRoundSerializer,CompanyRegistrationSerializer,StudentInterviewProgress,CompanyInfoSerializer,StudentProgressSerializer
+from .models import CompanyDetails,InterviewRound,CompanyRegistration,sortlisted
+from .serializers import CompanyDetailsSerializer,InterviewRoundSerializer,CompanyRegistrationSerializer,CompanyInfoSerializer
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import serializers
 from rest_framework.views import APIView
+from django.views.decorators.csrf import csrf_exempt
+import logging
 
 class CompanyDetailsList(generics.ListCreateAPIView):
     queryset = CompanyDetails.objects.prefetch_related('interview_rounds')
@@ -165,12 +166,12 @@ class InterviewRoundByCompanyList(generics.ListAPIView):
     serializer_class = InterviewRoundSerializer
 
     def get_queryset(self):
-        company_name = self.kwargs.get('company_name')
+        company_id = self.kwargs.get('company_id')
         try:
             # Retrieve the company by name
-            company = CompanyDetails.objects.get(company_name=company_name)
+            company = CompanyDetails.objects.get(company_id=company_id)
         except CompanyDetails.DoesNotExist:
-            raise NotFound(f"Company '{company_name}' not found")
+            raise NotFound(f"Company '{company_id}' not found")
 
         # Return all interview rounds for the specified company
         return InterviewRound.objects.filter(company=company)
@@ -214,56 +215,99 @@ class RegisteredStudentsByCompanyList(generics.ListAPIView):
 
 from rest_framework.generics import ListAPIView, UpdateAPIView
 
-class RetrieveEligibleStudentsView(ListAPIView):
-    serializer_class = StudentProgressSerializer
 
-    def get_queryset(self):
-     company_id = self.request.query_params.get('company_id', None)
-     round_id = self.request.query_params.get('round_id', None)
 
-     if not company_id or not round_id:
-        return StudentInterviewProgress.objects.none()  # Return empty if params are missing
+# class RetrieveEligibleStudentsView(ListAPIView):
+#     serializer_class = StudentProgressSerializer
 
-     round_id = int(round_id)
+#     def get_queryset(self):
+#         company_id = self.kwargs.get('company_id')
+#         round_id = self.kwargs.get('round_id')
 
-     if round_id == 1:
-        # Get students from CompanyRegistration for the first round
-        registered_students = CompanyRegistration.objects.filter(company_id=company_id).values_list('student_id', flat=True)
+#         if not company_id or not round_id:
+#             return StudentInterviewProgress.objects.none()  # Return empty if params are missing
 
-        return StudentInterviewProgress.objects.filter(
-            company_id=company_id,
-            student_id__in=registered_students
-        )
+#         if round_id == 1:
+#             # Get students from CompanyRegistration for the first round
+#             registered_students = CompanyRegistration.objects.filter(company_id=company_id).values_list('student_id', flat=True)
 
-    # Other Rounds: Only students who passed the previous round
-     previous_round_id = round_id - 1
-     passed_students = StudentInterviewProgress.objects.filter(
-        company_id=company_id,
-        round_id=previous_round_id,
-        is_passed=True
-     ).values_list('student_id', flat=True)
+#             return StudentInterviewProgress.objects.filter(
+#                 company_id=company_id,
+#                 student_id__in=registered_students
+#             )
 
-     return StudentInterviewProgress.objects.filter(
-        company_id=company_id,
-        round_id=round_id,
-        student_id__in=passed_students
-     )
+#         # Other Rounds: Only students who passed the previous round
+#         previous_round_id = round_id - 1
+#         passed_students = StudentInterviewProgress.objects.filter(
+#             company_id=company_id,
+#             round_id=previous_round_id,
+#             is_passed=True
+#         ).values_list('student_id', flat=True)
 
-        
-class UpdateStudentInterviewProgressView(UpdateAPIView):
-    queryset = StudentInterviewProgress.objects.all()
-    serializer_class = StudentProgressSerializer
+#         return StudentInterviewProgress.objects.filter(
+#             company_id=company_id,
+#             round_id=round_id,
+#             student_id__in=passed_students
+#         )
 
-    def put(self, request, *args, **kwargs):
-        instance = self.get_object()
-        is_present = request.data.get("is_present", instance.is_present)
-        is_passed = request.data.get("is_passed", instance.is_passed)
+# class UpdateStudentInterviewProgressView(APIView):
+#     def put(self, request, company_id, round_index):
+#         print(f"Request Data: {request.data}")  # Debugging
 
-        instance.is_present = is_present
-        instance.is_passed = is_passed
-        instance.save()
+#         student_id_no = request.data.get("student_id_no") or request.data.get("student_id")
+#         if not student_id_no:
+#             return Response({"error": "Student ID is missing in the request."}, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response({"message": "Attendance and pass status updated successfully."}, status=status.HTTP_200_OK)
+#         student_id_no = student_id_no.strip()
+#         is_present = request.data.get("is_present", False)
+#         is_passed = request.data.get("is_passed", False)
+
+#         print(f"Received student_id_no: {student_id_no}, company_id: {company_id}")
+
+#         # 🔹 Check if student is in "sortlisted" table
+#         sortlisted_entry = sortlisted.objects.filter(student_id_no__iexact=student_id_no, company_id=company_id).first()
+#         print(f"Sortlisted entry found: {sortlisted_entry}")
+
+#         if not sortlisted_entry:
+#             return Response({"error": "Student is not registered for this company."}, status=status.HTTP_404_NOT_FOUND)
+
+#         student = sortlisted_entry.student  # Get student object
+
+#         # 🔹 Check if round_index is valid
+#         rounds = InterviewRound.objects.filter(company_id=company_id).order_by('index')
+#         if round_index < 0 or round_index >= len(rounds):
+#             return Response({"error": "Invalid round index."}, status=status.HTTP_400_BAD_REQUEST)
+
+#         # 🔹 Update or create student's interview progress
+#         progress, created = StudentInterviewProgress.objects.update_or_create(
+#             student=student,
+#             company_id=company_id,
+#             round_index=round_index,  # Store round index instead of round ForeignKey
+#             defaults={"is_present": is_present, "is_passed": is_passed}
+#         )
+
+#         # 🔹 If student failed the round (is_passed=False), remove them from sortlisted
+#         if not is_passed:
+#             sortlisted_entry.delete()
+#             return Response({
+#                 "message": "Student failed the round and has been removed from sortlisted students.",
+#                 "student_id": student_id_no,
+#                 "company_id": company_id,
+#                 "round_index": round_index,
+#                 "is_present": progress.is_present,
+#                 "is_passed": progress.is_passed
+#             }, status=status.HTTP_200_OK)
+
+#         return Response({
+#             "student_id": student_id_no,
+#             "company_id": company_id,
+#             "round_index": round_index,
+#             "is_present": progress.is_present,
+#             "is_passed": progress.is_passed
+#         }, status=status.HTTP_200_OK)
+
+
+
 
 
 # class ApplyForCompanyView(APIView):
@@ -293,3 +337,28 @@ class UpdateStudentInterviewProgressView(UpdateAPIView):
 #             }, status=status.HTTP_201_CREATED)
         
 #         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class SortlistedStudentsByCompanyList(generics.ListAPIView):
+    serializer_class = CompanyRegistrationSerializer
+    def get_queryset(self):
+        company_id = self.kwargs['company_id']
+        # Filter sortlisted students by the company id
+        company = CompanyDetails.objects.filter(company_id=company_id).first()
+        
+        if not company:
+            raise serializers.ValidationError({"company_id": "Company does not exist."})
+
+        return sortlisted.objects.filter(company=company)
+
+class DeleteSortlistedStudent(APIView):
+    def delete(self, request, company_id, student_id):
+        try:
+            student = sortlisted.objects.get(company_id=company_id, student_id_no=student_id)
+            student.delete()
+            return Response({
+                "message": "Student removed from sortlisted successfully."
+            }, status=status.HTTP_200_OK)
+        except sortlisted.DoesNotExist:
+            return Response({
+                "error": "Student not found in sortlisted for this company."
+            }, status=status.HTTP_404_NOT_FOUND)

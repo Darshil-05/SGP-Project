@@ -68,28 +68,6 @@ class CompanyDetailsSerializer(serializers.ModelSerializer):
      return instance
 
 
-
-from rest_framework import serializers
-from .models import StudentInterviewProgress, InterviewRound
-
-class StudentProgressSerializer(serializers.ModelSerializer):
-    student_name = serializers.CharField(source="student.name", read_only=True)
-    company_name = serializers.CharField(source="company.company_name", read_only=True)
-    round_name = serializers.CharField(source="round.round_name", read_only=True)
-
-    class Meta:
-        model = StudentInterviewProgress
-        fields = ['id', 'student', 'student_name', 'company', 'company_name', 'round', 'round_name', 'is_passed', 'is_present']
-
-        
-# class InterviewRoundSerializer(serializers.ModelSerializer):
-#     company_name = serializers.CharField(source='company.company_name', read_only=True)  # Read-only for display
-#     company = serializers.PrimaryKeyRelatedField(queryset=CompanyDetails.objects.all())  # Select company by ID
-
-#     class Meta:
-#         model = InterviewRound
-#         fields = ['company', 'company_name', 'round_name', 'status']
-
 class CompanyRegistrationSerializer(serializers.ModelSerializer):
     # Fields to display in the response
     student_name = serializers.CharField(source='student.first_name', read_only=True)  # Get student first name
@@ -132,6 +110,24 @@ class CompanyRegistrationSerializer(serializers.ModelSerializer):
         representation = super().to_representation(instance)
         representation['company_name'] = instance.company.company_name  # Ensure company_name is included
         return representation
+
+
+# from rest_framework import serializers
+# from .models import StudentInterviewProgress, InterviewRound
+
+# class StudentProgressSerializer(serializers.ModelSerializer):
+#     student_name = serializers.CharField(source="student.name", read_only=True)
+#     company_name = serializers.CharField(source="company.company_name", read_only=True)
+#     round_name = serializers.CharField(source="round.round_name", read_only=True)
+
+#     class Meta:
+#         model = StudentInterviewProgress
+#         fields = ['id', 'student', 'student_name', 'company', 'company_name', 'round', 'round_name', 'is_passed', 'is_present']
+
+        
+
+
+
 
 from rest_framework import serializers
 from .models import CompanyDetails

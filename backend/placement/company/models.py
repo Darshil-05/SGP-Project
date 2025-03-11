@@ -142,20 +142,26 @@ class sortlisted(models.Model):
     def __str__(self):
         return f"Student ID: {self.student_id_no} registered for {self.company_name}"
 
+# class StudentInterviewProgress(models.Model):
+#     student = models.ForeignKey(Student_details, on_delete=models.CASCADE, related_name='interview_progress')
+#     company = models.ForeignKey(CompanyDetails, on_delete=models.CASCADE, related_name='student_progress')
+#     round = models.ForeignKey(InterviewRound, on_delete=models.CASCADE, related_name='student_progress')
+#     round_index = models.IntegerField()  # Explicit round number for quick access
+#     is_passed = models.BooleanField(default=False)
+#     is_present = models.BooleanField(default=False)
+#     date_updated = models.DateTimeField(auto_now=True)
 
-class StudentInterviewProgress(models.Model):
-    student = models.ForeignKey(Student_details, on_delete=models.CASCADE, related_name='interview_progress')
-    company = models.ForeignKey(CompanyDetails, on_delete=models.CASCADE, related_name='student_progress')
-    round = models.ForeignKey(InterviewRound, on_delete=models.CASCADE, related_name='student_progress')
-    is_passed = models.BooleanField(default=False)
-    is_present = models.BooleanField(default=False)
-    date_updated = models.DateTimeField(auto_now=True)
+#     class Meta:
+#         unique_together = ('student', 'company', 'round_index')  # Prevent duplicate records
 
-    class Meta:
-        unique_together = ('student', 'company', 'round')  # Ensure unique records per student per round
+#     def save(self, *args, **kwargs):
+#         if self.interview_round and not self.round_index:
+#             self.round_index = self.interview_round.index  # Auto-assign if not set
+#         super().save(*args, **kwargs)
 
-    def __str__(self):
-        return f"{self.student.student_id} - {self.company.company_name} - Round {self.round.round_name}"
+#     def __str__(self):
+#         return f"{self.student.student_id} - {self.company.company_name} - Round {self.round_index}"
+
 
 
 class CompanyApplications(models.Model):
