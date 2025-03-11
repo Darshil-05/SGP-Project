@@ -15,5 +15,5 @@ urlpatterns = [
     # path('company/company-info/', CompanyInfoView.as_view(), name='company-details'),
     path('interview-rounds-get/', InterviewRoundList.as_view(), name='interview-round-list'),
     path('sortlisted-students/<int:company_id>/', SortlistedStudentsByCompanyList.as_view(), name='sortlisted-students'),
-    path('delete-sortlisted/<int:company_id>/<str:student_id>/', DeleteSortlistedStudent.as_view(), name='delete-sortlisted-student'),
+    path('delete-sortlisted/<int:company_id>/', DeleteSortlistedStudent.as_view(), name='delete-sortlisted-student'),
 ] 

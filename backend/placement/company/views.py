@@ -351,14 +351,28 @@ class SortlistedStudentsByCompanyList(generics.ListAPIView):
         return sortlisted.objects.filter(company=company)
 
 class DeleteSortlistedStudent(APIView):
-    def delete(self, request, company_id, student_id):
+    def post(self, request, company_id):
         try:
-            student = sortlisted.objects.get(company_id=company_id, student_id_no=student_id)
-            student.delete()
+            # Get the list of student IDs from the request body
+            student_ids = request.data.get('student_ids', [])
+            
+            if not student_ids:
+                return Response({
+                    "error": "No student IDs provided in the request."
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            # Delete all students from the sortlisted table
+            deleted_count = sortlisted.objects.filter(
+                company_id=company_id,
+                student_id_no__in=student_ids
+            ).delete()[0]
+
             return Response({
-                "message": "Student removed from sortlisted successfully."
+                "message": f"Successfully deleted {deleted_count} students from sortlisted.",
+                "deleted_count": deleted_count
             }, status=status.HTTP_200_OK)
-        except sortlisted.DoesNotExist:
+
+        except Exception as e:
             return Response({
-                "error": "Student not found in sortlisted for this company."
-            }, status=status.HTTP_404_NOT_FOUND)
+                "error": f"An error occurred while deleting students: {str(e)}"
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
