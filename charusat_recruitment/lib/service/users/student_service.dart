@@ -104,4 +104,74 @@ class StudentService {
     }
   }
 
+Future<bool> updateStudentField(BuildContext context, String studentId, dynamic value) async {
+  var url = Uri.parse('$serverurl/student/details/$studentId/');
+  
+  // Retrieve the stored access token
+  String? accessToken = await storage.read(key: "access_token");
+  
+  var headers = {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer $accessToken',
+  };
+
+  // Create a map with only the field to update
+  Map<String, dynamic> updateData = {
+    
+  };
+
+  try {
+    var response = await http.patch(
+      url,
+      headers: headers,
+      body: jsonEncode(updateData),
+    );
+
+    print("Update Response Code: ${response.statusCode}");
+    print("Update Response Body: ${response.body}");
+
+    if (response.statusCode == 200) {
+      // Update successful
+      return true;
+    } else if (response.statusCode == 401) {
+      // Token expired or invalid
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Session expired. Please login again.')),
+        );
+        Navigator.of(context).pushReplacementNamed('/login');
+      }
+      return false;
+    } else if (response.statusCode == 400) {
+      // Validation error or bad request
+      var errorData = json.decode(response.body);
+      String errorMessage = 'Failed to update: ${errorData.toString()}';
+      
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(errorMessage)),
+        );
+      }
+      return false;
+    } else {
+      // Other errors
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update: ${response.reasonPhrase}')),
+        );
+      }
+      return false;
+    }
+  } catch (e) {
+    debugPrint("Error updating student field: $e");
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Network error: $e')),
+      );
+    }
+    return false;
+  }
+}
+
+
 }

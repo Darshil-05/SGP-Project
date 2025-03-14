@@ -1,15 +1,15 @@
 import 'dart:math' as math;
 import 'package:charusat_recruitment/screens/screens_after_auth/company/company.dart';
-import 'package:charusat_recruitment/screens/screens_after_auth/notification.dart';
-import 'package:charusat_recruitment/screens/screens_after_auth/profile.dart';
-import 'package:charusat_recruitment/screens/screens_after_auth/side_menu.dart';
+import 'package:charusat_recruitment/screens/screens_after_auth/home/notification.dart';
+import 'package:charusat_recruitment/screens/screens_after_auth/profile/studentprofile.dart';
+import 'package:charusat_recruitment/screens/screens_after_auth/home/side_menu.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/physics.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
-import 'screens_after_auth/home_after_auth.dart';
-import 'package:charusat_recruitment/screens/screens_after_auth/customtabbar.dart';
+import 'screens_after_auth/home/home_after_auth.dart';
+import 'package:charusat_recruitment/screens/screens_after_auth/home/customtabbar.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:charusat_recruitment/Providers/menu_provider.dart'; // import the MenuProvider

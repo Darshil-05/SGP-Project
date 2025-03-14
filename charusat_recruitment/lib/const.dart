@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-const String serverurl = 'http://172.25.197.173:8000';
+const String serverurl = 'http://172.25.197.209:8000';
+String role = 'faculty';
 String email="22IT092@charusat.edu.in";
 String name = "Darshil Patel";
 late String password;
@@ -13,7 +14,6 @@ String otherskill = "Problem Solving skill";
 String institute = "CSPIT";
 String department = "IT";
 String passingyear = "2026";
-// late final List<AnnouncementModel> announce ;
 void showErrorDialog(BuildContext context, String errorMessage) {
   showDialog(
     context: context,

@@ -4,11 +4,11 @@ import 'package:charusat_recruitment/Providers/announcement_provider.dart';
 import 'package:charusat_recruitment/const.dart';
 import 'package:charusat_recruitment/screens/Components/announcecard.dart';
 import 'package:charusat_recruitment/screens/models/announcement_model.dart';
-import 'package:charusat_recruitment/screens/screens_after_auth/pie_chart.dart';
-import 'package:charusat_recruitment/service/annoncement_service.dart';
+import 'package:charusat_recruitment/screens/screens_after_auth/home/pie_chart.dart';
+import 'package:charusat_recruitment/service/common_service/annoncement_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../Providers/pie_chart_provider.dart';
+import '../../../Providers/pie_chart_provider.dart';
 import 'package:http/http.dart' as http;
 
 class HomeApp extends StatefulWidget {
@@ -39,7 +39,7 @@ class _HomeAppState extends State<HomeApp> {
         },
         child: SingleChildScrollView(
           padding: EdgeInsets.only(
-            top: MediaQuery.of(context).padding.top + 65,
+            top: MediaQuery.of(context).padding.top + 25,
             bottom: MediaQuery.of(context).padding.bottom,
           ),
           physics: const BouncingScrollPhysics(
@@ -48,7 +48,7 @@ class _HomeAppState extends State<HomeApp> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Padding(
-                padding: EdgeInsets.only(left: 20.0),
+                padding: EdgeInsets.only(left: 80.0),
                 child: Row(
                   children: [
                     const Text(
@@ -56,9 +56,9 @@ class _HomeAppState extends State<HomeApp> {
                       style: TextStyle(fontSize: 30, fontFamily: "pop"),
                     ),
                     const SizedBox(
-                      width: 20,
+                      width: 10,
                     ),
-                    InkWell(
+                    if(role == 'faculty')(InkWell(
                       onTap: () {
                         Navigator.of(context).pushNamed('/announcement');
                       },
@@ -73,7 +73,7 @@ class _HomeAppState extends State<HomeApp> {
                           size: 30,
                         ),
                       ),
-                    )
+                    ))
                   ],
                 ),
               ),

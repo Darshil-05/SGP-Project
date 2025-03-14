@@ -1,21 +1,28 @@
-
 import 'package:flutter/material.dart';
 import 'package:timeline_tile/timeline_tile.dart';
+import 'package:charusat_recruitment/screens/models/company_round_model.dart';
 
 class CompanyLiveStatus extends StatelessWidget {
-  final List<String>? rounds; // Nullable for safety
-  final int? ongoingRoundIndex;
+  final List<CompanyRound> rounds;
+  late final int ongoingRoundIndex;
+  late final int lastCompletedIndex;
 
-  const CompanyLiveStatus({
-    Key? key,
-    required this.rounds,
-    required this.ongoingRoundIndex,
-  }) : super(key: key);
+  CompanyLiveStatus({Key? key, required this.rounds}) : super(key: key) {
+    // Find the first pending round (ongoing round)
+    ongoingRoundIndex = rounds.indexWhere((round) => round.status == "pending");
+
+    // If no pending rounds are found, set to last index (all rounds are completed)
+    if (ongoingRoundIndex == -1) {
+      ongoingRoundIndex = rounds.length;
+    }
+
+    // Last completed round is just before the ongoing round
+    lastCompletedIndex = ongoingRoundIndex - 1;
+  }
 
   @override
   Widget build(BuildContext context) {
-    // Fallback if rounds or ongoingRoundIndex is null
-    if (rounds == null || ongoingRoundIndex == null) {
+    if (rounds.isEmpty) {
       return Center(
         child: Text(
           'No data available',
@@ -25,42 +32,32 @@ class CompanyLiveStatus extends StatelessWidget {
     }
 
     return ListView.builder(
-      shrinkWrap: true, 
+      shrinkWrap: true,
       physics: AlwaysScrollableScrollPhysics(),
-      itemCount: rounds!.length,
+      itemCount: rounds.length,
       itemBuilder: (context, index) {
-        // Handle invalid ongoingRoundIndex
-        if (ongoingRoundIndex! < 0 || ongoingRoundIndex! >= rounds!.length) {
-          return Center(
-            child: Text(
-              'Invalid ongoing round index',
-              style: TextStyle(fontSize: 18, color: Colors.red),
-            ),
-          );
-        }
-
         Color iconColor;
         Color lineColor;
 
-        if (index < ongoingRoundIndex!) {
-          // Completed rounds
-          iconColor = Colors.green;
-          lineColor = Colors.green;
-        } else if (index == ongoingRoundIndex) {
-          // Ongoing round
+        if (index < ongoingRoundIndex) {
+          // Completed rounds (Blue)
           iconColor = Colors.blue;
           lineColor = Colors.blue;
+        } else if (index == ongoingRoundIndex) {
+          // Ongoing round (Green)
+          iconColor = Colors.green;
+          lineColor = Colors.green;
         } else {
-          // Upcoming rounds
+          // Upcoming rounds (Gray)
           iconColor = Colors.grey;
           lineColor = Colors.grey;
         }
 
         return GestureDetector(
-          onTap: () => _showRoundDetails(context, rounds![index]),
+          onTap: () => _handleRoundTap(context, index),
           child: TimelineTile(
             isFirst: index == 0,
-            isLast: index == rounds!.length - 1,
+            isLast: index == rounds.length - 1,
             indicatorStyle: IndicatorStyle(
               width: 40,
               color: iconColor,
@@ -75,12 +72,12 @@ class CompanyLiveStatus extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 16.0),
               child: ListTile(
                 title: Text(
-                  rounds![index],
+                  rounds[index].roundName,
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
                 subtitle: Text(
-                  index < ongoingRoundIndex!
-                      ? 'View student list'
+                  index < ongoingRoundIndex
+                      ? 'Completed'
                       : index == ongoingRoundIndex
                           ? 'Ongoing'
                           : 'Upcoming',
@@ -92,22 +89,18 @@ class CompanyLiveStatus extends StatelessWidget {
       },
     );
   }
-  void _showRoundDetails(BuildContext context, String roundName) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Round Details'),
-        content: Text('You selected: $roundName'),
-        actions: [
-          TextButton(
-            onPressed: (){
-              Navigator.of(context).popAndPushNamed('/studentlist');
-              
-              },
-            child: Text('Close'),
-          ),
-        ],
-      ),
-    );
+
+  void _handleRoundTap(BuildContext context, int index) {
+    if (index == lastCompletedIndex) {
+      // Navigate only if the tapped round is the last completed round
+      Navigator.of(context).pushNamed('/studentlist');
+    } else {
+      // Show a message if tapped round is not last completed
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("You can only view the last completed round."),
+        ),
+      );
+    }
   }
 }

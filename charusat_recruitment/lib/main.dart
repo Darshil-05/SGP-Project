@@ -3,17 +3,18 @@ import 'package:charusat_recruitment/Providers/menu_provider.dart';
 import 'package:charusat_recruitment/Providers/pie_chart_provider.dart';
 import 'package:charusat_recruitment/Providers/theme_provider.dart';
 import 'package:charusat_recruitment/notification_service.dart';
-import 'package:charusat_recruitment/screens/auth/detailpage.dart';
+import 'package:charusat_recruitment/screens/auth/studentdetail.dart';
 import 'package:charusat_recruitment/screens/auth/forgotpage.dart';
 import 'package:charusat_recruitment/screens/auth/login.dart';
 import 'package:charusat_recruitment/screens/auth/otp.dart';
 import 'package:charusat_recruitment/screens/auth/register.dart';
 import 'package:charusat_recruitment/screens/home.dart';
-import 'package:charusat_recruitment/screens/screens_after_auth/announcement_manage.dart';
+import 'package:charusat_recruitment/screens/screens_after_auth/home/announcement_manage.dart';
 import 'package:charusat_recruitment/screens/screens_after_auth/company/company_details.dart';
 import 'package:charusat_recruitment/screens/screens_after_auth/company/company_manager.dart';
 import 'package:charusat_recruitment/screens/screens_after_auth/company/company_round.dart';
 import 'package:charusat_recruitment/screens/screens_after_auth/company/student_list.dart';
+import 'package:charusat_recruitment/screens/screens_after_auth/profile/studentprofile.dart';
 import 'package:charusat_recruitment/screens/welcome.dart';
 import 'package:charusat_recruitment/theme.dart';
 import 'package:flutter/material.dart';
@@ -29,7 +30,6 @@ void main() async{
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  await NotificationService().initNotifications();
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
@@ -55,9 +55,10 @@ class _MyAppState extends State<MyApp> {
 
   Future<bool> _checkLoginStatus() async {
     String? accessToken = await _storage.read(key: 'access_token');
+    String? refreshToken = await _storage.read(key: 'refresh_token');
     String? email = await _storage.read(key: 'email');
 
-    print("Checking login: Access Token: $accessToken, Email: $email");
+    print("Checking login: Access Token: $accessToken, Email: $email , Refresh: $refreshToken");
 
     return (accessToken != null && email != null);
   }
@@ -105,6 +106,7 @@ class _MyAppState extends State<MyApp> {
                 themeMode: themechanger.themeMode,
                 theme: ThemeManager.lightmode,
                 darkTheme: ThemeManager.darkmode,
+                // home: const ProfilePage(),
                 home: isLoggedIn ? const Home() : const Welcome(), // Show correct screen
                 routes: {
                   '/home': (context) => const Home(),

@@ -1,9 +1,11 @@
 import 'dart:convert';
 
 import 'package:charusat_recruitment/const.dart';
+import 'package:charusat_recruitment/screens/models/company_round_model.dart';
 import 'package:charusat_recruitment/screens/screens_after_auth/company/company_status.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http ;
+import 'package:http/http.dart' as http;
+import 'package:charusat_recruitment/service/company_service/company_service.dart';
 import 'package:timeline_tile/timeline_tile.dart';
 
 class CompanyDetailsPage extends StatefulWidget {
@@ -79,63 +81,64 @@ class _CompanyDetailsPageState extends State<CompanyDetailsPage> {
       ),
     );
   }
-  Future<void> applyForCompany(String studentId, int companyId, BuildContext context) async {
-  bool _isLoading = true;
-  String? _errorMessage;
 
-  setState(() {
-    _isLoading = true;
-    _errorMessage = null;
-  });
+  Future<void> applyForCompany(
+      String studentId, int companyId, BuildContext context) async {
+    bool _isLoading = true;
+    String? _errorMessage;
 
-  print("Applying for company: $companyId with student ID: $studentId");
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
 
-  var headers = {
-    'Content-Type': 'application/json',
-  };
+    print("Applying for company: $companyId with student ID: $studentId");
 
-  var request = http.Request(
-    'POST',
-    Uri.parse('$serverurl/company/company-registration/'),
-  );
+    var headers = {
+      'Content-Type': 'application/json',
+    };
 
-  request.body = json.encode({
-    "input_student_id": studentId,
-    "input_company_id": companyId,
-  });
-  request.headers.addAll(headers);
+    var request = http.Request(
+      'POST',
+      Uri.parse('$serverurl/company/company-registration/'),
+    );
 
-  try {
-    http.StreamedResponse streamedResponse =
-        await request.send().timeout(const Duration(seconds: 10));
-    final response = await http.Response.fromStream(streamedResponse);
+    request.body = json.encode({
+      "input_student_id": studentId,
+      "input_company_id": companyId,
+    });
+    request.headers.addAll(headers);
 
-    print("Response received");
+    try {
+      http.StreamedResponse streamedResponse =
+          await request.send().timeout(const Duration(seconds: 10));
+      final response = await http.Response.fromStream(streamedResponse);
 
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      print("Application successful: ${response.body}");
+      print("Response received");
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        print("Application successful: ${response.body}");
+        setState(() {
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Successfully applied!")),
+        );
+      } else {
+        print("Application failed: ${response.reasonPhrase}");
+        setState(() {
+          _isLoading = false;
+          _errorMessage = "Failed to apply. Please try again.";
+        });
+      }
+    } catch (e) {
+      print("Error applying: $e");
       setState(() {
         _isLoading = false;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Successfully applied!")),
-      );
-    } else {
-      print("Application failed: ${response.reasonPhrase}");
-      setState(() {
-        _isLoading = false;
-        _errorMessage = "Failed to apply. Please try again.";
+        _errorMessage = "Error applying. Please check your connection.";
       });
     }
-  } catch (e) {
-    print("Error applying: $e");
-    setState(() {
-      _isLoading = false;
-      _errorMessage = "Error applying. Please check your connection.";
-    });
   }
-}
-
 
   void showApplyPopup(BuildContext context, String companyName) {
     bool _isChecked = false;
@@ -192,17 +195,40 @@ class _CompanyDetailsPageState extends State<CompanyDetailsPage> {
                 ),
                 ElevatedButton(
                   onPressed: _isChecked
-                      ? () {
-                        applyForCompany("22it099", 2, context);
-                          // Add your apply logic here
-                          Navigator.of(context).pop(); // Close the dialog
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                "You have successfully applied for $companyName.",
-                              ),
-                            ),
+                      ? () async {
+                          // Show loading indicator while processing
+                          showDialog(
+                            context: context,
+                            barrierDismissible: false,
+                            builder: (context) => const Center(
+                                child: CircularProgressIndicator()),
                           );
+
+                          // Call the addStudent function
+                          bool success = await CompanyService()
+                              .registerstudent(context, 2, '22IT092');
+
+                          // Close the loading dialog
+                          Navigator.of(context).pop();
+
+                          // Show appropriate message based on success or failure
+                          if (success) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                    "You have successfully applied for $companyName."),
+                                backgroundColor: Colors.green,
+                              ),
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content:
+                                    Text("Failed to apply. Please try again."),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
                         }
                       : null,
                   style: ElevatedButton.styleFrom(
@@ -534,22 +560,31 @@ class _CompanyDetailsPageState extends State<CompanyDetailsPage> {
                         ],
                       )
                     : SizedBox(
-                      height: 500,
-                      child: CompanyLiveStatus(
-                        rounds: [
-                          'Registration',
-                          'Aptitude Test',
-                        
-                        ],
-                        ongoingRoundIndex:
-                            1, // Indicates which round is ongoing (0-based index)
+                        height: 500,
+                        child: CompanyLiveStatus(
+                          rounds: [
+                            CompanyRound(
+                                roundName: "Application Deadline",
+                                status: "Completed",
+                                index: 0),
+                                 CompanyRound(roundName: "first", status: "Completed", index: 2),
+        CompanyRound(roundName: "second", status: "pending", index: 3),
+        CompanyRound(roundName: "third", status: "pending", index: 4),
+        CompanyRound(roundName: "fourth", status: "pending", index: 5),
+                            CompanyRound(
+                                roundName: "Finalist",
+                                status: "pending",
+                                index: 6),
+                          ],
+
+                          // Indicates which round is ongoing (0-based index)
+                        ),
                       ),
-                    ),
               ],
             ),
           ),
         ),
-        floatingActionButton:  SizedBox(
+        floatingActionButton: SizedBox(
           height: 50, // Set height of the button
           width: 100, // Set width of the button
           child: FloatingActionButton(

@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:charusat_recruitment/const.dart';
-import 'package:charusat_recruitment/service/auth_service.dart';
+import 'package:charusat_recruitment/service/common_service/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'loginheader.dart';
 import 'package:http/http.dart' as http;
@@ -17,6 +17,8 @@ class _LoginPageState extends State<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  bool _isLoading = false; // Add this line to track loading state
+  
 
 Future<void> studentDetails(String studentId) async {
 
@@ -62,16 +64,54 @@ String extractStudentID(String email) {
   }
 }
   void _login() async {
-  AuthenticationService authService = AuthenticationService();
-  bool success = await authService.login(_emailController.text, _passwordController.text);
-  if (success) {
-    debugPrint("Login Successful");
-    if (mounted) {
-      Navigator.of(context).pushReplacementNamed('/home');
+    // Set loading state to true before starting the login process
+    setState(() {
+      _isLoading = true;
+    });
+    
+    AuthenticationService authService = AuthenticationService();
+    int success = await authService.login(_emailController.text, _passwordController.text);
+    
+    // Set loading state back to false after login process completes
+    setState(() {
+      _isLoading = false;
+    });
+    
+    print("sucess is $success");
+    if (success == 1) {
+      print("Login Successful");
+      if (mounted) {
+        Navigator.of(context).pushReplacementNamed('/home');
+      }
+    } else if(success == 2) {
+      showInvalidCredentialsDialog(context);
+    } else {
+      print("Login Failed");
     }
-  } else {
-    debugPrint("Login Failed");
   }
+
+void showInvalidCredentialsDialog(BuildContext context, {String message = "Invalid username or password. Please try again."}) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text("Authentication Error"),
+        content: Text(message),
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+        actions: <Widget>[
+          TextButton(
+            child: Text("OK"),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
+      );
+    },
+  );
 }
 
 
@@ -208,7 +248,7 @@ String extractStudentID(String email) {
                     ),
                     SizedBox(height: height * 0.035),
                     GestureDetector(
-                      onTap: _login,
+                      onTap: _isLoading ? null : _login, // Disable tap when loading
                       child: Container(
                         height: height * 0.07,
                         width: width * 0.8,
@@ -224,14 +264,18 @@ String extractStudentID(String email) {
                                   offset: const Offset(3, 3),
                                   blurRadius: 10)
                             ]),
-                        child: const Center(
-                          child: Text(
-                            "Sign in",
-                            style: TextStyle(
+                        child: Center(
+                          child: _isLoading 
+                            ? const CircularProgressIndicator(
                                 color: Colors.white,
-                                fontSize: 28,
-                                letterSpacing: 3),
-                          ),
+                              ) 
+                            : const Text(
+                                "Sign in",
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 28,
+                                    letterSpacing: 3),
+                              ),
                         ),
                       ),
                     ),

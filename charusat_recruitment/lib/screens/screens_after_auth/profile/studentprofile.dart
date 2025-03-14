@@ -1,6 +1,8 @@
 import 'package:charusat_recruitment/const.dart';
-import 'package:charusat_recruitment/service/auth_service.dart';
+import 'package:charusat_recruitment/service/common_service/auth_service.dart';
 import 'package:flutter/material.dart';
+
+import '../../../service/users/student_service.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -15,63 +17,40 @@ class _ProfilePageState extends State<ProfilePage> {
   bool skillsVisible = false;
   bool experienceVisible = false;
   bool certificationVisible = false;
-  bool editable = false;
 
-  // Controllers for editable fields
-  TextEditingController nameController = TextEditingController();
-  TextEditingController studentIdController = TextEditingController();
-  TextEditingController phoneController = TextEditingController();
-  TextEditingController emailController = TextEditingController();
-  TextEditingController cityController = TextEditingController();
-  TextEditingController departmentController = TextEditingController();
-  TextEditingController cgpaController = TextEditingController();
-  TextEditingController programmingSkillController = TextEditingController();
-  TextEditingController otherSkillController = TextEditingController();
-  TextEditingController workController = TextEditingController();
-  TextEditingController certificateController = TextEditingController();
-  TextEditingController certificate2Controller = TextEditingController();
+  // Variables to store user data
+  late String userName;
+  late String studentId;
+  late String phone;
+  late String userEmail;
+  late String userCity;
+  late String userDepartment;
+  late String userCgpa;
+  late String programmingSkill;
+  late String otherSkill;
+  late String workExperience;
+  late String certification1;
+  late String certification2;
 
   @override
   void initState() {
     super.initState();
-    // Initialize controllers with current values
-    nameController.text = name;
-    studentIdController.text = studentid;
-    phoneController.text = '9876543210';
-    emailController.text = email;
-    cityController.text = city;
-    departmentController.text = department;
-    cgpaController.text = cgpa.toString();
-    programmingSkillController.text = programmingskill;
-    otherSkillController.text = otherskill;
-    otherSkillController.text = otherskill;
-    workController.text = 'Heliumautomation';
-    certificateController.text = 'Flutter Certification';
-    certificate2Controller.text = 'React.js Certification';
+    // Initialize with current values
+    userName = name;
+    studentId = studentid;
+    phone = '9876543210';
+    userEmail = email;
+    userCity = city;
+    userDepartment = department;
+    userCgpa = cgpa.toString();
+    programmingSkill = programmingskill;
+    otherSkill = otherskill;
+    workExperience = 'Heliumautomation';
+    certification1 = 'Flutter Certification';
+    certification2 = 'React.js Certification';
   }
 
-  @override
-  void dispose() {
-    // Dispose controllers to avoid memory leaks
-    nameController.dispose();
-    studentIdController.dispose();
-    phoneController.dispose();
-    emailController.dispose();
-    cityController.dispose();
-    departmentController.dispose();
-    cgpaController.dispose();
-    programmingSkillController.dispose();
-    otherSkillController.dispose();
-    certificate2Controller.dispose();
-    certificateController.dispose();
-    workController.dispose();
-    super.dispose();
-  }
-
-  Widget buildEditableDetailItem(
-      IconData icon, String title, TextEditingController controller,
-      {String? subtitle} // Optional subtitle parameter
-      ) {
+  Widget buildDetailItem(IconData icon, String title, String value , bool editable, {String? subtitle}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
@@ -87,14 +66,8 @@ class _ProfilePageState extends State<ProfilePage> {
                   style: const TextStyle(fontSize: 14, color: Colors.grey),
                 ),
                 const SizedBox(height: 3),
-                TextField(
-                  enabled: editable,
-                  controller: controller,
-                  decoration: const InputDecoration(
-                    isDense: true,
-                    contentPadding: EdgeInsets.zero,
-                    border: InputBorder.none,
-                  ),
+                Text(
+                  value,
                   style: const TextStyle(fontSize: 16),
                 ),
                 if (subtitle != null) ...[
@@ -107,6 +80,12 @@ class _ProfilePageState extends State<ProfilePage> {
               ],
             ),
           ),
+          if(editable) InkWell(
+            onTap: (){
+              //popup alert box
+              showEditDialog(context, title, value , studentId  );
+            },
+            child: Icon(Icons.edit, color: Colors.black)),
         ],
       ),
     );
@@ -206,9 +185,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     backgroundColor: const Color.fromARGB(255, 49, 62, 99),
                     radius: 50,
                     child: Text(
-                      nameController.text.isNotEmpty
-                          ? nameController.text[0]
-                          : '',
+                      userName.isNotEmpty ? userName[0] : '',
                       style: const TextStyle(color: Colors.white, fontSize: 18),
                     ),
                   ),
@@ -216,14 +193,14 @@ class _ProfilePageState extends State<ProfilePage> {
                     height: 8,
                   ),
                   Text(
-                    nameController.text,
+                    userName,
                     style: const TextStyle(fontSize: 24),
                   ),
                   const SizedBox(
                     height: 8,
                   ),
                   Text(
-                    "ID : ${studentIdController.text.toUpperCase()}",
+                    "ID : ${studentId.toUpperCase()}",
                     style: const TextStyle(fontSize: 18),
                   ),
                   const SizedBox(
@@ -245,16 +222,11 @@ class _ProfilePageState extends State<ProfilePage> {
               },
               content: Column(
                 children: [
-                  buildEditableDetailItem(
-                      Icons.person_2_rounded, 'Name', nameController),
-                  buildEditableDetailItem(Icons.assignment_ind_rounded,
-                      'ID Number', studentIdController),
-                  buildEditableDetailItem(
-                      Icons.phone, 'Phone', phoneController),
-                  buildEditableDetailItem(
-                      Icons.email, 'Email', emailController),
-                  buildEditableDetailItem(
-                      Icons.location_on, 'City', cityController),
+                  buildDetailItem(Icons.person_2_rounded, 'Name', userName ,true),
+                  buildDetailItem(Icons.assignment_ind_rounded, 'ID Number', studentId, false),
+                  buildDetailItem(Icons.phone, 'Phone', phone ,true),
+                  buildDetailItem(Icons.email, 'Email', userEmail ,true),
+                  buildDetailItem(Icons.location_on, 'City', userCity ,true),
                 ],
               ),
             ),
@@ -270,9 +242,8 @@ class _ProfilePageState extends State<ProfilePage> {
               },
               content: Column(
                 children: [
-                  buildEditableDetailItem(
-                      Icons.school, 'Degree', departmentController),
-                  buildEditableDetailItem(Icons.grade, 'CGPA', cgpaController),
+                  buildDetailItem(Icons.school, 'Degree', userDepartment , false),
+                  buildDetailItem(Icons.grade, 'CGPA', userCgpa ,true),
                 ],
               ),
             ),
@@ -288,10 +259,8 @@ class _ProfilePageState extends State<ProfilePage> {
               },
               content: Column(
                 children: [
-                  buildEditableDetailItem(
-                      Icons.code, 'Programming', programmingSkillController),
-                  buildEditableDetailItem(
-                      Icons.build, 'Other Skill', otherSkillController),
+                  buildDetailItem(Icons.code, 'Programming', programmingSkill ,true),
+                  buildDetailItem(Icons.build, 'Other Skill', otherSkill ,true),
                 ],
               ),
             ),
@@ -307,8 +276,7 @@ class _ProfilePageState extends State<ProfilePage> {
               },
               content: Column(
                 children: [
-                  buildEditableDetailItem(
-                      Icons.work, 'Flutter Developer Intern', workController,
+                  buildDetailItem(Icons.work, 'Flutter Developer Intern', workExperience,true,
                       subtitle: 'Helium Automation (2023)'),
                 ],
               ),
@@ -325,42 +293,12 @@ class _ProfilePageState extends State<ProfilePage> {
               },
               content: Column(
                 children: [
-                  buildEditableDetailItem(Icons.card_membership,
-                      'Flutter Certification', certificateController,
-                      subtitle: 'Udemy (2023)'),
-                  buildEditableDetailItem(Icons.card_membership,
-                      'React.js Certification', certificate2Controller,
-                      subtitle: 'Coursera (2022)'),
+                  buildDetailItem(Icons.card_membership, 'Flutter Certification', certification1,true,
+                      subtitle: 'Udemy (2023)',),
+                  buildDetailItem(Icons.card_membership, 'React.js Certification', certification2,
+                      subtitle: 'Coursera (2022)',true),
                 ],
               ),
-            ),
-            InkWell(
-              onTap: () {
-                // Save the updated values
-                setState(() {
-                  editable = !editable;
-                });
-                print(editable ? "Done editing" : "Started editing mode");
-              },
-              child: Container(
-                width: MediaQuery.sizeOf(context).width - 17,
-                padding: const EdgeInsets.all(8),
-                margin: const EdgeInsets.only(left: 8),
-                decoration: const BoxDecoration(
-                    color: Color(0xff0f1d2c),
-                    borderRadius: BorderRadius.all(Radius.circular(10))),
-                child: Center(
-                    child: Text(
-                  editable ? 'Save' : 'Edit Profile',
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 23,
-                      fontWeight: FontWeight.bold),
-                )),
-              ),
-            ),
-            const SizedBox(
-              height: 20,
             ),
             InkWell(
               onTap: () async {
@@ -395,4 +333,57 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
     );
   }
+}
+
+void showEditDialog(BuildContext context, String title, String value, String studentId) {
+  final TextEditingController controller = TextEditingController(text: value);
+  final StudentService studentService = StudentService();
+  
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text('Edit $title'),
+        content: TextField(
+          controller: controller,
+          decoration: InputDecoration(
+            labelText: title,
+            border: const OutlineInputBorder(),
+          ),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              // Get the new value from controller
+              String newValue = controller.text;
+              
+              // Close the dialog
+              Navigator.of(context).pop();
+              
+              // Call the service to update the field
+              bool success = await studentService.updateStudentField(
+                context,
+                studentId,newValue
+              );
+              
+              // Show success or error message
+              if (success && context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('$title updated successfully')),
+                );
+              }
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      );
+    },
+  );
+  
+  // No return value needed
 }

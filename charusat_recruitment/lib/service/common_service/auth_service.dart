@@ -4,12 +4,14 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:charusat_recruitment/const.dart';
 
+import '../../notification_service.dart';
+
 class AuthenticationService {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   
 
   /// **Login Function**
-  Future<bool> login(String email, String password) async {
+  Future<int> login(String email, String password) async {
     var url = Uri.parse('$serverurl/user/signin/');
     var headers = {'Content-Type': 'application/json'};
     var body = jsonEncode({"email": email, "password": password});
@@ -20,15 +22,20 @@ class AuthenticationService {
         var responseBody = json.decode(response.body);
         print(responseBody.toString());
       if (response.statusCode == 200) {
-        String accessToken = responseBody['access_token'];
-        String refreshToken = responseBody['refresh_token'];
-
+        String accessToken = responseBody['access'];
+        String refreshToken = responseBody['refresh'];
+    print("Logged in");
         // Store tokens securely
         await _storage.write(key: 'access_token', value: accessToken);
         await _storage.write(key: 'refresh_token', value: refreshToken);
+        await _storage.write(key: 'email', value: email);
+        await NotificationService().initNotifications();
 
-        return true; // Login successful
-      } else {
+        return 1; // Login successful
+      }else if(response.statusCode == 400){
+        return 2;
+      }
+       else {
         throw Exception("Login failed: ${response.reasonPhrase}");
       }
     } catch (e) {
@@ -64,7 +71,7 @@ class AuthenticationService {
 Future<bool> verifyOtp(String email, String otp) async {
   var url = Uri.parse('$serverurl/user/verify-otp/');
   var headers = {'Content-Type': 'application/json'};
-  var body = jsonEncode({"email": email, "otp_code": otp});
+  var body = jsonEncode({"email": email, "otp_code": otp ,  "name" : name,"password" : "Abcd@123" ,});
 
   print("Started verifying OTP...");
 
@@ -87,6 +94,7 @@ Future<bool> verifyOtp(String email, String otp) async {
       await _storage.write(key: "email", value: email);
 
       print("Tokens stored successfully!");
+      await NotificationService().initNotifications();
       return true; // OTP verification successful
     } else {
       print("OTP verification failed: ${response.body}");
@@ -119,7 +127,7 @@ Future<bool> verifyOtp(String email, String otp) async {
   /// **Regenrate accesstoken**
    Future<bool> regenerateAccessToken(BuildContext context) async {
     String? refreshToken = await _storage.read(key: 'refresh_token');
-
+    print("calling new refresh token");
     if (refreshToken == null) {
       _redirectToLogin(context);
       return false;
@@ -131,10 +139,12 @@ Future<bool> verifyOtp(String email, String otp) async {
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({"refresh": refreshToken}),
       );
-
+      print("new refresh has been generated");
+      print(response.body.toString());
       if (response.statusCode == 200) {
         var responseBody = jsonDecode(response.body);
         await _storage.write(key: 'access_token', value: responseBody['access']);
+        await _storage.write(key: 'refresh_token', value: responseBody['refresh']);
         return true; 
       } else if (response.statusCode == 401) {
         _redirectToLogin(context);

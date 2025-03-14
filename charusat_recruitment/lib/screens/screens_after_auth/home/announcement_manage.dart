@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:charusat_recruitment/Providers/announcement_provider.dart';
 import 'package:charusat_recruitment/const.dart';
-import 'package:charusat_recruitment/service/annoncement_service.dart';
+import 'package:charusat_recruitment/service/common_service/annoncement_service.dart';
 import 'package:flutter/material.dart';
 import 'package:charusat_recruitment/screens/Components/announcecard.dart';
 import 'package:charusat_recruitment/screens/models/announcement_model.dart';

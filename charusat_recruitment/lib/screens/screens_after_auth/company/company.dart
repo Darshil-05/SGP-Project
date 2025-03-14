@@ -1,5 +1,6 @@
+import 'package:charusat_recruitment/const.dart';
 import 'package:flutter/material.dart';
-import 'package:charusat_recruitment/service/company_service.dart';
+import 'package:charusat_recruitment/service/company_service/company_service.dart';
 
 class CompanyPage extends StatefulWidget {
   const CompanyPage({super.key});
@@ -165,7 +166,8 @@ class _CompanyPageState extends State<CompanyPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Center(
+                  Padding(
+                    padding: EdgeInsets.only(left: 80.0),
                     child: Text(
                       "Companies",
                       style: TextStyle(fontSize: 25, fontFamily: "pop"),
@@ -181,7 +183,7 @@ class _CompanyPageState extends State<CompanyPage> {
                           style: TextStyle(fontSize: 20, fontFamily: "pop"),
                         ),
                         const SizedBox(width: 15),
-                        InkWell(
+                        if(role == 'faculty')(InkWell(
                           onTap: () {
                             Navigator.of(context).pushNamed('/companymanager');
                           },
@@ -196,7 +198,7 @@ class _CompanyPageState extends State<CompanyPage> {
                               size: 30,
                             ),
                           ),
-                        )
+                        ))
                       ],
                     ),
                   ),
