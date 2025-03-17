@@ -35,7 +35,7 @@ class _RoundManagerState extends State<RoundManager> {
      _rounds = [
         CompanyRound(
             roundName: "Application Deadline", status: "pending", index: 0),
-        CompanyRound(roundName: "Finalist", status: "Compeleted", index: 6),
+        CompanyRound(roundName: "Finalist", status: "completed", index: 6),
       ];
     super.initState();
   }
@@ -119,7 +119,7 @@ class _RoundManagerState extends State<RoundManager> {
 
     // Create a new company with the updated rounds
     final updatedCompany = CompanyModel(
-      company_id: _company.company_id,
+      companyid: _company.companyid,
       companyName: _company.companyName,
       companyWebsite: _company.companyWebsite,
       headquarters: _company.headquarters,

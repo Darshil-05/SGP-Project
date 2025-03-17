@@ -65,11 +65,10 @@ class CompanyService {
           }
 
           DateTime currentDate = DateTime.now();
-          print(companyDateStr);
-
+          print('response id ${company['company_id'].toString()}');
           // Use null-aware operators with defaults for all fields
           Map<String, String> companyDetails = {
-            'id': company['company_id']?.toString() ?? '',
+            'id': company['company_id'].toString() ,
             'name': company['company_name']?.toString() ?? 'Unknown Company',
             'date': companyDateStr,
             'location':
@@ -81,7 +80,7 @@ class CompanyService {
                 ? serverurl + company['image']
                 : "https://imgs.search.brave.com/k1t8JgjRYfQhusDtWN7xUa2E9wcewGf24E3CHYW4WJc/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9tZWRp/YS5pc3RvY2twaG90/by5jb20vaWQvMTg0/OTYyMDYxL3Bob3Rv/L2J1c2luZXNzLXRv/d2Vycy5qcGc_cz02/MTJ4NjEyJnc9MCZr/PTIwJmM9Z0xRTFE5/bG5mVzZPbkpWZTM5/cjUxNnZiWll1cE9v/RVBsN1BfMjJVbjZF/TT0"
           };
-
+          print(companyDetails.toString());
           if (companyDate.isAfter(currentDate)) {
             upcomingCompanies.add(companyDetails);
           } else {
@@ -126,44 +125,65 @@ class CompanyService {
   }
 
   // Get single company details by ID
-  Future<CompanyModel?> getCompanyDetails(BuildContext context, int companyId) async {
-    try {
-      String? accessToken = await _storage.read(key: 'access_token');
-      if (accessToken == null) {
-        bool tokenRefreshed = await AuthenticationService().regenerateAccessToken(context);
-        if (!tokenRefreshed) {
-          return null;
-        }
-        accessToken = await _storage.read(key: 'access_token');
-      }
-
-      var headers = {
-        'Authorization': 'Bearer $accessToken',
-        'Content-Type': 'application/json',
-      };
-
-      var url = Uri.parse('$serverurl/company/companies/$companyId/');
-      var response = await http.get(
-        url,
-        headers: headers,
-      ).timeout(const Duration(seconds: 10));
-
-      if (response.statusCode == 200) {
-        Map<String, dynamic> jsonData = json.decode(response.body);
-        return CompanyModel.fromJson(jsonData);
-      } else {
-        _showErrorDialog(context, "Failed to get company details", response.statusCode);
+ Future<CompanyModel?> getCompanyDetails(BuildContext context, int companyId) async {
+  print(companyId);
+  try {
+    // Get access token from secure storage
+    String? accessToken = await _storage.read(key: 'access_token');
+    
+    // If token is null, attempt to regenerate it
+    if (accessToken == null) {
+      bool tokenRefreshed =
+          await AuthenticationService().regenerateAccessToken(context);
+      if (!tokenRefreshed) {
         return null;
       }
-    } catch (e) {
-      _showErrorDialog(context, "Error fetching company details: $e", null);
+      accessToken = await _storage.read(key: 'access_token');
+    }
+    
+    var headers = {
+      'Authorization': 'Bearer $accessToken',
+      'Content-Type': 'application/json',
+    };
+    
+    var url =
+        Uri.parse('$serverurl/company/companies-detail-edit/$companyId/');
+    var response = await http
+        .get(
+          url,
+          headers: headers,
+        )
+        .timeout(const Duration(seconds: 10));
+    
+    if (response.statusCode == 200) {
+      Map<String, dynamic> jsonData = json.decode(response.body);
+      return CompanyModel.fromJson(jsonData);
+    } else if (response.statusCode == 401) {
+      // If unauthorized, try to refresh token and retry
+      bool tokenRefreshed =
+          await AuthenticationService().regenerateAccessToken(context);
+      if (tokenRefreshed) {
+        // Recursively call this method again with the new token
+        return getCompanyDetails(context, companyId);
+      } else {
+        _showErrorDialog(
+            context, "Authentication failed", response.statusCode);
+        return null;
+      }
+    } else {
+      _showErrorDialog(
+          context, "Failed to get company details", response.statusCode);
       return null;
     }
+  } catch (e) {
+    _showErrorDialog(context, "Error fetching company details: $e", null);
+    return null;
   }
+}
 
   // Add company method
   Future<bool> addCompany(BuildContext context, CompanyModel company) async {
-    print("Calling addCompany... ${company.companyName}");
+    print("Calling addCompany... ${company.toJson().toString()}");
 
     try {
       // Retrieve JWT token
@@ -212,60 +232,74 @@ class CompanyService {
       return false;
     }
   }
+
   Future<bool> registerstudent(BuildContext context, int companyId, String studentId) async {
-  try {
-    // Retrieve JWT token
-    String? accessToken = await _storage.read(key: 'access_token');
-    if (accessToken == null) {
-      bool tokenRefreshed = await AuthenticationService().regenerateAccessToken(context);
-      if (!tokenRefreshed) {
-        _showErrorDialog(context, "Authentication failed. Please log in again.", null);
-        return false;
+    try {
+      // Retrieve JWT token
+      String? accessToken = await _storage.read(key: 'access_token');
+      if (accessToken == null) {
+        bool tokenRefreshed =
+            await AuthenticationService().regenerateAccessToken(context);
+        if (!tokenRefreshed) {
+          _showErrorDialog(
+              context, "Authentication failed. Please log in again.", null);
+          return false;
+        }
+        accessToken = await _storage.read(key: 'access_token');
       }
-      accessToken = await _storage.read(key: 'access_token');
-    }
 
-    // Set up request headers
-    var headers = {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer $accessToken',
-    };
+      // Set up request headers
+      var headers = {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $accessToken',
+      };
 
-    // API Endpoint (Replace with actual API URL)
-    var url = Uri.parse('$serverurl/company/$companyId/add-student/');
+      // API Endpoint (Replace with actual API URL)
+      var url = Uri.parse('$serverurl/company/company-registration/');
 
-    // Request Body
-    var body = json.encode({'student_id': studentId});
+      // Request Body
+      var body =
+          json.encode({
+            "input_student_id": studentId,
+            "input_company_id": companyId
+            });
 
-    // Make the POST request
-    var response = await http.post(url, headers: headers, body: body).timeout(const Duration(seconds: 10));
+      // Make the POST request
+      var response = await http
+          .post(url, headers: headers, body: body)
+          .timeout(const Duration(seconds: 10));
 
-    // Handle responses
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      print("Student added successfully.");
-      return true;
-    } else if (response.statusCode == 400) {
-      _showErrorDialog(context, "Invalid request. Please check the details and try again.", 400);
-    } else if (response.statusCode == 401) {
-      bool tokenRefreshed = await AuthenticationService().regenerateAccessToken(context);
-      if (tokenRefreshed) {
-        return registerstudent(context, companyId, studentId); // Retry with new token
+      // Handle responses
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        print("Student added successfully.");
+        return true;
+      } else if (response.statusCode == 400) {
+        _showErrorDialog(context,
+            "Invalid request. Please check the details and try again.", 400);
+      } else if (response.statusCode == 401) {
+        bool tokenRefreshed =
+            await AuthenticationService().regenerateAccessToken(context);
+        if (tokenRefreshed) {
+          return registerstudent(
+              context, companyId, studentId); // Retry with new token
+        } else {
+          _showErrorDialog(
+              context, "Session expired. Please log in again.", 401);
+        }
+      } else if (response.statusCode == 403) {
+        _showErrorDialog(
+            context, "You do not have permission to perform this action.", 403);
+      } else if (response.statusCode == 404) {
+        _showErrorDialog(context, "Company or student not found.", 404);
       } else {
-        _showErrorDialog(context, "Session expired. Please log in again.", 401);
+        _showErrorDialog(context, "Failed to add student. Please try again.",
+            response.statusCode);
       }
-    } else if (response.statusCode == 403) {
-      _showErrorDialog(context, "You do not have permission to perform this action.", 403);
-    } else if (response.statusCode == 404) {
-      _showErrorDialog(context, "Company or student not found.", 404);
-    } else {
-      _showErrorDialog(context, "Failed to add student. Please try again.", response.statusCode);
+    } catch (e) {
+      _showErrorDialog(context, "An error occurred: $e", null);
     }
-  } catch (e) {
-    _showErrorDialog(context, "An error occurred: $e", null);
+    return false;
   }
-  return false;
-}
-
 
   void _showErrorDialog(BuildContext context, String message, int? statusCode) {
     showDialog(

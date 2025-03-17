@@ -1,12 +1,9 @@
-import 'dart:convert';
 import 'package:charusat_recruitment/Providers/announcement_provider.dart';
-import 'package:charusat_recruitment/const.dart';
 import 'package:charusat_recruitment/service/common_service/annoncement_service.dart';
 import 'package:flutter/material.dart';
 import 'package:charusat_recruitment/screens/Components/announcecard.dart';
 import 'package:charusat_recruitment/screens/models/announcement_model.dart';
 import 'package:provider/provider.dart';
-import 'package:http/http.dart' as http;
 
 class AnnouncementManagement extends StatefulWidget {
   const AnnouncementManagement({super.key});
@@ -25,7 +22,6 @@ class _AnnouncementManagementState extends State<AnnouncementManagement> {
   final _formKey = GlobalKey<FormState>();
 
   // Color picker or a default color for new announcements
-  Color _selectedColor = Colors.blue;
 
   @override
   Widget build(BuildContext context) {

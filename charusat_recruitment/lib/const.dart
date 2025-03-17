@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-const String serverurl = 'http://172.25.197.209:8000';
+const String serverurl = 'http://192.168.70.209:8000';
 String role = 'faculty';
 String email="22IT092@charusat.edu.in";
 String name = "Darshil Patel";

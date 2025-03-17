@@ -48,6 +48,4 @@ class FacultyService {
     }
   }
 
-  // You can add more methods here as needed, such as:
-  // getFacultyDetails, updateFaculty, deleteFaculty, etc.
 }

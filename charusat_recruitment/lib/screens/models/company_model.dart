@@ -1,9 +1,7 @@
-
-
 import 'company_round_model.dart';
 
 class CompanyModel {
-  final int company_id;
+  final int companyid;
   final String companyName;
   final String companyWebsite;
   final String headquarters;
@@ -17,9 +15,9 @@ class CompanyModel {
   final String hrContact;
   final int bond;
   final String benefits;
-  final String? docRequired; // Added this field to match API response
+  final String? docRequired; 
   final String eligibilityCriteria;
-  final List<CompanyRound> interviewRounds; // Changed from noRounds to match API response
+  final List<CompanyRound> interviewRounds;
   final String durationInternship;
   final String stipend;
   final String jobRole;
@@ -32,7 +30,7 @@ class CompanyModel {
   final int maxPackage;
 
   CompanyModel({
-    required this.company_id,
+    required this.companyid,
     required this.companyName,
     required this.companyWebsite,
     required this.headquarters,
@@ -71,26 +69,26 @@ class CompanyModel {
     }
 
     return CompanyModel(
-      company_id: json['company_id'] ?? 0,
-      companyName: json['company_name'] ?? '',
-      companyWebsite: json['company_website'] ?? '',
-      headquarters: json['headquarters'] ?? '',
-      industry: json['industry'] ?? '',
-      details: json['details'] ?? '',
-      datePlacementDrive: json['date_placementdrive'] ?? '',
-      applicationDeadline: json['application_deadline'] ?? '',
-      joiningDate: json['joining_date'] ?? '',
-      hrName: json['hr_name'] ?? '',
-      hrEmail: json['hr_email'] ?? '',
-      hrContact: json['hr_contact'] ?? '',
-      bond: json['bond'] is int ? json['bond'] : 0,
-      benefits: json['benefits'] ?? '',
+      companyid: json['company_id'] ,
+      companyName: json['company_name'] ,
+      companyWebsite: json['company_website'] ,
+      headquarters: json['headquarters'],
+      industry: json['industry']  ,
+      details: json['details'] ,
+      datePlacementDrive: json['date_placementdrive'] ,
+      applicationDeadline: json['application_deadline'] ,
+      joiningDate: json['joining_date'] ,
+      hrName: json['hr_name'] ,
+      hrEmail: json['hr_email'] ,
+      hrContact: json['hr_contact'] ,
+      bond: json['bond'] is int ? json['bond'] : int.parse(json['bond']),
+      benefits: json['benefits'] ,
       docRequired: json['doc_required'],
-      eligibilityCriteria: json['eligibility_criteria'] ?? '',
+      eligibilityCriteria: json['eligibility_criteria'] ,
       interviewRounds: rounds,
-      durationInternship: json['duration_internship'] ?? '',
-      stipend: json['stipend']?.toString() ?? '',
-      jobRole: json['job_role'] ?? '',
+      durationInternship: json['duration_internship'] ,
+      stipend: json['stipend'].toString() ,
+      jobRole: json['job_role'] ,
       jobDescription: json['job_description'] ?? '',
       skills: json['skills'] ?? '',
       jobLocation: json['job_location'] ?? '',
@@ -119,7 +117,7 @@ class CompanyModel {
       "benefits": benefits,
       "doc_required": docRequired,
       "eligibility_criteria": eligibilityCriteria,
-      "interview_rounds": interviewRounds.map((round) => round!.toJson()).toList(),
+      "interview_rounds": interviewRounds.map((round) => round.toJson()).toList(),
       "duration_internship": durationInternship,
       "stipend": stipend,
       "job_role": jobRole,

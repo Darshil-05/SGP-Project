@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:pie_chart/pie_chart.dart';
 
 class CustomPieChart extends StatelessWidget {
@@ -78,39 +79,42 @@ class CustomPieChart extends StatelessWidget {
           title: Text("Job role", style: TextStyle(fontSize: 15)),
           trailing: Text("Percentage", style: TextStyle(fontSize: 15)),
         ),
-        Column(
-          children: List.generate(dataMap.length, (index) {
-            return Column(
-              children: [
-                ListTile(
-                  leading: Container(
-                    width: 20,
-                    height: 20,
-                    decoration: BoxDecoration(
-                      color: colorList[index], // Set the color from colorList
-                      shape: BoxShape.circle,
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Column(
+            children: List.generate(dataMap.length, (index) {
+              return Column(
+                children: [
+                  ListTile(
+                    leading: Container(
+                      width: 20,
+                      height: 20,
+                      decoration: BoxDecoration(
+                        color: colorList[index], // Set the color from colorList
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    title: Text(
+                      dataMap.keys.toList()[index],
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                    trailing: Text(
+                      "${dataMap.values.toList()[index]}%",
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w400,
+                      ),
                     ),
                   ),
-                  title: Text(
-                    dataMap.keys.toList()[index],
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
-                  trailing: Text(
-                    "${dataMap.values.toList()[index]}%",
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
-                ),
-                if (index < dataMap.length - 1) // Avoid adding divider after the last item
-                  const Divider(), // Add a divider between each ListTile
-              ],
-            );
-          }),
+                  if (index < dataMap.length - 1) // Avoid adding divider after the last item
+                    const Divider(), // Add a divider between each ListTile
+                ],
+              );
+            }),
+          ),
         ),
       ],
     );

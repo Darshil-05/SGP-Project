@@ -1,10 +1,7 @@
-import 'package:charusat_recruitment/const.dart';
 import 'package:flutter/material.dart';
-import 'package:charusat_recruitment/Providers/company_provider.dart';
 import 'package:charusat_recruitment/screens/models/company_model.dart';
 import 'package:intl/intl.dart';
 
-import '../../../service/company_service/company_service.dart';
 
 class CompanyManager extends StatefulWidget {
   const CompanyManager({super.key});
@@ -15,7 +12,6 @@ class CompanyManager extends StatefulWidget {
 
 class _CompanyManagerState extends State<CompanyManager> {
   final _formKey = GlobalKey<FormState>();
-  final CompanyService _companyService = CompanyService();
   
   // Controllers for each field
   final TextEditingController _companyNameController = TextEditingController();
@@ -60,10 +56,9 @@ class _CompanyManagerState extends State<CompanyManager> {
 
   Future<void> _submitCompany() async {
     if (_formKey.currentState!.validate()) {
-      // Create the CompanyModel with empty interview rounds
-      // The rounds will be added in the RoundManager screen
+
       final company = CompanyModel(
-        company_id: 0, // This will be assigned by the server
+        companyid: 0, 
         companyName: _companyNameController.text,
         companyWebsite: _companyWebsiteController.text,
         headquarters: _headquartersController.text,

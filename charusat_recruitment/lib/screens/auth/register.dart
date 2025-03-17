@@ -1,10 +1,7 @@
-import 'dart:convert';
-
 import 'package:charusat_recruitment/const.dart';
 import 'package:charusat_recruitment/screens/auth/registerheader.dart';
 import 'package:charusat_recruitment/service/common_service/auth_service.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -22,7 +19,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
   bool _obscureTextPassword = true;
   bool _obscureTextRepeatPassword = true;
-  bool _isLoading = false; // New loading state
+  bool _isLoading = false; // Loading state
 
   @override
   void dispose() {
@@ -65,23 +62,39 @@ class _RegisterPageState extends State<RegisterPage> {
     return null;
   }
 
-void registerUser() async {
-  AuthenticationService authService = AuthenticationService();
-  email =_emailController.text;
-  bool success = await authService.register(_nameController.text, _emailController.text, _passwordController.text);
-
-  if (success) {
-    debugPrint("Registration Successful. Redirecting to OTP verification.");
-    if (mounted) {
-      Navigator.of(context).pushNamed('/otp');
+  void registerUser() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
     }
-  } else {
-    debugPrint("Registration Failed");
+    
+    // Set loading state to true before starting the registration process
+    setState(() {
+      _isLoading = true;
+    });
+    
+    AuthenticationService authService = AuthenticationService();
+    email = _emailController.text;
+    int success = await authService.register(_nameController.text, _emailController.text, _passwordController.text);
+    
+    // Set loading state back to false after registration process completes
+    setState(() {
+      _isLoading = false;
+    });
+    
+    print("success is $success");
+    if (success == 1) {
+      debugPrint("Registration Successful. Redirecting to OTP verification.");
+      if (mounted) {
+        Navigator.of(context).pushNamed('/otp');
+      }
+    } else if (success == 2) {
+      // Show error for user already exists or invalid email
+      _showErrorDialog(context, "User already exists or invalid email. Please try again.");
+    } else {
+      debugPrint("Registration Failed");
+      _showErrorDialog(context, "Registration failed. Please try again later.");
+    }
   }
-}
-
-
-
 
   void _showErrorDialog(BuildContext context, String errorMessage) {
     showDialog(
@@ -227,7 +240,11 @@ void registerUser() async {
                     ),
                     SizedBox(height: screenHeight * 0.035),
                     GestureDetector(
-                      onTap: _isLoading ? null : registerUser,
+                      onTap: _isLoading ? null : () {
+                        if (_formKey.currentState!.validate()) {
+                          registerUser();
+                        }
+                      },
                       child: Container(
                         height: screenHeight * 0.07,
                         width: screenWidth * 0.8,
@@ -236,51 +253,53 @@ void registerUser() async {
                           borderRadius: const BorderRadius.all(Radius.circular(10)),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.grey.shade600,
-                              offset: const Offset(0, 10),
+                              color: Colors.black.withOpacity(0.5),
+                              spreadRadius: -3,
+                              offset: const Offset(3, 3),
                               blurRadius: 10,
                             ),
                           ],
                         ),
-                        child: _isLoading
-                            ? const Center(
-                                child: CircularProgressIndicator(
+                        child: Center(
+                          child: _isLoading
+                              ? const CircularProgressIndicator(
                                   color: Colors.white,
-                                ),
-                              )
-                            : const Center(
-                                child: Text(
+                                )
+                              : const Text(
                                   'Register',
                                   style: TextStyle(
                                     color: Colors.white,
-                                    fontSize: 20,
+                                    fontSize: 28,
+                                    letterSpacing: 3,
                                   ),
                                 ),
-                              ),
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 20,),
-                     Row(
+                    SizedBox(height: screenHeight * 0.025),
+                    Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         const SizedBox(
-                            child: Text(
-                          "Do you have an account ?  ",
-                          style: TextStyle(fontSize: 18),
-                        )),
+                          child: Text(
+                            "Do you have an account?  ",
+                            style: TextStyle(fontSize: 18),
+                          ),
+                        ),
                         GestureDetector(
-                            onTap: () {
-                              Navigator.of(context)
-                                  .popAndPushNamed('/login');
-                            },
-                            child: const Text(
-                              "Sign In",
-                              style: TextStyle(
-                                  fontSize: 18,
-                                  decoration: TextDecoration.underline),
-                            )),
+                          onTap: () {
+                            Navigator.of(context).popAndPushNamed('/login');
+                          },
+                          child: const Text(
+                            "Sign In",
+                            style: TextStyle(
+                              fontSize: 18,
+                              decoration: TextDecoration.underline,
+                            ),
+                          ),
+                        ),
                       ],
-                    )
+                    ),
                   ],
                 ),
               ),

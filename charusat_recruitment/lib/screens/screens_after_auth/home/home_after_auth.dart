@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:charusat_recruitment/Providers/announcement_provider.dart';
 import 'package:charusat_recruitment/const.dart';
 import 'package:charusat_recruitment/screens/Components/announcecard.dart';
@@ -9,7 +7,6 @@ import 'package:charusat_recruitment/service/common_service/annoncement_service.
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../Providers/pie_chart_provider.dart';
-import 'package:http/http.dart' as http;
 
 class HomeApp extends StatefulWidget {
   const HomeApp({super.key});

@@ -1,10 +1,7 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:charusat_recruitment/const.dart';
-import 'package:charusat_recruitment/screens/auth/studentdetail.dart';
 import 'package:charusat_recruitment/service/common_service/auth_service.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import '../auth/registerheader.dart';
 
 class OtpPage extends StatefulWidget {

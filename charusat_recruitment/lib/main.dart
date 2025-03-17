@@ -2,7 +2,6 @@ import 'package:charusat_recruitment/Providers/announcement_provider.dart';
 import 'package:charusat_recruitment/Providers/menu_provider.dart';
 import 'package:charusat_recruitment/Providers/pie_chart_provider.dart';
 import 'package:charusat_recruitment/Providers/theme_provider.dart';
-import 'package:charusat_recruitment/notification_service.dart';
 import 'package:charusat_recruitment/screens/auth/studentdetail.dart';
 import 'package:charusat_recruitment/screens/auth/forgotpage.dart';
 import 'package:charusat_recruitment/screens/auth/login.dart';
@@ -10,11 +9,9 @@ import 'package:charusat_recruitment/screens/auth/otp.dart';
 import 'package:charusat_recruitment/screens/auth/register.dart';
 import 'package:charusat_recruitment/screens/home.dart';
 import 'package:charusat_recruitment/screens/screens_after_auth/home/announcement_manage.dart';
-import 'package:charusat_recruitment/screens/screens_after_auth/company/company_details.dart';
 import 'package:charusat_recruitment/screens/screens_after_auth/company/company_manager.dart';
 import 'package:charusat_recruitment/screens/screens_after_auth/company/company_round.dart';
 import 'package:charusat_recruitment/screens/screens_after_auth/company/student_list.dart';
-import 'package:charusat_recruitment/screens/screens_after_auth/profile/studentprofile.dart';
 import 'package:charusat_recruitment/screens/welcome.dart';
 import 'package:charusat_recruitment/theme.dart';
 import 'package:flutter/material.dart';
@@ -115,7 +112,6 @@ class _MyAppState extends State<MyApp> {
                   '/register': (context) => const RegisterPage(),
                   '/forgot': (context) => const ForgotPage(),
                   '/otp': (context) => const OtpPage(),
-                  '/companydetails': (context) => const CompanyDetailsPage(),
                   '/announcement': (context) => const AnnouncementManagement(),
                   '/companymanager': (context) => const CompanyManager(),
                   '/round': (context) => const RoundManager(),

@@ -1,28 +1,28 @@
-import 'dart:convert';
-
-import 'package:charusat_recruitment/const.dart';
-import 'package:charusat_recruitment/screens/models/company_round_model.dart';
 import 'package:charusat_recruitment/screens/screens_after_auth/company/company_status.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:charusat_recruitment/service/company_service/company_service.dart';
-import 'package:timeline_tile/timeline_tile.dart';
+
+import '../../models/company_model.dart';
 
 class CompanyDetailsPage extends StatefulWidget {
-  const CompanyDetailsPage({super.key});
+  final int companyid;
+  const CompanyDetailsPage({super.key, required this.companyid});
 
   @override
   _CompanyDetailsPageState createState() => _CompanyDetailsPageState();
 }
 
 class _CompanyDetailsPageState extends State<CompanyDetailsPage> {
+  // CompanyModel to store company details
+  CompanyModel? companyData;
+  bool isLoading = true;
+  
   // Statuses for company
   List<String> statuses = [
     "Company Listed",
     "Form Open",
     "Aptitude Started",
   ];
-  int _currentStep = 2;
   bool detailsVisible = false;
   bool jobDetailsVisible = false;
   bool selectionProcessVisible = false;
@@ -30,34 +30,6 @@ class _CompanyDetailsPageState extends State<CompanyDetailsPage> {
   bool timelineVisible = false;
   bool contactVisible = false;
   bool additionalInfoVisible = false;
-  List<Step> _buildSteps() {
-    return [
-      Step(
-        title: Text('Applied'),
-        content: Text('You applied on 27 September 2024.'),
-        isActive: _currentStep >= 0,
-        state: _currentStep > 0 ? StepState.complete : StepState.indexed,
-      ),
-      Step(
-        title: Text('Round 1: Technical Interview'),
-        content: Text('Technical interview is ongoing.'),
-        isActive: _currentStep >= 1,
-        state: _currentStep > 1 ? StepState.complete : StepState.indexed,
-      ),
-      Step(
-        title: Text('Round 2: HR Interview'),
-        content: Text('HR interview will take place on 30 September 2024.'),
-        isActive: _currentStep >= 2,
-        state: _currentStep > 2 ? StepState.complete : StepState.indexed,
-      ),
-      Step(
-        title: Text('Final List'),
-        content: Text('Final offer will be sent on 1 October 2024.'),
-        isActive: _currentStep >= 3,
-        state: _currentStep == 3 ? StepState.complete : StepState.indexed,
-      ),
-    ];
-  }
 
   Widget buildDetailItem(IconData icon, String title, String value) {
     return Padding(
@@ -80,64 +52,6 @@ class _CompanyDetailsPageState extends State<CompanyDetailsPage> {
         ],
       ),
     );
-  }
-
-  Future<void> applyForCompany(
-      String studentId, int companyId, BuildContext context) async {
-    bool _isLoading = true;
-    String? _errorMessage;
-
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
-
-    print("Applying for company: $companyId with student ID: $studentId");
-
-    var headers = {
-      'Content-Type': 'application/json',
-    };
-
-    var request = http.Request(
-      'POST',
-      Uri.parse('$serverurl/company/company-registration/'),
-    );
-
-    request.body = json.encode({
-      "input_student_id": studentId,
-      "input_company_id": companyId,
-    });
-    request.headers.addAll(headers);
-
-    try {
-      http.StreamedResponse streamedResponse =
-          await request.send().timeout(const Duration(seconds: 10));
-      final response = await http.Response.fromStream(streamedResponse);
-
-      print("Response received");
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        print("Application successful: ${response.body}");
-        setState(() {
-          _isLoading = false;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Successfully applied!")),
-        );
-      } else {
-        print("Application failed: ${response.reasonPhrase}");
-        setState(() {
-          _isLoading = false;
-          _errorMessage = "Failed to apply. Please try again.";
-        });
-      }
-    } catch (e) {
-      print("Error applying: $e");
-      setState(() {
-        _isLoading = false;
-        _errorMessage = "Error applying. Please check your connection.";
-      });
-    }
   }
 
   void showApplyPopup(BuildContext context, String companyName) {
@@ -206,7 +120,7 @@ class _CompanyDetailsPageState extends State<CompanyDetailsPage> {
 
                           // Call the addStudent function
                           bool success = await CompanyService()
-                              .registerstudent(context, 2, '22IT092');
+                              .registerstudent(context, widget.companyid, '22IT092');
 
                           // Close the loading dialog
                           Navigator.of(context).pop();
@@ -216,7 +130,7 @@ class _CompanyDetailsPageState extends State<CompanyDetailsPage> {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text(
-                                    "You have successfully applied for $companyName."),
+                                    "You have successfully applied for ${companyData?.companyName ?? companyName}."),
                                 backgroundColor: Colors.green,
                               ),
                             );
@@ -328,11 +242,41 @@ class _CompanyDetailsPageState extends State<CompanyDetailsPage> {
       ),
     );
   }
-
+  
+  @override
+  void initState() {
+    super.initState();
+    // Fix: Use widget.companyid to access the parameter passed to the widget
+    _loadCompanyDetails();
+  }
+  
+  // Function to load company details
+  Future<void> _loadCompanyDetails() async {
+    try {
+      final data = await CompanyService().getCompanyDetails(context, widget.companyid);
+      setState(() {
+        companyData = data;
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Failed to load company details"),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: Padding(
+        body: isLoading 
+        ? const Center(child: CircularProgressIndicator())
+        : Padding(
           padding: EdgeInsets.only(
               left: 6.0,
               right: 6,
@@ -358,9 +302,9 @@ class _CompanyDetailsPageState extends State<CompanyDetailsPage> {
                       const SizedBox(
                         width: 18,
                       ),
-                      const Text(
-                        "Tech Mahindra",
-                        style: TextStyle(fontSize: 22, fontFamily: "pop"),
+                      Text(
+                        companyData?.companyName ?? "Company Details",
+                        style: const TextStyle(fontSize: 22, fontFamily: "pop"),
                       ),
                     ],
                   ),
@@ -400,13 +344,13 @@ class _CompanyDetailsPageState extends State<CompanyDetailsPage> {
                             content: Column(
                               children: [
                                 buildDetailItem(Icons.business, 'Company Name',
-                                    'Tech Corp'),
+                                    companyData?.companyName ?? 'Not available'),
                                 buildDetailItem(Icons.language, 'Website',
-                                    'www.techcorp.com'),
+                                    companyData?.companyWebsite ?? 'Not available'),
                                 buildDetailItem(Icons.location_city,
-                                    'Headquarters', 'San Francisco'),
+                                    'Headquarters', companyData?.headquarters ?? 'Not available'),
                                 buildDetailItem(Icons.work, 'Industry',
-                                    'Information Technology'),
+                                    companyData?.industry ?? 'Not available'),
                               ],
                             ),
                           ),
@@ -423,19 +367,19 @@ class _CompanyDetailsPageState extends State<CompanyDetailsPage> {
                             content: Column(
                               children: [
                                 buildDetailItem(Icons.work, 'Job Role/Position',
-                                    'Software Engineer'),
+                                    companyData?.jobRole ?? 'Not available'),
                                 buildDetailItem(
                                     Icons.description,
                                     'Job Description',
-                                    'Developing and maintaining web applications.'),
+                                    companyData?.jobDescription ?? 'Not available'),
                                 buildDetailItem(Icons.code, 'Required Skills',
-                                    'Flutter, Node.js, MongoDB'),
+                                    companyData?.skills ?? 'Not available'),
                                 buildDetailItem(Icons.location_on,
-                                    'Job Location', 'San Francisco'),
+                                    'Job Location', companyData?.jobLocation ?? 'Not available'),
                                 buildDetailItem(
-                                    Icons.money, 'Salary/CTC', '\$80,000/year'),
+                                    Icons.money, 'Salary/CTC', companyData?.jobSalary ?? 'Not available'),
                                 buildDetailItem(
-                                    Icons.access_time, 'Job Type', 'Full-time'),
+                                    Icons.access_time, 'Job Type', companyData?.jobType ?? 'Not available'),
                               ],
                             ),
                           ),
@@ -455,19 +399,17 @@ class _CompanyDetailsPageState extends State<CompanyDetailsPage> {
                                 buildDetailItem(
                                     Icons.timeline,
                                     'Process Stages',
-                                    'Written Test, Technical Interview, HR Interview'),
+                                    companyData?.interviewRounds.map((r) => r.roundName).join(', ') ?? 'Not available'),
                                 buildDetailItem(
                                     Icons.school,
                                     'Eligibility Criteria',
-                                    'Minimum GPA: 7.0, IT & CS Branches'),
+                                    companyData?.eligibilityCriteria ?? 'Not available'),
                                 buildDetailItem(Icons.format_list_numbered,
-                                    'Number of Rounds', '3'),
+                                    'Number of Rounds', companyData?.interviewRounds.length.toString() ?? '0'),
                                 buildDetailItem(
                                     Icons.trending_up,
-                                    'Cutoff Marks/Percentage',
-                                    '70% Aptitude Test Score'),
-                                buildDetailItem(
-                                    Icons.person, 'Selection Ratio', '1:10'),
+                                    'Package Range',
+                                    '${companyData?.minPackage ?? 0} - ${companyData?.maxPackage ?? 0} LPA'),
                               ],
                             ),
                           ),
@@ -484,9 +426,9 @@ class _CompanyDetailsPageState extends State<CompanyDetailsPage> {
                             content: Column(
                               children: [
                                 buildDetailItem(Icons.calendar_today,
-                                    'Duration of Internship', '6 months'),
+                                    'Duration of Internship', companyData?.durationInternship ?? 'Not applicable'),
                                 buildDetailItem(Icons.attach_money, 'Stipend',
-                                    '\$2,000/month'),
+                                    companyData?.stipend ?? 'Not applicable'),
                                 buildDetailItem(Icons.check_circle,
                                     'Conversion to Full-time', 'Yes'),
                               ],
@@ -505,15 +447,16 @@ class _CompanyDetailsPageState extends State<CompanyDetailsPage> {
                             content: Column(
                               children: [
                                 buildDetailItem(Icons.event,
-                                    'Date of Placement Drive', '12th Oct 2024'),
+                                    'Date of Placement Drive', companyData?.datePlacementDrive ?? 'Not available'),
                                 buildDetailItem(Icons.hourglass_bottom,
-                                    'Application Deadline', '1st Oct 2024'),
+                                    'Application Deadline', companyData?.applicationDeadline ?? 'Not available'),
                                 buildDetailItem(Icons.date_range,
-                                    'Joining Date', '1st Jan 2025'),
+                                    'Joining Date', companyData?.joiningDate ?? 'Not available'),
                               ],
                             ),
                           ),
 
+                          // Contact
                           // Contact Details Section
                           buildDetailCard(
                             'Contact Details',
@@ -526,11 +469,11 @@ class _CompanyDetailsPageState extends State<CompanyDetailsPage> {
                             content: Column(
                               children: [
                                 buildDetailItem(
-                                    Icons.person, 'HR Name', 'John Doe'),
+                                    Icons.person, 'HR Name', companyData?.hrName ?? 'Not available'),
                                 buildDetailItem(Icons.email, 'Email Address',
-                                    'hr@techcorp.com'),
+                                    companyData?.hrEmail ?? 'Not available'),
                                 buildDetailItem(Icons.phone, 'Phone Number',
-                                    '+1-234-567-890'),
+                                    companyData?.hrContact ?? 'Not available'),
                               ],
                             ),
                           ),
@@ -547,13 +490,13 @@ class _CompanyDetailsPageState extends State<CompanyDetailsPage> {
                             content: Column(
                               children: [
                                 buildDetailItem(Icons.assignment,
-                                    'Bond/Agreement', '2 years service bond'),
+                                    'Bond/Agreement', companyData?.bond != null && companyData!.bond > 0 ? "${companyData!.bond} years service bond" : "No bond"),
                                 buildDetailItem(Icons.card_giftcard, 'Benefits',
-                                    'Health insurance, Relocation allowance'),
+                                    companyData?.benefits ?? 'Not available'),
                                 buildDetailItem(
                                     Icons.file_present,
                                     'Documents Required',
-                                    'Resume, Mark sheets, ID proof'),
+                                    companyData?.docRequired ?? 'Resume, Mark sheets, ID proof'),
                               ],
                             ),
                           ),
@@ -561,24 +504,11 @@ class _CompanyDetailsPageState extends State<CompanyDetailsPage> {
                       )
                     : SizedBox(
                         height: 500,
-                        child: CompanyLiveStatus(
-                          rounds: [
-                            CompanyRound(
-                                roundName: "Application Deadline",
-                                status: "Completed",
-                                index: 0),
-                                 CompanyRound(roundName: "first", status: "Completed", index: 2),
-        CompanyRound(roundName: "second", status: "pending", index: 3),
-        CompanyRound(roundName: "third", status: "pending", index: 4),
-        CompanyRound(roundName: "fourth", status: "pending", index: 5),
-                            CompanyRound(
-                                roundName: "Finalist",
-                                status: "pending",
-                                index: 6),
-                          ],
-
-                          // Indicates which round is ongoing (0-based index)
-                        ),
+                        child: companyData != null 
+                          ? CompanyLiveStatus(
+                              rounds: companyData!.interviewRounds,
+                            )
+                          : const Center(child: Text("No rounds information available")),
                       ),
               ],
             ),
@@ -589,7 +519,7 @@ class _CompanyDetailsPageState extends State<CompanyDetailsPage> {
           width: 100, // Set width of the button
           child: FloatingActionButton(
             onPressed: () {
-              showApplyPopup(context, "Company_name");
+              showApplyPopup(context, companyData?.companyName ?? "Company");
             },
             backgroundColor: const Color(0xff0f1d2c),
             shape: RoundedRectangleBorder(

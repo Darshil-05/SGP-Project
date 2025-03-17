@@ -44,29 +44,34 @@ class AuthenticationService {
   }
 
   /// **Registration Function**
-  Future<bool> register(String name, String email, String password) async {
-    var url = Uri.parse('$serverurl/user/signup/');
-    var headers = {'Content-Type': 'application/json'};
-    var body = jsonEncode({
-      "name": name,
-      "email": email,
-      "password": password,
-      "confirm_password": password
-    });
-      print("started register calling");
-    try {
-      var response = await http.post(url, headers: headers, body: body);
-      print("started register ${response.statusCode}");
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        return true; // Registration successful
-      } else {
-        throw Exception("Registration failed: ${response.reasonPhrase}");
-      }
-    } catch (e) {
-      throw Exception("Error registering: $e");
+ Future<int> register(String name, String email, String password) async {
+  var url = Uri.parse('$serverurl/user/signup/');
+  var headers = {'Content-Type': 'application/json'};
+  var body = jsonEncode({
+    "name": name,
+    "email": email,
+    "password": password,
+    "confirm_password": password
+  });
+  print("started register calling");
+  
+  try {
+    var response = await http.post(url, headers: headers, body: body);
+    print("started register ${response.statusCode}");
+    
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return 1; // Registration successful (equivalent to true)
+    } else if (response.statusCode == 400) {
+      return 2; // User already exists or invalid email
+    } else {
+      print("Registration failed: ${response.reasonPhrase}");
+      return 0; // Other errors
     }
+  } catch (e) {
+    print("Error registering: $e");
+    return 0; // Exception occurred
   }
-
+}
 //otp verification 
 Future<bool> verifyOtp(String email, String otp) async {
   var url = Uri.parse('$serverurl/user/verify-otp/');

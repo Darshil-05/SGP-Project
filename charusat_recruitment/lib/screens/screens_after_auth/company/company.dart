@@ -2,6 +2,8 @@ import 'package:charusat_recruitment/const.dart';
 import 'package:flutter/material.dart';
 import 'package:charusat_recruitment/service/company_service/company_service.dart';
 
+import 'company_details.dart';
+
 class CompanyPage extends StatefulWidget {
   const CompanyPage({super.key});
 
@@ -27,13 +29,20 @@ class _CompanyPageState extends State<CompanyPage> {
   Widget _buildCompanyList(List<Map<String, String>> companies) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
-      child: GestureDetector(
-        onTap: () {
-          Navigator.of(context).pushNamed('/companydetails');
-        },
-        child: Column(
-          children: companies.map((company) {
-            return Column(
+      child: Column(
+        children: companies.map((company) {
+          return GestureDetector(
+            onTap: () {
+              int companyId = int.parse(company['id']!);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      CompanyDetailsPage(companyid: companyId),
+                ),
+              );
+            },
+            child: Column(
               children: [
                 ClipRRect(
                   clipBehavior: Clip.hardEdge,
@@ -110,9 +119,9 @@ class _CompanyPageState extends State<CompanyPage> {
                   ),
                 ),
               ],
-            );
-          }).toList(),
-        ),
+            ),
+          );
+        }).toList(),
       ),
     );
   }
@@ -142,7 +151,8 @@ class _CompanyPageState extends State<CompanyPage> {
                         const SizedBox(height: 10),
                         Text(
                           'Error: ${snapshot.error}',
-                          style: const TextStyle(fontSize: 16, color: Colors.red),
+                          style:
+                              const TextStyle(fontSize: 16, color: Colors.red),
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 20),
@@ -166,7 +176,7 @@ class _CompanyPageState extends State<CompanyPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Padding(
+                  const Padding(
                     padding: EdgeInsets.only(left: 80.0),
                     child: Text(
                       "Companies",
@@ -183,22 +193,24 @@ class _CompanyPageState extends State<CompanyPage> {
                           style: TextStyle(fontSize: 20, fontFamily: "pop"),
                         ),
                         const SizedBox(width: 15),
-                        if(role == 'faculty')(InkWell(
-                          onTap: () {
-                            Navigator.of(context).pushNamed('/companymanager');
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.all(5),
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.grey.shade300,
+                        if (role == 'faculty')
+                          (InkWell(
+                            onTap: () {
+                              Navigator.of(context)
+                                  .pushNamed('/companymanager');
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(5),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.grey.shade300,
+                              ),
+                              child: const Icon(
+                                Icons.add,
+                                size: 30,
+                              ),
                             ),
-                            child: const Icon(
-                              Icons.add,
-                              size: 30,
-                            ),
-                          ),
-                        ))
+                          ))
                       ],
                     ),
                   ),

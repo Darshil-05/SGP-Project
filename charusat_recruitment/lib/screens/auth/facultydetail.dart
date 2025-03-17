@@ -1,10 +1,7 @@
-import 'dart:convert';
 import 'package:charusat_recruitment/service/users/faculty_service.dart';
-import 'package:http/http.dart' as http;
 import 'package:charusat_recruitment/screens/models/institute_model.dart';
 import 'package:flutter/material.dart';
 
-import '../../const.dart';
 
 class FacultyDetailsPage extends StatefulWidget {
   const FacultyDetailsPage({super.key});

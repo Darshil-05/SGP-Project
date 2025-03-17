@@ -68,7 +68,7 @@ class StudentService {
   }
 
    Future<bool> addStudent(BuildContext context, Map<String, String> studentData) async {
-    var url = Uri.parse('$serverurl/student/students/');
+    var url = Uri.parse('$serverurl/student/students-create&list/');
     
     // Retrieve the stored access token
     String? accessToken = await storage.read(key: "access_token");
