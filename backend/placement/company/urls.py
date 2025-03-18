@@ -3,6 +3,7 @@ from .views import *
 
 
 urlpatterns = [
+    path('export-company-registrations/<int:company_id>/', ExportCompanyRegistrationData.as_view(), name='export-company-registrations'),
     path('companies-create&list/', CompanyDetailsList.as_view(), name='company-list'),
     path('companies-detail-edit/<int:pk>/', CompanyDetailsDetail.as_view(), name='company-detail'),
     # path('interview-rounds/', InterviewRoundCreateView.as_view(), name='interview-round-create'),

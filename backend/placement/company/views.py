@@ -10,6 +10,71 @@ from rest_framework import serializers
 from rest_framework.views import APIView
 from django.views.decorators.csrf import csrf_exempt
 import logging
+import pandas as pd
+from django.http import HttpResponse
+from rest_framework.views import APIView
+from .models import CompanyRegistration
+
+class ExportCompanyRegistrationData(APIView):
+    
+    def get(self, request, company_id):
+        # Get all registrations for the given company_id
+        registrations = CompanyRegistration.objects.filter(company_id=company_id).select_related('student', 'company')
+
+        if not registrations.exists():
+            return Response({"detail": "No students registered for this company."}, status=status.HTTP_404_NOT_FOUND)
+
+        # Prepare data for each registered student
+        data = []
+        for reg in registrations:
+            registration_info = {
+                'Student ID': reg.student.id_no,
+                'Student Name': f"{reg.student.first_name} {reg.student.last_name}",
+                'Company Name': reg.company.company_name,
+                'Registration Date': reg.registration_date,
+            }
+            data.append(registration_info)
+
+        # Convert data into a Pandas DataFrame
+        df = pd.DataFrame(data)
+
+        # Create an HTTP response with Excel file format
+        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = f'attachment; filename=students_registered_for_company_{company_id}.xlsx'
+
+        # Write data to Excel file
+        df.to_excel(response, index=False, engine='openpyxl')
+
+        return response
+
+    # def get(self, request):
+    #     # Get all company registrations with related student and company details
+    #     registrations = CompanyRegistration.objects.select_related('student', 'company').all()
+
+    #     # Prepare data for each registration
+    #     data = []
+    #     for reg in registrations:
+    #         registration_info = {
+    #             'Student ID': reg.student.id_no,
+    #             'Student Name': f"{reg.student.first_name} {reg.student.last_name}",
+    #             'Department': reg.student.department,
+    #             'Passing Year': reg.student.passing_year,
+    #             'Company Name': reg.company.company_name,
+    #             'Registration Date': reg.registration_date,
+    #         }
+    #         data.append(registration_info)
+
+    #     # Convert data into a Pandas DataFrame
+    #     df = pd.DataFrame(data)
+
+    #     # Create an HTTP response with Excel file format
+    #     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    #     response['Content-Disposition'] = 'attachment; filename=company_registrations.xlsx'
+        
+    #     # Write data to Excel file
+    #     df.to_excel(response, index=False, engine='openpyxl')
+        
+    #     return response
 
 class CompanyDetailsList(generics.ListCreateAPIView):
     queryset = CompanyDetails.objects.prefetch_related('interview_rounds')
