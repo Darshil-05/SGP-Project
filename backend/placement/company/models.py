@@ -20,7 +20,7 @@ class CompanyDetails(models.Model):
     industry = models.CharField(max_length=255, null=True)
     details = models.TextField(null=True)
     date_placementdrive = models.DateField()
-    application_deadline = models.DateField(null=True)
+    application_deadline = models.DateField()
     joining_date = models.DateField(null=True)
     hr_name = models.CharField(max_length=255, null=True)
     hr_email = models.EmailField(unique=True, null=True)

@@ -1,4 +1,6 @@
 # Create your views here.
+import pandas as pd
+from django.http import HttpResponse
 from rest_framework import viewsets
 from rest_framework.exceptions import NotFound
 from rest_framework import generics
@@ -9,11 +11,12 @@ from rest_framework import status
 from rest_framework import serializers
 from rest_framework.views import APIView
 from django.views.decorators.csrf import csrf_exempt
-import logging
-import pandas as pd
-from django.http import HttpResponse
-from rest_framework.views import APIView
-from .models import CompanyRegistration
+import logging,requests
+from firebase_admin import messaging, credentials
+from announcement.models import FacultyFCMToken, StudentFCMToken
+import json
+
+
 
 class ExportCompanyRegistrationData(APIView):
     
@@ -46,37 +49,74 @@ class ExportCompanyRegistrationData(APIView):
         df.to_excel(response, index=False, engine='openpyxl')
 
         return response
+# Create your views here.
 
-    # def get(self, request):
-    #     # Get all company registrations with related student and company details
-    #     registrations = CompanyRegistration.objects.select_related('student', 'company').all()
 
-    #     # Prepare data for each registration
-    #     data = []
-    #     for reg in registrations:
-    #         registration_info = {
-    #             'Student ID': reg.student.id_no,
-    #             'Student Name': f"{reg.student.first_name} {reg.student.last_name}",
-    #             'Department': reg.student.department,
-    #             'Passing Year': reg.student.passing_year,
-    #             'Company Name': reg.company.company_name,
-    #             'Registration Date': reg.registration_date,
-    #         }
-    #         data.append(registration_info)
+def get_firebase_access_token():
+    """
+    Gets the OAuth2 access token for Firebase.
+    """
+    from google.oauth2 import service_account
+    import google.auth.transport.requests
 
-    #     # Convert data into a Pandas DataFrame
-    #     df = pd.DataFrame(data)
+    credentials = service_account.Credentials.from_service_account_file(
+        "firebase_credentials.json",
+        scopes=["https://www.googleapis.com/auth/firebase.messaging"]
+    )
+    
+    # Request a token
+    request = google.auth.transport.requests.Request()
+    credentials.refresh(request)
+    
+    access_token = credentials.token
+    return access_token
 
-    #     # Create an HTTP response with Excel file format
-    #     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    #     response['Content-Disposition'] = 'attachment; filename=company_registrations.xlsx'
-        
-    #     # Write data to Excel file
-    #     df.to_excel(response, index=False, engine='openpyxl')
-        
-    #     return response
+def send_push_notification(title, body):
+    """
+    Sends a push notification to all faculty and student users using Firebase HTTP v1 API.
+    """
+    # Load Firebase credentials
+    cred = credentials.Certificate("firebase_credentials.json")
+    project_id = cred.project_id
+
+    # Firebase API endpoint
+    url = f"https://fcm.googleapis.com/v1/projects/{project_id}/messages:send"
+
+    # Get FCM tokens
+    faculty_tokens = list(FacultyFCMToken.objects.values_list('token', flat=True))
+    student_tokens = list(StudentFCMToken.objects.values_list('token', flat=True))
+    all_tokens = faculty_tokens + student_tokens
+
+    if not all_tokens:
+        print("No FCM tokens found.")
+        return
+
+    headers = {
+        "Authorization": f"Bearer {get_firebase_access_token()}",
+        "Content-Type": "application/json"
+    }
+
+    for token in all_tokens:
+        payload = {
+            "message": {
+                "token": token,
+                "notification": {
+                    "title": title,
+                    "body": body
+                }
+            }
+        }
+
+        response = requests.post(url, headers=headers, data=json.dumps(payload))
+
+        if response.status_code == 200:
+            print(f"Sent notification successfully")
+        else:
+            print(f"Failed to send notification")
 
 class CompanyDetailsList(generics.ListCreateAPIView):
+    
+
     queryset = CompanyDetails.objects.prefetch_related('interview_rounds')
     serializer_class = CompanyDetailsSerializer
 
@@ -89,6 +129,20 @@ class CompanyDetailsList(generics.ListCreateAPIView):
         
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
+        
+        # Get the latest created company
+        if isinstance(request.data, list):
+            company = self.get_queryset().latest("created_at")
+        else:
+            company = serializer.instance
+
+        # Prepare push notification
+        title = "New Company Arrived! 🏢"
+        body = f"{company.company_name} has arrived for placement in CHARUSAT"
+
+        # Send notification
+        send_push_notification(title, body)
+
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 from rest_framework.authentication import TokenAuthentication
@@ -281,127 +335,6 @@ class RegisteredStudentsByCompanyList(generics.ListAPIView):
 from rest_framework.generics import ListAPIView, UpdateAPIView
 
 
-
-# class RetrieveEligibleStudentsView(ListAPIView):
-#     serializer_class = StudentProgressSerializer
-
-#     def get_queryset(self):
-#         company_id = self.kwargs.get('company_id')
-#         round_id = self.kwargs.get('round_id')
-
-#         if not company_id or not round_id:
-#             return StudentInterviewProgress.objects.none()  # Return empty if params are missing
-
-#         if round_id == 1:
-#             # Get students from CompanyRegistration for the first round
-#             registered_students = CompanyRegistration.objects.filter(company_id=company_id).values_list('student_id', flat=True)
-
-#             return StudentInterviewProgress.objects.filter(
-#                 company_id=company_id,
-#                 student_id__in=registered_students
-#             )
-
-#         # Other Rounds: Only students who passed the previous round
-#         previous_round_id = round_id - 1
-#         passed_students = StudentInterviewProgress.objects.filter(
-#             company_id=company_id,
-#             round_id=previous_round_id,
-#             is_passed=True
-#         ).values_list('student_id', flat=True)
-
-#         return StudentInterviewProgress.objects.filter(
-#             company_id=company_id,
-#             round_id=round_id,
-#             student_id__in=passed_students
-#         )
-
-# class UpdateStudentInterviewProgressView(APIView):
-#     def put(self, request, company_id, round_index):
-#         print(f"Request Data: {request.data}")  # Debugging
-
-#         student_id_no = request.data.get("student_id_no") or request.data.get("student_id")
-#         if not student_id_no:
-#             return Response({"error": "Student ID is missing in the request."}, status=status.HTTP_400_BAD_REQUEST)
-
-#         student_id_no = student_id_no.strip()
-#         is_present = request.data.get("is_present", False)
-#         is_passed = request.data.get("is_passed", False)
-
-#         print(f"Received student_id_no: {student_id_no}, company_id: {company_id}")
-
-#         # 🔹 Check if student is in "sortlisted" table
-#         sortlisted_entry = sortlisted.objects.filter(student_id_no__iexact=student_id_no, company_id=company_id).first()
-#         print(f"Sortlisted entry found: {sortlisted_entry}")
-
-#         if not sortlisted_entry:
-#             return Response({"error": "Student is not registered for this company."}, status=status.HTTP_404_NOT_FOUND)
-
-#         student = sortlisted_entry.student  # Get student object
-
-#         # 🔹 Check if round_index is valid
-#         rounds = InterviewRound.objects.filter(company_id=company_id).order_by('index')
-#         if round_index < 0 or round_index >= len(rounds):
-#             return Response({"error": "Invalid round index."}, status=status.HTTP_400_BAD_REQUEST)
-
-#         # 🔹 Update or create student's interview progress
-#         progress, created = StudentInterviewProgress.objects.update_or_create(
-#             student=student,
-#             company_id=company_id,
-#             round_index=round_index,  # Store round index instead of round ForeignKey
-#             defaults={"is_present": is_present, "is_passed": is_passed}
-#         )
-
-#         # 🔹 If student failed the round (is_passed=False), remove them from sortlisted
-#         if not is_passed:
-#             sortlisted_entry.delete()
-#             return Response({
-#                 "message": "Student failed the round and has been removed from sortlisted students.",
-#                 "student_id": student_id_no,
-#                 "company_id": company_id,
-#                 "round_index": round_index,
-#                 "is_present": progress.is_present,
-#                 "is_passed": progress.is_passed
-#             }, status=status.HTTP_200_OK)
-
-#         return Response({
-#             "student_id": student_id_no,
-#             "company_id": company_id,
-#             "round_index": round_index,
-#             "is_present": progress.is_present,
-#             "is_passed": progress.is_passed
-#         }, status=status.HTTP_200_OK)
-
-
-
-
-
-# class ApplyForCompanyView(APIView):
-#     def post(self, request):
-#         serializer = ApplyForCompanySerializer(data=request.data)
-
-#         if serializer.is_valid():
-#             # Extract validated data
-#             student = serializer.validated_data['student']
-#             company = serializer.validated_data['company']
-
-#             # Create the application
-#             application = CompanyApplications.objects.create(
-#                 student=student,
-#                 company=company,
-#                 student_unique_id=student.id_no,  # Save the student's unique ID
-#                 company_name=company.company_name,  # Save the company's name
-#                 first_name=student.first_name,
-#                 last_name=student.last_name
-#             )
-
-#             # Return success response with additional details
-#             return Response({
-#                 "message": "Application successful!",
-#                 "student_id": application.student_id,
-#                 "company_name": application.company_name
-#             }, status=status.HTTP_201_CREATED)
-        
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class SortlistedStudentsByCompanyList(generics.ListAPIView):
     serializer_class = CompanyRegistrationSerializer

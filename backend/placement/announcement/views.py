@@ -30,7 +30,7 @@ def get_firebase_access_token():
     import google.auth.transport.requests
 
     credentials = service_account.Credentials.from_service_account_file(
-        "announcement/firebase_credentials.json",
+        "firebase_credentials.json",
         scopes=["https://www.googleapis.com/auth/firebase.messaging"]
     )
     
@@ -42,13 +42,14 @@ def get_firebase_access_token():
     return access_token
 
 
+
 def send_push_notification(title, body):
     """
     Sends a push notification to all faculty and student users using Firebase HTTP v1 API.
     """
 
     # Load Firebase credentials
-    cred = credentials.Certificate("announcement/firebase_credentials.json")
+    cred = credentials.Certificate("firebase_credentials.json")
     project_id = cred.project_id
 
     # Firebase API endpoint
@@ -82,9 +83,9 @@ def send_push_notification(title, body):
         response = requests.post(url, headers=headers, data=json.dumps(payload))
 
         if response.status_code == 200:
-            print(f" Sent notification successfully")
+            print(f" Sent Announcement notification successfully")
         else:
-            print(f" Failed to send notification")
+            print(f" Failed to send Announcement notification")
 
 
 
@@ -93,21 +94,33 @@ class AnnouncementList(generics.ListCreateAPIView):
     serializer_class = AnnouncementSerializer
 
     def create(self, request, *args, **kwargs):
-        response = super().create(request, *args, **kwargs)  # Save announcement
-        announcement = self.get_queryset().latest("created_at")  # Get latest announcement
+        try:
+            # Save announcement
+            response = super().create(request, *args, **kwargs)
+            announcement = self.get_queryset().latest("created_at")
 
-        # Prepare push notification
-        title = "New Announcement 📢"
-        body = f"{announcement.title}: {announcement.description[:50]}..."
+            # Prepare push notification
+            title = "New Announcement 📢"
+            body = f"{announcement.title}: {announcement.description[:50]}..."
 
-        # Send notification and get response
-        notification_response = send_push_notification(title, body)
+            
+            
+            send_push_notification(title, body)
+            
 
-        # Return API response with notification status
-        return Response({
-            "message": "Announcement posted successfully.",
-            "announcement": AnnouncementSerializer(announcement).data,
-        }, status=status.HTTP_201_CREATED)
+            # Return success response
+            return Response({
+                "message": "Announcement posted successfully.",
+                # "announcement": AnnouncementSerializer(announcement).data,
+                # "notification_status": "sent"
+            }, status=status.HTTP_201_CREATED)
+            
+        except Exception as e:
+            print(f"\n Error creating announcement: {str(e)}")
+            return Response({
+                "message": "Error creating announcement",
+                "error": str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class AnnouncementEdit(generics.RetrieveUpdateDestroyAPIView):
@@ -146,44 +159,4 @@ class StudentFCMTokenView(APIView):
     
 
     
-# from firebase_admin import messaging
-# from .services import firebase_admin  # Import at the top
 
-# def send_push_notification(title, body):
-#     """
-#     Sends a push notification to all faculty and student users.
-#     """
-
-#     # Ensure Firebase is initialized
-#     if not firebase_admin._apps:
-#         from firebase_admin import credentials, initialize_app
-#         from django.conf import settings
-#         import os
-
-#         BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-#         FIREBASE_CREDENTIALS_PATH = os.path.join(BASE_DIR, "announcement/firebase_credentials.json")
-
-#         cred = credentials.Certificate(FIREBASE_CREDENTIALS_PATH)
-#         firebase_admin.initialize_app(cred)
-
-#     try:
-#         # Get all stored FCM tokens
-#         faculty_tokens = list(FacultyFCMToken.objects.values_list('token', flat=True))
-#         student_tokens = list(StudentFCMToken.objects.values_list('token', flat=True))
-#         all_tokens = faculty_tokens + student_tokens  # Merge lists
-
-#         if not all_tokens:
-#             print("No FCM tokens found.")
-#             return
-
-#         # Create Firebase Notification
-#         message = messaging.MulticastMessage(
-#             notification=messaging.Notification(title=title, body=body),
-#             tokens=all_tokens,
-#         )
-
-#         response = messaging.send_multicast(message)
-#         print(f"🔔 Sent {response.success_count} notifications successfully.")
-
-#     except Exception as e:
-#         print(f"❌ Error sending notification: {e}")

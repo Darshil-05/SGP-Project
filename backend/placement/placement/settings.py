@@ -250,7 +250,7 @@ from firebase_admin import credentials
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Construct the correct Firebase credentials path
-FIREBASE_CREDENTIALS_PATH = os.path.join(BASE_DIR, "announcement", "firebase_credentials.json")
+FIREBASE_CREDENTIALS_PATH = os.path.join(BASE_DIR, "firebase_credentials.json")
 
 # Initialize Firebase Admin SDK only if not already initialized
 if not firebase_admin._apps:
