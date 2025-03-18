@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from .models import FacultyFCMToken, StudentFCMToken
 from .serializers import FacultyFCMTokenSerializer, StudentFCMTokenSerializer
-from student.models import Student_auth
+from student.models import Student_details
 from faculty.models import Faculty_auth
 from django.http import JsonResponse
 from firebase_admin import messaging
@@ -143,20 +143,47 @@ class FacultyFCMTokenView(APIView):
         serializer = FacultyFCMTokenSerializer(fcm_token)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+# class StudentFCMTokenView(APIView):
+#     def post(self, request):
+#         student_id = request.data.get('student')
+#         token = request.data.get('token')
+
+#         try:
+#             student = Student_auth.objects.get(pk=student_id)
+#         except Student_auth.DoesNotExist:
+#             return Response({'error': 'Student not found'}, status=status.HTTP_404_NOT_FOUND)
+
+#         fcm_token, created = StudentFCMToken.objects.get_or_create(student=student, token=token)
+#         serializer = StudentFCMTokenSerializer(fcm_token)
+#         return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+
+
 class StudentFCMTokenView(APIView):
     def post(self, request):
-        student_id = request.data.get('student')
+        student_idno = request.data.get('student_idno')
         token = request.data.get('token')
 
         try:
-            student = Student_auth.objects.get(pk=student_id)
-        except Student_auth.DoesNotExist:
-            return Response({'error': 'Student not found'}, status=status.HTTP_404_NOT_FOUND)
-
-        fcm_token, created = StudentFCMToken.objects.get_or_create(student=student, token=token)
-        serializer = StudentFCMTokenSerializer(fcm_token)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+            # Verify that the student exists
+            Student_details.objects.get(id_no=student_idno)
+            
+            fcm_token, created = StudentFCMToken.objects.get_or_create(
+                student_idno=student_idno, 
+                token=token
+            )
+            
+            serializer = StudentFCMTokenSerializer(fcm_token)
+            return Response({
+                'message': 'FCM token saved successfully',
+                'data': serializer.data
+            }, status=status.HTTP_201_CREATED)
+            
+        except Student_details.DoesNotExist:
+            return Response({
+                'error': 'Student not found',
+                'message': f'No student found with ID: {student_idno}'
+            }, status=status.HTTP_404_NOT_FOUND)
     
-
     
 

@@ -33,6 +33,8 @@ class FacultyFCMTokenSerializer(serializers.ModelSerializer):
         fields = ['id', 'faculty', 'token', 'created_at']
 
 class StudentFCMTokenSerializer(serializers.ModelSerializer):
+
+
     class Meta:
         model = StudentFCMToken
-        fields = ['id', 'student', 'token', 'created_at']
+        fields = ['id', 'student_idno', 'token', 'created_at']

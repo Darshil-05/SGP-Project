@@ -15,7 +15,7 @@ class PublicAnnouncement(models.Model):
         return self.title
 
 from django.db import models
-from student.models import  Student_auth
+from student.models import  Student_details
 from faculty.models import Faculty_auth
 
 class FacultyFCMToken(models.Model):
@@ -24,6 +24,9 @@ class FacultyFCMToken(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
 class StudentFCMToken(models.Model):
-    student = models.ForeignKey(Student_auth, on_delete=models.CASCADE)
+    student_idno = models.CharField(max_length=15, unique=True)
     token = models.CharField(max_length=255, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"FCM Token for {self.student_idno}"
