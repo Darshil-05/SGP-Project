@@ -1,4 +1,5 @@
 
+from django.shortcuts import get_object_or_404
 from rest_framework import status
 import pandas as pd # type: ignore
 from django.http import HttpResponse
@@ -15,9 +16,15 @@ class StudentDetailsList(generics.ListCreateAPIView):
     queryset = Student_details.objects.all()
     serializer_class = StudentDetailsSerializer
 
+
+
 class StudentDetailsEdit(generics.RetrieveUpdateDestroyAPIView):
     queryset = Student_details.objects.all()
     serializer_class = StudentDetailsSerializer
+
+    def get_object(self):
+        id_no = self.kwargs.get("id_no")
+        return get_object_or_404(Student_details, id_no=id_no)
 
 class CertificateList(generics.ListCreateAPIView):
     queryset = Certificate.objects.all()

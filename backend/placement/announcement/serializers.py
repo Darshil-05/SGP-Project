@@ -21,3 +21,18 @@ class AnnouncementSerializer(serializers.ModelSerializer):
 
     def get_is_expired(self, obj):
         return obj.is_expired()
+    
+
+
+from rest_framework import serializers
+from .models import FacultyFCMToken, StudentFCMToken
+
+class FacultyFCMTokenSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FacultyFCMToken
+        fields = ['id', 'faculty', 'token', 'created_at']
+
+class StudentFCMTokenSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StudentFCMToken
+        fields = ['id', 'student', 'token', 'created_at']

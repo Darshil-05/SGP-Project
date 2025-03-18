@@ -240,3 +240,19 @@ CORS_ALLOW_HEADERS = [
 # CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1:8000']
 # CSRF_COOKIE_SECURE = False
 # CSRF_USE_SESSIONS = False
+
+
+import os
+import firebase_admin
+from firebase_admin import credentials
+
+# Define BASE_DIR properly
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+# Construct the correct Firebase credentials path
+FIREBASE_CREDENTIALS_PATH = os.path.join(BASE_DIR, "announcement", "firebase_credentials.json")
+
+# Initialize Firebase Admin SDK only if not already initialized
+if not firebase_admin._apps:
+    cred = credentials.Certificate(FIREBASE_CREDENTIALS_PATH)
+    firebase_admin.initialize_app(cred)
