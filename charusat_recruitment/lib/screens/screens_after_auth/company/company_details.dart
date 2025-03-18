@@ -1,4 +1,7 @@
+import 'package:charusat_recruitment/const.dart';
+import 'package:charusat_recruitment/screens/models/faculty_model.dart';
 import 'package:charusat_recruitment/screens/screens_after_auth/company/company_status.dart';
+import 'package:charusat_recruitment/screens/screens_after_auth/company/round_status.dart';
 import 'package:flutter/material.dart';
 import 'package:charusat_recruitment/service/company_service/company_service.dart';
 
@@ -16,7 +19,7 @@ class _CompanyDetailsPageState extends State<CompanyDetailsPage> {
   // CompanyModel to store company details
   CompanyModel? companyData;
   bool isLoading = true;
-  
+
   // Statuses for company
   List<String> statuses = [
     "Company Listed",
@@ -31,7 +34,8 @@ class _CompanyDetailsPageState extends State<CompanyDetailsPage> {
   bool contactVisible = false;
   bool additionalInfoVisible = false;
 
-  Widget buildDetailItem(IconData icon, String title, String value) {
+  Widget buildDetailItem(IconData icon, String title, String value,
+      {bool editable = false, String? subtitle, String? fieldName}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
@@ -46,9 +50,24 @@ class _CompanyDetailsPageState extends State<CompanyDetailsPage> {
                     style: const TextStyle(fontSize: 14, color: Colors.grey)),
                 const SizedBox(height: 3),
                 Text(value, style: const TextStyle(fontSize: 16)),
+                if (subtitle != null) ...[
+                  const SizedBox(height: 3),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(fontSize: 14, color: Colors.grey),
+                  ),
+                ],
               ],
             ),
           ),
+          if (editable)
+            InkWell(
+              onTap: () {
+                showEditDialog(
+                    context, title, value, widget.companyid, fieldName);
+              },
+              child: const Icon(Icons.edit, color: Colors.black),
+            ),
         ],
       ),
     );
@@ -119,12 +138,14 @@ class _CompanyDetailsPageState extends State<CompanyDetailsPage> {
                           );
 
                           // Call the addStudent function
-                          bool success = await CompanyService()
-                              .registerstudent(context, widget.companyid, '22IT092');
-
+                          bool success = await CompanyService().registerstudent(
+                              context, widget.companyid, studentid);
                           // Close the loading dialog
-                          Navigator.of(context).pop();
-
+                          if (mounted) {
+                            Navigator.of(context).pop();
+                            Navigator.of(context).pop();
+                            Navigator.of(context).pop();
+                          }
                           // Show appropriate message based on success or failure
                           if (success) {
                             ScaffoldMessenger.of(context).showSnackBar(
@@ -242,18 +263,20 @@ class _CompanyDetailsPageState extends State<CompanyDetailsPage> {
       ),
     );
   }
-  
+
   @override
   void initState() {
     super.initState();
     // Fix: Use widget.companyid to access the parameter passed to the widget
+    print("inside a company");
     _loadCompanyDetails();
   }
-  
+
   // Function to load company details
   Future<void> _loadCompanyDetails() async {
     try {
-      final data = await CompanyService().getCompanyDetails(context, widget.companyid);
+      final data =
+          await CompanyService().getCompanyDetails(context, widget.companyid);
       setState(() {
         companyData = data;
         isLoading = false;
@@ -270,250 +293,409 @@ class _CompanyDetailsPageState extends State<CompanyDetailsPage> {
       );
     }
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: isLoading 
-        ? const Center(child: CircularProgressIndicator())
-        : Padding(
-          padding: EdgeInsets.only(
-              left: 6.0,
-              right: 6,
-              top: MediaQuery.of(context).padding.top + 20),
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(left: 10.0, bottom: 10),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
+        body: isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : Padding(
+                padding: EdgeInsets.only(
+                    left: 6.0,
+                    right: 6,
+                    top: MediaQuery.of(context).padding.top + 20),
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.of(context).pop();
-                        },
-                        child: const Icon(
-                          Icons.arrow_back_ios_new_rounded,
-                          color: Colors.black,
+                      Padding(
+                        padding: const EdgeInsets.only(left: 10.0, bottom: 10),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.of(context).pop();
+                              },
+                              child: const Icon(
+                                Icons.arrow_back_ios_new_rounded,
+                                color: Colors.black,
+                              ),
+                            ),
+                            const SizedBox(
+                              width: 18,
+                            ),
+                            Text(
+                              companyData?.companyName ?? "Company Details",
+                              style: const TextStyle(
+                                  fontSize: 22, fontFamily: "pop"),
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(
-                        width: 18,
+                      ClipRRect(
+                        borderRadius:
+                            BorderRadius.circular(5), // Border radius of 5
+                        child: Image.network(
+                          'https://i.pinimg.com/736x/c4/70/80/c4708087930bd454d3013335c3eadf24.jpg',
+                          width: double.infinity,
+                          height: 250,
+                          fit: BoxFit.cover,
+                        ),
                       ),
-                      Text(
-                        companyData?.companyName ?? "Company Details",
-                        style: const TextStyle(fontSize: 22, fontFamily: "pop"),
+                      const SizedBox(height: 20),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(buttonLabels.length, (index) {
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: _buildButton(index),
+                          );
+                        }),
                       ),
+                      const SizedBox(height: 20),
+                      // make here a two tab
+                      (selectedIndex == 0)
+                          ? Column(
+                              children: [
+                                buildDetailCard(
+                                  'Company Information',
+                                  detailsVisible,
+                                  () {
+                                    setState(() {
+                                      detailsVisible = !detailsVisible;
+                                    });
+                                  },
+                                  content: Column(
+                                    children: [
+                                      buildDetailItem(
+                                          Icons.business,
+                                          'Company Name',
+                                          companyData?.companyName ??
+                                              'Not available',
+                                          editable: true,
+                                          fieldName: 'companyName'),
+                                      buildDetailItem(
+                                          Icons.language,
+                                          'Website',
+                                          companyData?.companyWebsite ??
+                                              'Not available',
+                                          editable: true,
+                                          fieldName: 'companyWebsite'),
+                                      buildDetailItem(
+                                          Icons.location_city,
+                                          'Headquarters',
+                                          companyData?.headquarters ??
+                                              'Not available',
+                                          editable: true,
+                                          fieldName: 'headquarters'),
+                                      buildDetailItem(
+                                          Icons.work,
+                                          'Industry',
+                                          companyData?.industry ??
+                                              'Not available',
+                                          editable: true,
+                                          fieldName: 'industry'),
+                                    ],
+                                  ),
+                                ),
+
+                                // Job Details Section
+                                buildDetailCard(
+                                  'Job Details',
+                                  jobDetailsVisible,
+                                  () {
+                                    setState(() {
+                                      jobDetailsVisible = !jobDetailsVisible;
+                                    });
+                                  },
+                                  content: Column(
+                                    children: [
+                                      buildDetailItem(
+                                          Icons.work,
+                                          'Job Role/Position',
+                                          companyData?.jobRole ??
+                                              'Not available',
+                                          editable: true,
+                                          fieldName: 'jobRole'),
+                                      buildDetailItem(
+                                          Icons.description,
+                                          'Job Description',
+                                          companyData?.jobDescription ??
+                                              'Not available',
+                                          editable: true,
+                                          fieldName: 'jobDescription'),
+                                      buildDetailItem(
+                                          Icons.code,
+                                          'Required Skills',
+                                          companyData?.skills ??
+                                              'Not available',
+                                          editable: true,
+                                          fieldName: 'skills'),
+                                      buildDetailItem(
+                                          Icons.location_on,
+                                          'Job Location',
+                                          companyData?.jobLocation ??
+                                              'Not available',
+                                          editable: true,
+                                          fieldName: 'jobLocation'),
+                                      buildDetailItem(
+                                          Icons.money,
+                                          'Salary/CTC',
+                                          companyData?.jobSalary ??
+                                              'Not available',
+                                          editable: true,
+                                          fieldName: 'jobSalary'),
+                                      buildDetailItem(
+                                          Icons.access_time,
+                                          'Job Type',
+                                          companyData?.jobType ??
+                                              'Not available',
+                                          editable: true,
+                                          fieldName: 'jobType'),
+                                    ],
+                                  ),
+                                ),
+
+                                // Selection Process Section
+                                buildDetailCard(
+                                  'Selection Process',
+                                  selectionProcessVisible,
+                                  () {
+                                    setState(() {
+                                      selectionProcessVisible =
+                                          !selectionProcessVisible;
+                                    });
+                                  },
+                                  content: Column(
+                                    children: [
+                                      buildDetailItem(
+                                          Icons.timeline,
+                                          'Process Stages',
+                                          companyData?.interviewRounds
+                                                  .map((r) => r.roundName)
+                                                  .join(', ') ??
+                                              'Not available'),
+                                      buildDetailItem(
+                                          Icons.school,
+                                          'Eligibility Criteria',
+                                          companyData?.eligibilityCriteria ??
+                                              'Not available',
+                                          editable: true,
+                                          fieldName: 'eligibilityCriteria'),
+                                      buildDetailItem(
+                                          Icons.format_list_numbered,
+                                          'Number of Rounds',
+                                          companyData?.interviewRounds.length
+                                                  .toString() ??
+                                              '0'),
+                                      buildDetailItem(
+                                          Icons.trending_up,
+                                          'Package Range',
+                                          '${companyData?.minPackage ?? 0} - ${companyData?.maxPackage ?? 0} LPA',
+                                          editable: true,
+                                          fieldName: 'packageRange'),
+                                    ],
+                                  ),
+                                ),
+
+                                // Internship/Training Section
+                                buildDetailCard(
+                                  'Internship/Training (if applicable)',
+                                  internshipVisible,
+                                  () {
+                                    setState(() {
+                                      internshipVisible = !internshipVisible;
+                                    });
+                                  },
+                                  content: Column(
+                                    children: [
+                                      buildDetailItem(
+                                          Icons.calendar_today,
+                                          'Duration of Internship',
+                                          companyData?.durationInternship ??
+                                              'Not applicable',
+                                          editable: true,
+                                          fieldName: 'durationInternship'),
+                                      buildDetailItem(
+                                          Icons.attach_money,
+                                          'Stipend',
+                                          companyData?.stipend ??
+                                              'Not applicable',
+                                          editable: true,
+                                          fieldName: 'stipend'),
+                                      buildDetailItem(Icons.check_circle,
+                                          'Conversion to Full-time', 'Yes',
+                                          editable: true,
+                                          fieldName: 'conversionToFullTime'),
+                                    ],
+                                  ),
+                                ),
+
+                                // Timeline Section
+                                buildDetailCard(
+                                  'Timeline',
+                                  timelineVisible,
+                                  () {
+                                    setState(() {
+                                      timelineVisible = !timelineVisible;
+                                    });
+                                  },
+                                  content: Column(
+                                    children: [
+                                      buildDetailItem(
+                                          Icons.event,
+                                          'Date of Placement Drive',
+                                          companyData?.datePlacementDrive ??
+                                              'Not available',
+                                          editable: true,
+                                          fieldName: 'datePlacementDrive'),
+                                      buildDetailItem(
+                                          Icons.hourglass_bottom,
+                                          'Application Deadline',
+                                          companyData?.applicationDeadline ??
+                                              'Not available',
+                                          editable: true,
+                                          fieldName: 'applicationDeadline'),
+                                      buildDetailItem(
+                                          Icons.date_range,
+                                          'Joining Date',
+                                          companyData?.joiningDate ??
+                                              'Not available',
+                                          editable: true,
+                                          fieldName: 'joiningDate'),
+                                    ],
+                                  ),
+                                ),
+
+                                // Contact Details Section
+                                buildDetailCard(
+                                  'Contact Details',
+                                  contactVisible,
+                                  () {
+                                    setState(() {
+                                      contactVisible = !contactVisible;
+                                    });
+                                  },
+                                  content: Column(
+                                    children: [
+                                      buildDetailItem(
+                                          Icons.person,
+                                          'HR Name',
+                                          companyData?.hrName ??
+                                              'Not available',
+                                          editable: true,
+                                          fieldName: 'hrName'),
+                                      buildDetailItem(
+                                          Icons.email,
+                                          'Email Address',
+                                          companyData?.hrEmail ??
+                                              'Not available',
+                                          editable: true,
+                                          fieldName: 'hrEmail'),
+                                      buildDetailItem(
+                                          Icons.phone,
+                                          'Phone Number',
+                                          companyData?.hrContact ??
+                                              'Not available',
+                                          editable: true,
+                                          fieldName: 'hrContact'),
+                                    ],
+                                  ),
+                                ),
+
+                                // Additional Information Section
+                                buildDetailCard(
+                                  'Additional Information',
+                                  additionalInfoVisible,
+                                  () {
+                                    setState(() {
+                                      additionalInfoVisible =
+                                          !additionalInfoVisible;
+                                    });
+                                  },
+                                  content: Column(
+                                    children: [
+                                      buildDetailItem(
+                                          Icons.assignment,
+                                          'Bond/Agreement',
+                                          companyData?.bond != null &&
+                                                  companyData!.bond > 0
+                                              ? "${companyData!.bond} years service bond"
+                                              : "No bond",
+                                          editable: true,
+                                          fieldName: 'bond'),
+                                      buildDetailItem(
+                                          Icons.card_giftcard,
+                                          'Benefits',
+                                          companyData?.benefits ??
+                                              'Not available',
+                                          editable: true,
+                                          fieldName: 'benefits'),
+                                      buildDetailItem(
+                                          Icons.file_present,
+                                          'Documents Required',
+                                          companyData?.docRequired ??
+                                              'Resume, Mark sheets, ID proof',
+                                          editable: true,
+                                          fieldName: 'docRequired'),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            )
+                          : Column(
+                              children: [
+                                if (role == 'faculty')
+                                  Center(
+                                    child: InkWell(
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => RoundStatus(
+                                              companyId: companyData!.companyid,
+                                              rounds:
+                                                  companyData!.interviewRounds,
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                      child: Container(
+                                        decoration: const BoxDecoration(
+                                            color: Color(0xff0f1d2c),
+                                            borderRadius: BorderRadius.all(
+                                                Radius.circular(10))),
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 12, vertical: 10),
+                                        child: const Text(
+                                          "Edit Rounds",
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w400,
+                                            color: Colors.white,
+                                            fontFamily: "pop",
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                SizedBox(
+                                  height: 500,
+                                  child: companyData != null
+                                      ? CompanyLiveStatus(
+                                          rounds: companyData!.interviewRounds,
+                                        )
+                                      : const Center(
+                                          child: Text(
+                                              "No rounds information available")),
+                                ),
+                              ],
+                            ),
                     ],
                   ),
                 ),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(5), // Border radius of 5
-                  child: Image.network(
-                    'https://i.pinimg.com/736x/c4/70/80/c4708087930bd454d3013335c3eadf24.jpg',
-                    width: double.infinity,
-                    height: 250,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(buttonLabels.length, (index) {
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: _buildButton(index),
-                    );
-                  }),
-                ),
-                const SizedBox(height: 20),
-                // make here a two tab
-                (selectedIndex == 0)
-                    ? Column(
-                        children: [
-                          buildDetailCard(
-                            'Company Information',
-                            detailsVisible,
-                            () {
-                              setState(() {
-                                detailsVisible = !detailsVisible;
-                              });
-                            },
-                            content: Column(
-                              children: [
-                                buildDetailItem(Icons.business, 'Company Name',
-                                    companyData?.companyName ?? 'Not available'),
-                                buildDetailItem(Icons.language, 'Website',
-                                    companyData?.companyWebsite ?? 'Not available'),
-                                buildDetailItem(Icons.location_city,
-                                    'Headquarters', companyData?.headquarters ?? 'Not available'),
-                                buildDetailItem(Icons.work, 'Industry',
-                                    companyData?.industry ?? 'Not available'),
-                              ],
-                            ),
-                          ),
-
-                          // Job Details Section
-                          buildDetailCard(
-                            'Job Details',
-                            jobDetailsVisible,
-                            () {
-                              setState(() {
-                                jobDetailsVisible = !jobDetailsVisible;
-                              });
-                            },
-                            content: Column(
-                              children: [
-                                buildDetailItem(Icons.work, 'Job Role/Position',
-                                    companyData?.jobRole ?? 'Not available'),
-                                buildDetailItem(
-                                    Icons.description,
-                                    'Job Description',
-                                    companyData?.jobDescription ?? 'Not available'),
-                                buildDetailItem(Icons.code, 'Required Skills',
-                                    companyData?.skills ?? 'Not available'),
-                                buildDetailItem(Icons.location_on,
-                                    'Job Location', companyData?.jobLocation ?? 'Not available'),
-                                buildDetailItem(
-                                    Icons.money, 'Salary/CTC', companyData?.jobSalary ?? 'Not available'),
-                                buildDetailItem(
-                                    Icons.access_time, 'Job Type', companyData?.jobType ?? 'Not available'),
-                              ],
-                            ),
-                          ),
-
-                          // Selection Process Section
-                          buildDetailCard(
-                            'Selection Process',
-                            selectionProcessVisible,
-                            () {
-                              setState(() {
-                                selectionProcessVisible =
-                                    !selectionProcessVisible;
-                              });
-                            },
-                            content: Column(
-                              children: [
-                                buildDetailItem(
-                                    Icons.timeline,
-                                    'Process Stages',
-                                    companyData?.interviewRounds.map((r) => r.roundName).join(', ') ?? 'Not available'),
-                                buildDetailItem(
-                                    Icons.school,
-                                    'Eligibility Criteria',
-                                    companyData?.eligibilityCriteria ?? 'Not available'),
-                                buildDetailItem(Icons.format_list_numbered,
-                                    'Number of Rounds', companyData?.interviewRounds.length.toString() ?? '0'),
-                                buildDetailItem(
-                                    Icons.trending_up,
-                                    'Package Range',
-                                    '${companyData?.minPackage ?? 0} - ${companyData?.maxPackage ?? 0} LPA'),
-                              ],
-                            ),
-                          ),
-
-                          // Internship/Training Section
-                          buildDetailCard(
-                            'Internship/Training (if applicable)',
-                            internshipVisible,
-                            () {
-                              setState(() {
-                                internshipVisible = !internshipVisible;
-                              });
-                            },
-                            content: Column(
-                              children: [
-                                buildDetailItem(Icons.calendar_today,
-                                    'Duration of Internship', companyData?.durationInternship ?? 'Not applicable'),
-                                buildDetailItem(Icons.attach_money, 'Stipend',
-                                    companyData?.stipend ?? 'Not applicable'),
-                                buildDetailItem(Icons.check_circle,
-                                    'Conversion to Full-time', 'Yes'),
-                              ],
-                            ),
-                          ),
-
-                          // Timeline Section
-                          buildDetailCard(
-                            'Timeline',
-                            timelineVisible,
-                            () {
-                              setState(() {
-                                timelineVisible = !timelineVisible;
-                              });
-                            },
-                            content: Column(
-                              children: [
-                                buildDetailItem(Icons.event,
-                                    'Date of Placement Drive', companyData?.datePlacementDrive ?? 'Not available'),
-                                buildDetailItem(Icons.hourglass_bottom,
-                                    'Application Deadline', companyData?.applicationDeadline ?? 'Not available'),
-                                buildDetailItem(Icons.date_range,
-                                    'Joining Date', companyData?.joiningDate ?? 'Not available'),
-                              ],
-                            ),
-                          ),
-
-                          // Contact
-                          // Contact Details Section
-                          buildDetailCard(
-                            'Contact Details',
-                            contactVisible,
-                            () {
-                              setState(() {
-                                contactVisible = !contactVisible;
-                              });
-                            },
-                            content: Column(
-                              children: [
-                                buildDetailItem(
-                                    Icons.person, 'HR Name', companyData?.hrName ?? 'Not available'),
-                                buildDetailItem(Icons.email, 'Email Address',
-                                    companyData?.hrEmail ?? 'Not available'),
-                                buildDetailItem(Icons.phone, 'Phone Number',
-                                    companyData?.hrContact ?? 'Not available'),
-                              ],
-                            ),
-                          ),
-
-                          // Additional Information Section
-                          buildDetailCard(
-                            'Additional Information',
-                            additionalInfoVisible,
-                            () {
-                              setState(() {
-                                additionalInfoVisible = !additionalInfoVisible;
-                              });
-                            },
-                            content: Column(
-                              children: [
-                                buildDetailItem(Icons.assignment,
-                                    'Bond/Agreement', companyData?.bond != null && companyData!.bond > 0 ? "${companyData!.bond} years service bond" : "No bond"),
-                                buildDetailItem(Icons.card_giftcard, 'Benefits',
-                                    companyData?.benefits ?? 'Not available'),
-                                buildDetailItem(
-                                    Icons.file_present,
-                                    'Documents Required',
-                                    companyData?.docRequired ?? 'Resume, Mark sheets, ID proof'),
-                              ],
-                            ),
-                          ),
-                        ],
-                      )
-                    : SizedBox(
-                        height: 500,
-                        child: companyData != null 
-                          ? CompanyLiveStatus(
-                              rounds: companyData!.interviewRounds,
-                            )
-                          : const Center(child: Text("No rounds information available")),
-                      ),
-              ],
-            ),
-          ),
-        ),
+              ),
         floatingActionButton: SizedBox(
           height: 50, // Set height of the button
           width: 100, // Set width of the button
@@ -535,5 +717,89 @@ class _CompanyDetailsPageState extends State<CompanyDetailsPage> {
             ),
           ),
         ));
+  }
+
+  void showEditDialog(BuildContext context, String title, String value,
+      int companyId, String? fieldName) {
+    // Skip editing if no field name is provided
+    if (fieldName == null) return;
+
+    final TextEditingController controller = TextEditingController(text: value);
+    final CompanyService companyService = CompanyService();
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Edit $title'),
+          content: TextField(
+            controller: controller,
+            decoration: InputDecoration(
+              labelText: title,
+              border: const OutlineInputBorder(),
+            ),
+            autofocus: true,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                // Get the new value from controller
+                String newValue = controller.text;
+
+                // Close the dialog
+                Navigator.of(context).pop();
+
+                // Show loading indicator
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (context) =>
+                      const Center(child: CircularProgressIndicator()),
+                );
+
+                // Call the service to update the field
+                bool success = await companyService.updateCompanyField(
+                  context,
+                  companyId,
+                  fieldName,
+                  newValue,
+                );
+
+                // Close loading dialog
+                if (context.mounted) {
+                  Navigator.of(context).pop();
+                }
+
+                // Show success or error message
+                if (success && context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('$title updated successfully'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+
+                  // Refresh company details
+                  _loadCompanyDetails();
+                } else if (context.mounted) {
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Failed to update $title'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
   }
 }

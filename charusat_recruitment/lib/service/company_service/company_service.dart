@@ -6,6 +6,8 @@ import 'package:http/http.dart' as http;
 import 'package:charusat_recruitment/const.dart';
 import 'package:charusat_recruitment/service/common_service/auth_service.dart';
 
+import '../../screens/models/company_round_model.dart';
+
 class CompanyService {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
@@ -68,7 +70,7 @@ class CompanyService {
           print('response id ${company['company_id'].toString()}');
           // Use null-aware operators with defaults for all fields
           Map<String, String> companyDetails = {
-            'id': company['company_id'].toString() ,
+            'id': company['company_id'].toString(),
             'name': company['company_name']?.toString() ?? 'Unknown Company',
             'date': companyDateStr,
             'location':
@@ -124,62 +126,218 @@ class CompanyService {
     }
   }
 
-  // Get single company details by ID
- Future<CompanyModel?> getCompanyDetails(BuildContext context, int companyId) async {
-  print(companyId);
+  //update company field
+  Future<bool> updateCompanyField(
+    BuildContext context, int companyId, String fieldName, String newValue) async {
+  print("Updating company field: $fieldName to: $newValue for company ID: $companyId");
+
   try {
-    // Get access token from secure storage
+    // Retrieve JWT token
     String? accessToken = await _storage.read(key: 'access_token');
-    
-    // If token is null, attempt to regenerate it
     if (accessToken == null) {
-      bool tokenRefreshed =
-          await AuthenticationService().regenerateAccessToken(context);
-      if (!tokenRefreshed) {
-        return null;
-      }
-      accessToken = await _storage.read(key: 'access_token');
+      _showErrorDialog(context, "Error: No access token found", null);
+      return false;
     }
-    
+
+    // Set up request headers
     var headers = {
-      'Authorization': 'Bearer $accessToken',
       'Content-Type': 'application/json',
+      'Authorization': 'Bearer $accessToken',
+    };
+
+    // Create request
+    var request = http.Request(
+      'PATCH',  // Use PATCH for partial updates
+      Uri.parse('$serverurl/company/companies-detail-edit/$companyId/'),
+    );
+
+    // Create a simple JSON object with just the field being updated
+    Map<String, dynamic> updateData = {
+      fieldName: newValue,
     };
     
-    var url =
-        Uri.parse('$serverurl/company/companies-detail-edit/$companyId/');
-    var response = await http
-        .get(
-          url,
-          headers: headers,
-        )
-        .timeout(const Duration(seconds: 10));
-    
+    request.body = json.encode(updateData);
+
+    // Attach headers
+    request.headers.addAll(headers);
+
+    // Send request
+    http.StreamedResponse streamedResponse =
+        await request.send().timeout(const Duration(seconds: 10));
+
+    // Convert streamed response to standard response
+    final response = await http.Response.fromStream(streamedResponse);
+
+    print("Update request finished: ${response.body} ${response.statusCode}");
+
     if (response.statusCode == 200) {
-      Map<String, dynamic> jsonData = json.decode(response.body);
-      return CompanyModel.fromJson(jsonData);
-    } else if (response.statusCode == 401) {
-      // If unauthorized, try to refresh token and retry
-      bool tokenRefreshed =
-          await AuthenticationService().regenerateAccessToken(context);
-      if (tokenRefreshed) {
-        // Recursively call this method again with the new token
-        return getCompanyDetails(context, companyId);
-      } else {
-        _showErrorDialog(
-            context, "Authentication failed", response.statusCode);
-        return null;
-      }
+      print("Company field updated successfully");
+      return true;
     } else {
       _showErrorDialog(
-          context, "Failed to get company details", response.statusCode);
-      return null;
+          context, "Failed to update company field", response.statusCode);
+      return false;
     }
   } catch (e) {
-    _showErrorDialog(context, "Error fetching company details: $e", null);
-    return null;
+    _showErrorDialog(context, "Error updating company field: $e", null);
+    return false;
   }
 }
+//update round status 
+Future<bool> updateRounds(BuildContext context, int companyId, List<CompanyRound> rounds) async {
+  print("Updating rounds for company ID: $companyId");
+
+  try {
+    // Retrieve JWT token
+    String? accessToken = await _storage.read(key: 'access_token');
+    
+    // Add token refresh logic
+    if (accessToken == null) {
+      bool tokenRefreshed = await AuthenticationService().regenerateAccessToken(context);
+      if (!tokenRefreshed) {
+        _showErrorDialog(context, "Error: Failed to refresh access token", null);
+        return false; // Exit if token refresh fails
+      }
+      accessToken = await _storage.read(key: 'access_token'); // Get new token
+    }
+
+    // Set up request headers
+    var headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $accessToken',
+    };
+
+    // Loop through rounds and update each one
+    bool allSuccessful = true;
+    for (int i = 0; i < rounds.length; i++) {
+      CompanyRound round = rounds[i];
+      
+      // Create request with the new endpoint format
+      var request = http.Request(
+        'PATCH',  
+        Uri.parse('$serverurl/company/interview-round/$companyId/${round.index}/'),
+      );
+  
+      Map<String, dynamic> updateData = {
+        'status': round.status,
+      };
+      
+      request.body = json.encode(updateData);
+      print('${request.body.toString()} for $companyId ${round.index} ');
+
+      request.headers.addAll(headers);
+      
+      http.StreamedResponse streamedResponse =
+          await request.send().timeout(const Duration(seconds: 10));
+      
+      // Convert streamed response to standard response
+      final response = await http.Response.fromStream(streamedResponse);
+      
+      print("Update round ${round.index} request finished: ${response.body} ${response.statusCode}");
+      
+      if (response.statusCode == 401) {
+        // If Unauthorized, attempt to regenerate token and retry this specific round
+        print("Token expired during round update. Refreshing token...");
+        bool tokenRefreshed = await AuthenticationService().regenerateAccessToken(context);
+        
+        if (tokenRefreshed) {
+          // Get new access token
+          accessToken = await _storage.read(key: 'access_token');
+          
+          // Update headers with new token
+          headers['Authorization'] = 'Bearer $accessToken';
+          request.headers.update('Authorization', (value) => 'Bearer $accessToken');
+          
+          // Retry the request with new token
+          streamedResponse = await request.send().timeout(const Duration(seconds: 10));
+          final retryResponse = await http.Response.fromStream(streamedResponse);
+          
+          if (retryResponse.statusCode != 200) {
+            _showErrorDialog(
+                context, "Failed to update company round ${round.index} after token refresh", 
+                retryResponse.statusCode);
+            allSuccessful = false;
+          }
+        } else {
+          _showErrorDialog(
+              context, "Failed to refresh token while updating rounds", null);
+          return false; // Exit early if token refresh fails
+        }
+      } else if (response.statusCode != 200) {
+        _showErrorDialog(
+            context, "Failed to update company round ${round.index}", response.statusCode);
+        allSuccessful = false;
+      }
+    }
+
+    if (allSuccessful) {
+      print("All company rounds updated successfully");
+      return true;
+    } else {
+      return false;
+    }
+  } catch (e) {
+    _showErrorDialog(context, "Error updating company rounds: $e", null);
+    return false;
+  }
+}
+  // Get single company details by ID
+  Future<CompanyModel?> getCompanyDetails(
+      BuildContext context, int companyId) async {
+    print(companyId);
+    try {
+      // Get access token from secure storage
+      String? accessToken = await _storage.read(key: 'access_token');
+
+      // If token is null, attempt to regenerate it
+      if (accessToken == null) {
+        bool tokenRefreshed =
+            await AuthenticationService().regenerateAccessToken(context);
+        if (!tokenRefreshed) {
+          return null;
+        }
+        accessToken = await _storage.read(key: 'access_token');
+      }
+
+      var headers = {
+        'Authorization': 'Bearer $accessToken',
+        'Content-Type': 'application/json',
+      };
+
+      var url =
+          Uri.parse('$serverurl/company/companies-detail-edit/$companyId/');
+      var response = await http
+          .get(
+            url,
+            headers: headers,
+          )
+          .timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        Map<String, dynamic> jsonData = json.decode(response.body);
+        return CompanyModel.fromJson(jsonData);
+      } else if (response.statusCode == 401) {
+        // If unauthorized, try to refresh token and retry
+        bool tokenRefreshed =
+            await AuthenticationService().regenerateAccessToken(context);
+        if (tokenRefreshed) {
+          // Recursively call this method again with the new token
+          return getCompanyDetails(context, companyId);
+        } else {
+          _showErrorDialog(
+              context, "Authentication failed", response.statusCode);
+          return null;
+        }
+      } else {
+        _showErrorDialog(
+            context, "Failed to get company details", response.statusCode);
+        return null;
+      }
+    } catch (e) {
+      _showErrorDialog(context, "Error fetching company details: $e", null);
+      return null;
+    }
+  }
 
   // Add company method
   Future<bool> addCompany(BuildContext context, CompanyModel company) async {
@@ -233,7 +391,8 @@ class CompanyService {
     }
   }
 
-  Future<bool> registerstudent(BuildContext context, int companyId, String studentId) async {
+  Future<bool> registerstudent(
+      BuildContext context, int companyId, String studentId) async {
     try {
       // Retrieve JWT token
       String? accessToken = await _storage.read(key: 'access_token');
@@ -258,11 +417,8 @@ class CompanyService {
       var url = Uri.parse('$serverurl/company/company-registration/');
 
       // Request Body
-      var body =
-          json.encode({
-            "input_student_id": studentId,
-            "input_company_id": companyId
-            });
+      var body = json.encode(
+          {"input_student_id": studentId, "input_company_id": companyId});
 
       // Make the POST request
       var response = await http

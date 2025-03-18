@@ -31,6 +31,7 @@ class AuthenticationService {
         await _storage.write(key: 'email', value: email);
         await NotificationService().initNotifications();
 
+        role = determineEmailType(email);
         return 1; // Login successful
       }else if(response.statusCode == 400){
         return 2;
@@ -100,6 +101,7 @@ Future<bool> verifyOtp(String email, String otp) async {
 
       print("Tokens stored successfully!");
       await NotificationService().initNotifications();
+      role = determineEmailType(email);
       return true; // OTP verification successful
     } else {
       print("OTP verification failed: ${response.body}");

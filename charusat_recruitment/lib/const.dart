@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+import 'package:charusat_recruitment/screens/models/faculty_model.dart';
+
 const String serverurl = 'http://192.168.70.209:8000';
 String role = 'faculty';
 String email="22IT092@charusat.edu.in";
@@ -14,22 +15,42 @@ String otherskill = "Problem Solving skill";
 String institute = "CSPIT";
 String department = "IT";
 String passingyear = "2026";
-void showErrorDialog(BuildContext context, String errorMessage) {
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: const Text('Error'),
-        content: Text(errorMessage),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop(); // Close the dialog
-            },
-            child: Text('OK'),
-          ),
-        ],
-      );
-    },
-  );
+
+String determineEmailType(String email) {
+
+  return 'faculty';
+  // Check if the email is not null or empty
+  if (email == null || email.isEmpty) {
+    return 'Invalid email';
+  }
+  
+  // Check if email has an @ symbol
+  if (!email.contains('@')) {
+    return 'Invalid email format';
+  }
+  
+  // Check the domain suffix for classification
+  if (email.endsWith('@charusat.edu.in')) {
+    return 'student';
+  } else if (email.endsWith('@charusat.ac.in')) {
+    return 'faculty';
+  } else {
+    return 'Unknown';
+  }
+}
+
+String extractIdFromEmail(String email) {
+  // Check if the email is not null or empty
+  if (email == null || email.isEmpty) {
+    return '';
+  }
+  
+  // Split the email by @ and take the first part
+  final parts = email.split('@');
+  if (parts.length > 0) {
+    return parts[0];
+  }
+  
+  // Return empty string if no @ symbol is foun d
+  return '';
 }

@@ -30,27 +30,50 @@ class _RegisterPageState extends State<RegisterPage> {
     super.dispose();
   }
 
-  String? _validateEmail(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Please enter your email';
-    }
-    // Basic email validation
-    final emailRegExp = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
-    if (!emailRegExp.hasMatch(value)) {
-      return 'Please enter a valid email address';
-    }
-    return null;
+ String? _validateEmail(String? value) {
+  if (value == null || value.isEmpty) {
+    return 'Please enter your email';
   }
+  
+  // Check if email ends with either @charusat.edu.in or @charusat.ac.in
+  if (!value.endsWith('@charusat.edu.in') && !value.endsWith('@charusat.ac.in')) {
+    return 'Email must end with @charusat.edu.in or @charusat.ac.in';
+  }
+  
+  // Basic email validation for format
+  final emailRegExp = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
+  if (!emailRegExp.hasMatch(value)) {
+    return 'Please enter a valid email address';
+  }
+  
+  return null;
+}
 
   String? _validatePassword(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Please enter your password';
-    }
-    if (value.length < 6) {
-      return 'Password must be at least 6 characters long';
-    }
-    return null;
+  if (value == null || value.isEmpty) {
+    return 'Please enter your password';
   }
+  if (value.length < 6) {
+    return 'Password must be at least 6 characters long';
+  }
+  
+  // Check for at least one uppercase letter
+  if (!RegExp(r'[A-Z]').hasMatch(value)) {
+    return 'Password must contain at least one capital letter';
+  }
+  
+  // Check for at least one lowercase letter
+  if (!RegExp(r'[a-z]').hasMatch(value)) {
+    return 'Password must contain at least one small letter';
+  }
+  
+  // Check for at least one special character
+  if (!RegExp(r'[@#$_\-!]').hasMatch(value)) {
+    return 'Password must contain at least one special symbol (@, #, \$, _, -, !)';
+  }
+  
+  return null;
+}
 
   String? _validateRepeatPassword(String? value) {
     if (value == null || value.isEmpty) {

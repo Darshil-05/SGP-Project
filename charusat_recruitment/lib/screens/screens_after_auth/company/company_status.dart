@@ -4,21 +4,8 @@ import 'package:charusat_recruitment/screens/models/company_round_model.dart';
 
 class CompanyLiveStatus extends StatelessWidget {
   final List<CompanyRound> rounds;
-  late final int ongoingRoundIndex;
-  late final int lastCompletedIndex;
-
-  CompanyLiveStatus({Key? key, required this.rounds}) : super(key: key) {
-    // Find the first pending round (ongoing round)
-    ongoingRoundIndex = rounds.indexWhere((round) => round.status == "pending");
-
-    // If no pending rounds are found, set to last index (all rounds are completed)
-    if (ongoingRoundIndex == -1) {
-      ongoingRoundIndex = rounds.length;
-    }
-
-    // Last completed round is just before the ongoing round
-    lastCompletedIndex = ongoingRoundIndex - 1;
-  }
+  
+  const CompanyLiveStatus({Key? key, required this.rounds}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -36,21 +23,30 @@ class CompanyLiveStatus extends StatelessWidget {
       physics: AlwaysScrollableScrollPhysics(),
       itemCount: rounds.length,
       itemBuilder: (context, index) {
+        // Determine colors based on the status
         Color iconColor;
         Color lineColor;
+        String statusText;
 
-        if (index < ongoingRoundIndex) {
-          // Completed rounds (Blue)
+        // Get the current round's status, handling both correct and typo versions
+        String status = rounds[index].status.toLowerCase();
+        bool isCompleted = status == "completed" || status == "compeleted";
+        bool isRunning = status == "running";
+        bool isPending = status == "pending";
+
+        // Determine the status look based on the current round's status
+        if (isCompleted) {
           iconColor = Colors.blue;
           lineColor = Colors.blue;
-        } else if (index == ongoingRoundIndex) {
-          // Ongoing round (Green)
+          statusText = "Completed";
+        } else if (isRunning) {
           iconColor = Colors.green;
           lineColor = Colors.green;
-        } else {
-          // Upcoming rounds (Gray)
+          statusText = "Ongoing";
+        } else { // pending or any other status
           iconColor = Colors.grey;
           lineColor = Colors.grey;
+          statusText = "Upcoming";
         }
 
         return GestureDetector(
@@ -66,8 +62,8 @@ class CompanyLiveStatus extends StatelessWidget {
                 color: Colors.white,
               ),
             ),
-            beforeLineStyle: LineStyle(color: lineColor, thickness: 3),
-            afterLineStyle: LineStyle(color: lineColor, thickness: 3),
+            beforeLineStyle: LineStyle(color: _getBeforeLineColor(index), thickness: 3),
+            afterLineStyle: LineStyle(color: _getAfterLineColor(index), thickness: 3),
             endChild: Padding(
               padding: const EdgeInsets.symmetric(vertical: 16.0),
               child: ListTile(
@@ -75,13 +71,7 @@ class CompanyLiveStatus extends StatelessWidget {
                   rounds[index].roundName,
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
-                subtitle: Text(
-                  index < ongoingRoundIndex
-                      ? 'Completed'
-                      : index == ongoingRoundIndex
-                          ? 'Ongoing'
-                          : 'Upcoming',
-                ),
+                subtitle: Text(statusText),
               ),
             ),
           ),
@@ -90,9 +80,56 @@ class CompanyLiveStatus extends StatelessWidget {
     );
   }
 
+  // Helper method to determine the color of the line before current node
+  Color _getBeforeLineColor(int index) {
+    if (index == 0) return Colors.transparent;
+    
+    String prevStatus = rounds[index - 1].status.toLowerCase();
+    bool isPrevCompleted = prevStatus == "completed" || prevStatus == "compeleted";
+    bool isPrevRunning = prevStatus == "running";
+    
+    if (isPrevCompleted) return Colors.blue;
+    if (isPrevRunning) return Colors.green;
+    return Colors.grey;
+  }
+
+  // Helper method to determine the color of the line after current node
+  Color _getAfterLineColor(int index) {
+    if (index == rounds.length - 1) return Colors.transparent;
+    
+    String currentStatus = rounds[index].status.toLowerCase();
+    bool isCurrentCompleted = currentStatus == "completed" || currentStatus == "compeleted";
+    bool isCurrentRunning = currentStatus == "running";
+    
+    if (isCurrentCompleted) return Colors.blue;
+    if (isCurrentRunning) return Colors.green;
+    return Colors.grey;
+  }
+
   void _handleRoundTap(BuildContext context, int index) {
-    if (index == lastCompletedIndex) {
+    // Find the last completed round index
+    int lastCompletedIndex = -1;
+    for (int i = rounds.length - 1; i >= 0; i--) {
+      String status = rounds[i].status.toLowerCase();
+      if (status == "completed" || status == "compeleted") {
+        lastCompletedIndex = i;
+        break;
+      }
+    }
+
+    // If all rounds are completed, allow navigation to the last round
+    bool allCompleted = rounds.every((round) {
+      String status = round.status.toLowerCase();
+      return status == "completed" || status == "compeleted";
+    });
+    
+    String currentStatus = rounds[index].status.toLowerCase();
+    bool isCurrentCompleted = currentStatus == "completed" || currentStatus == "compeleted";
+    
+    if ((isCurrentCompleted && index == lastCompletedIndex) || 
+        (allCompleted && index == rounds.length - 1)) {
       // Navigate only if the tapped round is the last completed round
+      // OR if all rounds are completed and this is the last round
       Navigator.of(context).pushNamed('/studentlist');
     } else {
       // Show a message if tapped round is not last completed
