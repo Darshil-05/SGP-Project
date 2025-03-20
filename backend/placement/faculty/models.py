@@ -43,6 +43,7 @@ class FacultyManager(BaseUserManager):
 
 class Faculty_auth(AbstractBaseUser):
     id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=255)
     email = models.EmailField(unique=True)
     password = models.CharField(max_length=255)
     last_login = models.DateTimeField(null=True, blank=True)

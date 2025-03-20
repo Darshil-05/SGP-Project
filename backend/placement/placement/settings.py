@@ -172,9 +172,6 @@ REST_FRAMEWORK = {
     # Other settings...
 }
 
-AUTHENTICATION_BACKENDS = (
-    'django.contrib.auth.backends.ModelBackend',  # Ensure this backend supports email-based authentication
-)
 
 # settings.py
 # AUTH_USER_MODEL = 'student.Student_details'
@@ -199,6 +196,10 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+# AUTH_USER_MODEL = 'student.Student_auth' 
+AUTH_USER_MODEL = 'student.Student_auth' 
+
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 SESSION_COOKIE_SECURE = os.getenv('SESSION_COOKIE_SECURE') == 'True'
 SESSION_COOKIE_HTTPONLY = os.getenv('CSRF_COOKIE_HTTPONLY') == 'True'
