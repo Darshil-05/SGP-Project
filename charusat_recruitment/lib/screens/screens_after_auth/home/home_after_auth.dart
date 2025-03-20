@@ -36,7 +36,7 @@ class _HomeAppState extends State<HomeApp> {
         },
         child: SingleChildScrollView(
           padding: EdgeInsets.only(
-            top: MediaQuery.of(context).padding.top + 25,
+            top: MediaQuery.of(context).padding.top + 70,
             bottom: MediaQuery.of(context).padding.bottom,
           ),
           physics: const BouncingScrollPhysics(
@@ -45,7 +45,7 @@ class _HomeAppState extends State<HomeApp> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Padding(
-                padding: EdgeInsets.only(left: 80.0),
+                padding: EdgeInsets.only(left: 30.0),
                 child: Row(
                   children: [
                     const Text(

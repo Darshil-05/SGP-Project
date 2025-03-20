@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:charusat_recruitment/const.dart';
 import 'package:charusat_recruitment/service/common_service/auth_service.dart';
 import 'package:flutter/material.dart';
+import '../../notification_service.dart';
 import 'loginheader.dart';
 import 'package:http/http.dart' as http;
 
@@ -70,6 +71,10 @@ String extractStudentID(String email) {
     });
     
     AuthenticationService authService = AuthenticationService();
+    email = _emailController.text;
+    password = _passwordController.text;
+
+    
     int success = await authService.login(_emailController.text, _passwordController.text);
     
     // Set loading state back to false after login process completes
@@ -79,6 +84,9 @@ String extractStudentID(String email) {
     
     print("sucess is $success");
     if (success == 1) {
+       String token = await NotificationService().initNotifications();
+        AuthenticationService().addFcmToken(context, token);
+        print("Token have added $token");
       print("Login Successful");
       if (mounted) {
         Navigator.of(context).pushReplacementNamed('/home');

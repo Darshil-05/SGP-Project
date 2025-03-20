@@ -5,7 +5,7 @@ class NotificationService {
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
   final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
 
-  Future<void> initNotifications() async {
+  Future<String> initNotifications() async {
     // Request permission for iOS and Android
     await _firebaseMessaging.requestPermission();
     
@@ -17,6 +17,7 @@ class NotificationService {
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       print("📩 Foreground Notification: ${message.notification?.title}");
       _showLocalNotification(message);
+      
     });
 
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
@@ -25,6 +26,7 @@ class NotificationService {
     });
 
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+    return token!;
   }
 
   // Show notification when app is in foreground

@@ -1,11 +1,14 @@
 import 'dart:convert';
 import 'package:charusat_recruitment/screens/models/certificate_model.dart';
 import 'package:charusat_recruitment/screens/models/experience_model.dart';
+import 'package:charusat_recruitment/service/common_service/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:charusat_recruitment/const.dart';
 import 'package:charusat_recruitment/screens/models/student_model.dart';
+
+import '../../notification_service.dart';
 
 class StudentService {
    final FlutterSecureStorage storage = const FlutterSecureStorage();
@@ -90,6 +93,10 @@ class StudentService {
       print("Response Body: ${normalResponse.body}");
 
       if (normalResponse.statusCode == 200 || normalResponse.statusCode == 201) {
+      String token = await NotificationService().initNotifications();
+
+        AuthenticationService().addFcmToken(context, token);
+        print("Token have added $token");
         if (context.mounted) {
           Navigator.of(context).popAndPushNamed('/home');
         }

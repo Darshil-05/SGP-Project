@@ -97,6 +97,8 @@ class _RegisterPageState extends State<RegisterPage> {
     
     AuthenticationService authService = AuthenticationService();
     email = _emailController.text;
+    password = _passwordController.text;
+    print("from register page email and password are ${_emailController.text} ${_passwordController.text}");
     int success = await authService.register(_nameController.text, _emailController.text, _passwordController.text);
     
     // Set loading state back to false after registration process completes

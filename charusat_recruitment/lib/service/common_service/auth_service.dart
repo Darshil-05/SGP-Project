@@ -8,6 +8,7 @@ import '../../notification_service.dart';
 
 class AuthenticationService {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  final FlutterSecureStorage secureStorage = const FlutterSecureStorage();
   
 
   /// **Login Function**
@@ -29,8 +30,7 @@ class AuthenticationService {
         await _storage.write(key: 'access_token', value: accessToken);
         await _storage.write(key: 'refresh_token', value: refreshToken);
         await _storage.write(key: 'email', value: email);
-        await NotificationService().initNotifications();
-
+       print("email from loging is $email");
         role = determineEmailType(email);
         return 1; // Login successful
       }else if(response.statusCode == 400){
@@ -43,7 +43,59 @@ class AuthenticationService {
       throw Exception("Error logging in: $e");
     }
   }
+  // fcm add
+  Future<bool> addFcmToken(BuildContext context, String fcmToken) async {
+  print("Adding FCM token for student... updated");
+  studentid = extractIdFromEmail(email);
+  // Get access token using the same pattern as in getAnnouncements
+  String? accessToken = await secureStorage.read(key: 'access_token');
 
+  if (accessToken == null) {
+    bool tokenRefreshed =
+        await AuthenticationService().regenerateAccessToken(context);
+    if (!tokenRefreshed) return false; // Redirected to login if refresh fails
+    accessToken =
+        await secureStorage.read(key: 'access_token'); // Get new token
+  }
+
+  var headers = {
+    'Authorization': 'Bearer $accessToken',
+    'Content-Type': 'application/json',
+  };
+
+  var body = {
+    "student_idno": studentid,
+    "token": fcmToken,
+  };
+
+  try {
+    var response = await http
+        .post(
+          Uri.parse('$serverurl/announcement/fcm/student/'),
+          headers: headers,
+          body: json.encode(body),
+        )
+        .timeout(const Duration(seconds: 10));
+    
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      print("FCM token added successfully");
+      return true;
+    } else if (response.statusCode == 401) {
+      // If Unauthorized, attempt to regenerate token and retry
+      bool tokenRefreshed = await AuthenticationService().regenerateAccessToken(context);
+      if (tokenRefreshed) {
+        return await addFcmToken(context, fcmToken); // Retry adding FCM token
+      }
+      return false;
+    } else {
+      print("Error adding FCM token: ${response.statusCode}, ${response.body}");
+      return false;
+    }
+  } catch (e) {
+    print("Exception adding FCM token: $e");
+    return false;
+  }
+}
   /// **Registration Function**
  Future<int> register(String name, String email, String password) async {
   var url = Uri.parse('$serverurl/user/signup/');
