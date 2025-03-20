@@ -24,9 +24,12 @@ class FacultyFCMToken(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
 class StudentFCMToken(models.Model):
-    student_idno = models.CharField(max_length=15, unique=True)
+    student_idno = models.CharField(max_length=15)
     token = models.CharField(max_length=255, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"FCM Token for {self.student_idno}"
+
+    class Meta:
+        unique_together = ('student_idno', 'token')

@@ -108,49 +108,6 @@ class SignupView(APIView):
 
          
 
-# class SigninView(APIView):
-#     def post(self, request):
-#         email = request.data.get('email')
-#         password = request.data.get('password')
-       
-
-#         if email is None or password is None:
-#             return Response({'status': 'failure', 'message': 'Email and password are required'}, status=status.HTTP_400_BAD_REQUEST)
-
-#         if email.endswith('@charusat.edu.in'):
-#             try:
-#                 user = Student_auth.objects.get(email=email)
-#                 if user.check_password(password):  # Use the method to verify hashed passwords
-#                     # refresh = RefreshToken.for_user(user)  # Generate JWT tokens
-#                     return Response({
-#                         'status': 'success',
-#                         'message': 'User authenticated',
-#                         # 'access': str(refresh.access_token),  # Access token
-#                         # 'refresh': str(refresh),               # Refresh token
-#                     }, status=status.HTTP_200_OK)
-#                 else:
-#                     return Response({'status': 'failure', 'message': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
-#             except Student_auth.DoesNotExist:
-#                 return Response({'status': 'failure', 'message': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
-
-#         elif email.endswith('@charusat.ac.in'):
-#             try:
-#                 user = Faculty_auth.objects.get(email=email)
-#                 if user.check_password(password):  # Use the method to verify hashed passwords
-#                     # refresh = RefreshToken.for_user(user)  # Generate JWT tokens
-#                     return Response({
-#                         'status': 'success',
-#                         'message': 'User authenticated',
-#                         # 'access': str(refresh.access_token),  # Access token
-#                         # 'refresh': str(refresh),               # Refresh token
-#                     }, status=status.HTTP_200_OK)
-#                 else:
-#                     return Response({'status': 'failure', 'message': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
-#             except Faculty_auth.DoesNotExist:
-#                 return Response({'status': 'failure', 'message': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
-
-#         return Response({'status': 'failure', 'message': 'Invalid email domain'}, status=status.HTTP_400_BAD_REQUEST)
-
 
 
 class SigninView(APIView):
@@ -192,69 +149,35 @@ class SigninView(APIView):
             }, status=status.HTTP_200_OK)
         else:
             return Response({'error': 'Invalid email or password'}, status=status.HTTP_400_BAD_REQUEST)
-# class SigninView(APIView):
-#     def post(self, request):
-#         email = request.data.get('email')
-#         password = request.data.get('password')
 
-#         if not email or not password:
-#             return Response({'status': 'failure', 'message': 'Email and password are required'}, status=status.HTTP_400_BAD_REQUEST)
 
-#         user = None
-#         if email.endswith('@charusat.edu.in'):
-#             try:
-#                 user = Student_auth.objects.get(email=email)
-#             except Student_auth.DoesNotExist:
-#                 pass
-#         elif email.endswith('@charusat.ac.in'):
-#             try:
-#                 user = Faculty_auth.objects.get(email=email)
-#             except Faculty_auth.DoesNotExist:
-#                 pass
-
-#         if user and user.check_password(password):  # Check hashed password
-#             refresh = RefreshToken.for_user(user)  # Generate JWT tokens
-#             return Response({
-#                 'status': 'success',
-#                 'message': 'User authenticated',
-#                 'access': str(refresh.access_token),  # Access token
-#                 'refresh': str(refresh),               # Refresh token
-#             }, status=status.HTTP_200_OK)
-
-#         return Response({'status': 'failure', 'message': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
-
+# from rest_framework_simplejwt.tokens import RefreshToken
+# from rest_framework.permissions import IsAuthenticated
 
 # class SignoutView(APIView):
-#     # permission_classes = (IsAuthenticated,)  # Ensure the user is authenticated
+#     permission_classes = [AllowAny]
 
 #     def post(self, request):
 #         try:
-#             # Get the refresh token from the request data
 #             refresh_token = request.data.get('refresh_token')
-#             if refresh_token is None:
-#                 return Response({
-#                     'status': 'failure',
-#                     'message': 'Refresh token is required to sign out.'
-#                 }, status=status.HTTP_400_BAD_REQUEST)
+#             if not refresh_token:
+#                 return Response({'status': 'failure', 'message': 'Refresh token is required'}, status=status.HTTP_400_BAD_REQUEST)
 
-#             # Blacklist the refresh token
 #             token = RefreshToken(refresh_token)
-#             token.blacklist()
+#             token.blacklist()  # Blacklist the refresh token
 
-#             return Response({
-#                 'status': 'success',
-#                 'message': 'User signed out successfully.'
-#             }, status=status.HTTP_200_OK)
+#             return Response({'status': 'success', 'message': 'User signed out successfully'}, status=status.HTTP_200_OK)
 
 #         except Exception as e:
-#             return Response({
-#                 'status': 'failure',
-#                 'message': 'Failed to sign out.',
-#                 'error': str(e)
-#             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+#             return Response({'status': 'failure', 'message': 'Failed to sign out', 'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+
 
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
+from announcement.models import StudentFCMToken, FacultyFCMToken
 
 class SignoutView(APIView):
     permission_classes = [AllowAny]
@@ -262,70 +185,42 @@ class SignoutView(APIView):
     def post(self, request):
         try:
             refresh_token = request.data.get('refresh_token')
+            fcm_token = request.data.get('fcm_token')
+
             if not refresh_token:
                 return Response({'status': 'failure', 'message': 'Refresh token is required'}, status=status.HTTP_400_BAD_REQUEST)
 
+            # Blacklist the refresh token
             token = RefreshToken(refresh_token)
-            token.blacklist()  # Blacklist the refresh token
+            token.blacklist()
 
-            return Response({'status': 'success', 'message': 'User signed out successfully'}, status=status.HTTP_200_OK)
+            # If FCM token is provided, try to delete it from both tables
+            if fcm_token:
+                try:
+                    # Try to delete from StudentFCMToken
+                    StudentFCMToken.objects.filter(token=fcm_token).delete()
+                except Exception as e:
+                    pass  # Ignore if not found in student tokens
+
+                try:
+                    # Try to delete from FacultyFCMToken
+                    FacultyFCMToken.objects.filter(token=fcm_token).delete()
+                except Exception as e:
+                    pass  # Ignore if not found in faculty tokens
+
+            return Response({
+                'status': 'success', 
+                'message': 'User signed out successfully'
+            }, status=status.HTTP_200_OK)
 
         except Exception as e:
-            return Response({'status': 'failure', 'message': 'Failed to sign out', 'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({
+                'status': 'failure', 
+                'message': 'Failed to sign out', 
+                'error': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-
-
-# class VerifyOTPView(APIView):
-#     def post(self, request):
-#         otp_code = request.data.get('otp_code')
-#         email = request.data.get('email')
-#         name = request.data.get('name')  # Pass the name directly in the request
-#         password = request.data.get('password')  # Pass the password directly in the request
-
-#         if not otp_code or not email or not name or not password:
-#             return Response({'error': 'OTP, email, name, and password are required'}, status=status.HTTP_400_BAD_REQUEST)
-
-#         try:
-#             # Retrieve the OTP entry for the given email and OTP code
-#             otp_instance = OTP.objects.filter(email=email, otp_code=otp_code).first()
-
-#             if otp_instance is None:
-#                 return Response({'error': 'Invalid OTP or email'}, status=status.HTTP_400_BAD_REQUEST)
-
-#             # Check if the OTP is still valid
-#             if otp_instance.is_valid():
-#                 user_type = otp_instance.user_type  # Retrieve the user type from the OTP instance
-                
-#                 # OTP verified, now create the user
-#                 if user_type == 'faculty':
-#                     user = Faculty_auth.objects.create(
-#                         email=email,
-#                         password=make_password(password),  # Use the password from the request
-#                         name=name  # Use the name from the request
-#                     )
-#                 elif user_type == 'student':
-#                     user = Student_auth.objects.create(
-#                         email=email,
-#                         password=make_password(password),  # Use the password from the request
-#                         name=name  # Use the name from the request
-#                     )
-
-#                 # Optionally, delete OTP after successful verification
-#                 otp_instance.delete()
-
-#                 return Response({
-#                     'status': 'success',
-#                     'message': 'OTP verified successfully and user created',
-#                     'user_id': user.id,  # Optionally return the user ID
-#                 }, status=status.HTTP_200_OK)
-#             else:
-#                 return Response({'error': 'OTP has expired'}, status=status.HTTP_400_BAD_REQUEST)
-
-#         except OTP.DoesNotExist:
-#             return Response({'error': 'Invalid OTP or email'}, status=status.HTTP_400_BAD_REQUEST)
-from rest_framework_simplejwt.tokens import RefreshToken
-from django.contrib.auth import get_user_model
 
 class VerifyOTPView(APIView):
     permission_classes = [AllowAny]
