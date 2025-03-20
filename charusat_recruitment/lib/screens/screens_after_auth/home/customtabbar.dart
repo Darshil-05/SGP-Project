@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:charusat_recruitment/Providers/menu_provider.dart';
 
 // Define a list of icons for the bottom navigation
 List<IconData> bottomNavigationItems = [
@@ -10,28 +12,31 @@ List<IconData> bottomNavigationItems = [
 ];
 
 class CustomTabBar extends StatefulWidget {
-  const CustomTabBar({super.key , required this.onTabChange});
+  const CustomTabBar({super.key, required this.onTabChange});
   final Function(int tabIndex) onTabChange;
   @override
   State<CustomTabBar> createState() => _CustomTabBarState();
 }
 
 class _CustomTabBarState extends State<CustomTabBar> {
-  // Variable to track the selected index
-  int _selectedIndex = 0;
-  onTabpress(int index){
-      widget.onTabChange(index);
+  onTabpress(int index) {
+    widget.onTabChange(index);
   }
+
   @override
   Widget build(BuildContext context) {
+    final menuProvider = Provider.of<MenuProvider>(context);
+    final _selectedIndex =
+        menuProvider.selectedTab; // Get selected tab from provider
+
     return SafeArea(
       child: Container(
         color: Colors.transparent,
         child: Container(
           margin: const EdgeInsets.symmetric(horizontal: 11),
           height: 70,
-          decoration:const BoxDecoration(
-            color:  Color(0xff0f1d2c),
+          decoration: const BoxDecoration(
+            color: Color(0xff0f1d2c),
             borderRadius: BorderRadius.all(Radius.circular(25)),
           ),
           child: Row(
@@ -43,10 +48,8 @@ class _CustomTabBarState extends State<CustomTabBar> {
                 return Expanded(
                   child: CupertinoButton(
                     onPressed: () {
-                      setState(() {
-                        _selectedIndex = index;
-                        onTabpress(index);
-                      });
+                      menuProvider.setSelectedTab(index);
+                      onTabpress(index);
                     },
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,

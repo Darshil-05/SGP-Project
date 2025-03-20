@@ -696,7 +696,7 @@ class _CompanyDetailsPageState extends State<CompanyDetailsPage> {
                   ),
                 ),
               ),
-        floatingActionButton: SizedBox(
+        floatingActionButton: (role == 'faculty') ? SizedBox(
           height: 50, // Set height of the button
           width: 100, // Set width of the button
           child: FloatingActionButton(
@@ -716,7 +716,7 @@ class _CompanyDetailsPageState extends State<CompanyDetailsPage> {
               ),
             ),
           ),
-        ));
+         ) : const SizedBox() );
   }
 
   void showEditDialog(BuildContext context, String title, String value,

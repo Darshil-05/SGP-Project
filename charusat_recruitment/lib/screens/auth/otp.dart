@@ -19,7 +19,7 @@ class _OtpPageState extends State<OtpPage> {
   int _start = 30;
   bool _isButtonDisabled = true;
   bool _showTimer = true;
-  final bool _isLoading = false; 
+  final bool _isLoading = false;
 
   @override
   void initState() {
@@ -45,25 +45,26 @@ class _OtpPageState extends State<OtpPage> {
       }
     });
   }
-void verifyOtpCode() async {
-  AuthenticationService authService = AuthenticationService();
-  String otp = _otpControllers.map((controller) => controller.text).join();
-  debugPrint("OTP verification started : $email , $otp");
-  bool success = await authService.verifyOtp(email, otp);
 
-  if (success) {
-    debugPrint("OTP Verified Successfully");
-    if (mounted) {
-      Navigator.of(context).pushReplacementNamed('/studentDetails');
+  void verifyOtpCode() async {
+    AuthenticationService authService = AuthenticationService();
+    String otp = _otpControllers.map((controller) => controller.text).join();
+    debugPrint("OTP verification started : $email , $otp");
+    bool success = await authService.verifyOtp(email, otp);
+
+    if (success) {
+      debugPrint("OTP Verified Successfully");
+      if (mounted) {
+        if (role == "faculty") {
+          Navigator.of(context).pushReplacementNamed('/studentDetails');
+        } else {
+          Navigator.of(context).pushReplacementNamed('/facultyDetails');
+        }
+      }
+    } else {
+      debugPrint("OTP Verification Failed");
     }
-  } else {
-    debugPrint("OTP Verification Failed");
   }
-}
-
-
-
-
 
   void _showErrorDialog(BuildContext context, String errorMessage) {
     showDialog(

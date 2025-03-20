@@ -2,6 +2,7 @@ import 'package:charusat_recruitment/Providers/announcement_provider.dart';
 import 'package:charusat_recruitment/Providers/menu_provider.dart';
 import 'package:charusat_recruitment/Providers/pie_chart_provider.dart';
 import 'package:charusat_recruitment/Providers/theme_provider.dart';
+import 'package:charusat_recruitment/screens/auth/facultydetail.dart';
 import 'package:charusat_recruitment/screens/auth/studentdetail.dart';
 import 'package:charusat_recruitment/screens/auth/forgotpage.dart';
 import 'package:charusat_recruitment/screens/auth/login.dart';
@@ -103,7 +104,6 @@ class _MyAppState extends State<MyApp> {
                 themeMode: themechanger.themeMode,
                 theme: ThemeManager.lightmode,
                 darkTheme: ThemeManager.darkmode,
-                // home: const ProfilePage(),
                 home: isLoggedIn ? const Home() : const Welcome(), // Show correct screen
                 routes: {
                   '/home': (context) => const Home(),
@@ -116,7 +116,8 @@ class _MyAppState extends State<MyApp> {
                   '/companymanager': (context) => const CompanyManager(),
                   '/round': (context) => const RoundManager(),
                   '/studentlist': (context) => const StudentListManager(),
-                  '/studentDetails': (context) => const StudentDetailsPage()
+                  '/studentDetails': (context) => const StudentDetailsPage(),
+                  '/facultyDetails': (context) => const FacultyDetailsPage(),
                 },
               );
             },

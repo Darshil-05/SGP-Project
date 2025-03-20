@@ -1,7 +1,7 @@
 import 'package:charusat_recruitment/service/users/faculty_service.dart';
 import 'package:charusat_recruitment/screens/models/institute_model.dart';
+import 'package:charusat_recruitment/screens/models/faculty_model.dart';
 import 'package:flutter/material.dart';
-
 
 class FacultyDetailsPage extends StatefulWidget {
   const FacultyDetailsPage({super.key});
@@ -14,7 +14,8 @@ class _FacultyDetailsPageState extends State<FacultyDetailsPage> {
   final _formKey = GlobalKey<FormState>();
 
   // Controllers to handle text input
-  final TextEditingController _firstnameController = TextEditingController();
+  final TextEditingController _firstNameController = TextEditingController();
+  final TextEditingController _lastNameController = TextEditingController();
   final TextEditingController _facultyIdController = TextEditingController();
   final TextEditingController _dobController = TextEditingController();
   
@@ -68,8 +69,9 @@ class _FacultyDetailsPageState extends State<FacultyDetailsPage> {
         
         // Collect faculty details from text controllers
         final Map<String, String> facultyData = {
-          "id_no": _facultyIdController.text,
-          "first_name": _firstnameController.text,
+          "faculty_id": _facultyIdController.text,
+          "first_name": _firstNameController.text,
+          "last_name": _lastNameController.text,
           "birthdate": _dobController.text,
           "institute": _selectedInstitute!,
           "department": _selectedDepartment!,
@@ -77,8 +79,9 @@ class _FacultyDetailsPageState extends State<FacultyDetailsPage> {
         };
 
         bool success = await facultyService.addFaculty(context, facultyData);
-        if (!success) {
-          _showErrorDialog(context, "Failed to add faculty. Please try again.");
+        if (success) {
+          // Clear form on success
+          _clearForm();
         }
       } catch (e) {
         _showErrorDialog(context, "An error occurred: ${e.toString()}");
@@ -88,6 +91,18 @@ class _FacultyDetailsPageState extends State<FacultyDetailsPage> {
         });
       }
     }
+  }
+
+  void _clearForm() {
+    _firstNameController.clear();
+    _lastNameController.clear();
+    _facultyIdController.clear();
+    _dobController.clear();
+    setState(() {
+      _selectedInstitute = null;
+      _selectedDepartment = null;
+      _departments = [];
+    });
   }
 
   void _showErrorDialog(BuildContext context, String errorMessage) {
@@ -129,25 +144,54 @@ class _FacultyDetailsPageState extends State<FacultyDetailsPage> {
           child: SingleChildScrollView(
             child: Column(
               children: [
-                TextFormField(
-                  controller: _firstnameController,
-                  cursorColor: const Color(0xff0f1d2c),
-                  decoration: const InputDecoration(
-                    labelText: 'Full Name',
-                    labelStyle: TextStyle(color: Color(0xff0f1d2c)),
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.grey),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        controller: _firstNameController,
+                        cursorColor: const Color(0xff0f1d2c),
+                        decoration: const InputDecoration(
+                          labelText: 'First Name',
+                          labelStyle: TextStyle(color: Color(0xff0f1d2c)),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.grey),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Color(0xff0f1d2c)),
+                          ),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter first name';
+                          }
+                          return null;
+                        },
+                      ),
                     ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Color(0xff0f1d2c)),
+                    const SizedBox(width: 16.0),
+                    Expanded(
+                      child: TextFormField(
+                        controller: _lastNameController,
+                        cursorColor: const Color(0xff0f1d2c),
+                        decoration: const InputDecoration(
+                          labelText: 'Last Name',
+                          labelStyle: TextStyle(color: Color(0xff0f1d2c)),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.grey),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Color(0xff0f1d2c)),
+                          ),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter last name';
+                          }
+                          return null;
+                        },
+                      ),
                     ),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter the faculty\'s full name';
-                    }
-                    return null;
-                  },
+                  ],
                 ),
                 const SizedBox(height: 16.0),
                 Row(

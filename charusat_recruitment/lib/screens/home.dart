@@ -24,6 +24,7 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> with TickerProviderStateMixin {
   late AnimationController? _animationController;
   late Animation<double> _sidebarAnim;
+  bool _prevMenuState = false;
 
   Widget _tabBody = Container(color: Colors.amber);
 
@@ -34,20 +35,26 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     ProfilePage()
   ];
 
-  final springDesc = const SpringDescription(mass: 0.1, stiffness: 40, damping: 5);
+  final springDesc =
+      const SpringDescription(mass: 0.1, stiffness: 40, damping: 5);
 
-  void onMenuPress(MenuProvider menuProvider) {
-    // Trigger the animation based on the menu state
-    if (menuProvider.isMenuOpen) {
-      final springAnim = SpringSimulation(springDesc, 0, 1, 0);
-      _animationController?.animateWith(springAnim);
-    } else {
-      _animationController?.reverse();
+  void handleMenuStateChange(bool isOpen) {
+    // Only trigger animation if menu state actually changed
+    if (_prevMenuState != isOpen) {
+      _prevMenuState = isOpen;
+
+      // Trigger the animation based on the menu state
+      if (isOpen) {
+        final springAnim = SpringSimulation(springDesc, 0, 1, 0);
+        _animationController?.animateWith(springAnim);
+      } else {
+        _animationController?.reverse();
+      }
+
+      // Toggle the system UI overlay style based on menu state
+      SystemChrome.setSystemUIOverlayStyle(
+          isOpen ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark);
     }
-
-    // Toggle the system UI overlay style based on menu state
-    SystemChrome.setSystemUIOverlayStyle(
-        menuProvider.isMenuOpen ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark);
   }
 
   @override
@@ -73,8 +80,15 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<MenuProvider>(  // Use Consumer to listen for changes in MenuProvider
+    return Consumer<MenuProvider>(
+      // Use Consumer to listen for changes in MenuProvider
       builder: (context, menuProvider, child) {
+        // Update _tabBody when selectedTab changes
+        _tabBody = _screen[menuProvider.selectedTab];
+
+        // Handle menu state changes
+        handleMenuStateChange(menuProvider.isMenuOpen);
+
         return Scaffold(
           extendBody: true,
           body: Stack(
@@ -92,7 +106,8 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                       alignment: Alignment.center,
                       transform: Matrix4.identity()
                         ..setEntry(3, 2, 0.001)
-                        ..rotateY(((1 - _sidebarAnim.value) * -30) * math.pi / 180)
+                        ..rotateY(
+                            ((1 - _sidebarAnim.value) * -30) * math.pi / 180)
                         ..translate((1 - _sidebarAnim.value) * -300),
                       child: child,
                     );
@@ -115,7 +130,8 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                           alignment: Alignment.center,
                           transform: Matrix4.identity()
                             ..setEntry(3, 2, 0.001)
-                            ..rotateY((_sidebarAnim.value * 30) * math.pi / 180),
+                            ..rotateY(
+                                (_sidebarAnim.value * 30) * math.pi / 180),
                           child: child!,
                         ),
                       ),
@@ -140,7 +156,6 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                   child: GestureDetector(
                     onTap: () {
                       menuProvider.toggleMenu();
-                      onMenuPress(menuProvider);  
                     },
                     child: Container(
                       margin: const EdgeInsets.all(20),
@@ -194,11 +209,12 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                   ],
                 ),
                 padding: const EdgeInsets.only(bottom: 25),
-                child: CustomTabBar(onTabChange: (tabIndex) {
-                  setState(() {
-                    _tabBody = _screen[tabIndex];
-                  });
-                }),
+                child: CustomTabBar(
+                  onTabChange: (tabIndex) {
+                    // Update both the local state and the provider
+                    menuProvider.setSelectedTab(tabIndex);
+                  },
+                ),
               ),
             ),
           ),

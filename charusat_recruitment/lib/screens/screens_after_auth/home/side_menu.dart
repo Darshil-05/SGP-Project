@@ -38,11 +38,13 @@ class SideMenu extends StatelessWidget {
                       children: [
                         Text(
                           'Darshil Patel', // Replace with dynamic name from the provider if needed
-                          style: const TextStyle(color: Colors.white, fontSize: 17),
+                          style: const TextStyle(
+                              color: Colors.white, fontSize: 17),
                         ),
                         Text(
                           'Flutter Developer', // Replace with dynamic domain from the provider if needed
-                          style: const TextStyle(color: Colors.white, fontSize: 15),
+                          style: const TextStyle(
+                              color: Colors.white, fontSize: 15),
                         ),
                       ],
                     ),
@@ -56,9 +58,10 @@ class SideMenu extends StatelessWidget {
                   children: [
                     ListTile(
                       onTap: () {
-                        // Close the menu when an item is tapped
-                        menuProvider.toggleMenu(); // Toggle the menu state
-                      
+                        // First set the selected tab
+                        menuProvider.setSelectedTab(3); // Profile tab
+                        // Then close menu
+                        menuProvider.setMenuState(false);
                       },
                       leading: const Icon(
                         Icons.person_outlined,
@@ -72,21 +75,28 @@ class SideMenu extends StatelessWidget {
                     const Divider(thickness: 0.5),
                     ListTile(
                       onTap: () {
-                        menuProvider.toggleMenu(); 
+                        // First set the selected tab (if applicable)
+                        menuProvider.setSelectedTab(2);
+                        // Then close menu
+                        menuProvider.setMenuState(false);
+                        // Navigate to settings or any other page if needed
                       },
                       leading: const Icon(
-                        Icons.settings_rounded,
+                        Icons.notifications,
                         color: Colors.white,
                       ),
                       title: const Text(
-                        'Settings',
+                        'Notifications',
                         style: TextStyle(color: Colors.white, fontSize: 17),
                       ),
                     ),
                     const Divider(thickness: 0.5),
                     ListTile(
                       onTap: () {
-                        menuProvider.toggleMenu(); 
+                        // First set the selected tab
+                        menuProvider.setSelectedTab(0); // Home tab
+                        // Then close menu
+                        menuProvider.setMenuState(false);
                       },
                       leading: const Icon(
                         Icons.announcement_rounded,
@@ -100,7 +110,10 @@ class SideMenu extends StatelessWidget {
                     const Divider(thickness: 0.5),
                     ListTile(
                       onTap: () {
-                        menuProvider.toggleMenu(); 
+                        // First set the selected tab
+                        menuProvider.setSelectedTab(1); // Company tab
+                        // Then close menu
+                        menuProvider.setMenuState(false);
                       },
                       leading: const Icon(
                         Icons.analytics_rounded,

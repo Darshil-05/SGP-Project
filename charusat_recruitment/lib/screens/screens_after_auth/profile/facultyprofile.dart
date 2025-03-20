@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:charusat_recruitment/service/common_service/auth_service.dart';
 
 class FacultyProfilePage extends StatefulWidget {
-  final Faculty faculty;
+  final FacultyProfile faculty;
   
   const FacultyProfilePage({super.key, required this.faculty});
 
@@ -26,8 +26,7 @@ class _FacultyProfilePageState extends State<FacultyProfilePage> {
   void initState() {
     super.initState();
     // Initialize controllers with current values
-    firstnameController.text = widget.faculty.firstname;
-    birthdateController.text = widget.faculty.birthdate;
+    firstnameController.text = widget.faculty.firstName;
     instituteController.text = widget.faculty.institute;
     departmentController.text = widget.faculty.department;
   }
@@ -200,8 +199,6 @@ class _FacultyProfilePageState extends State<FacultyProfilePage> {
                 children: [
                   buildEditableDetailItem(
                       Icons.person, 'First Name', firstnameController),
-                  buildEditableDetailItem(
-                      Icons.cake, 'Date of Birth', birthdateController),
                 ],
               ),
             ),
