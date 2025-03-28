@@ -89,15 +89,21 @@ class SignupView(APIView):
         if not re.search(r'[!@#$%^&*()_+=-]', password):
             return False
         return True
+from .utils import store_or_update_fcm_token
 
 class SigninView(APIView):
     permission_classes = [AllowAny]
+    
     def post(self, request):
         email = request.data.get('email')
         password = request.data.get('password')
+        fcm_token = request.data.get('fcm_token')  # Get FCM token from request
 
         if not email or not password:
-            return Response({'error': 'Email and password are required'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({
+                'status': 'error',
+                'message': 'Email and password are required'
+            }, status=status.HTTP_400_BAD_REQUEST)
 
         # Authenticate user
         user = authenticate(email=email, password=password)
@@ -109,16 +115,39 @@ class SigninView(APIView):
             refresh.payload["email"] = user.email
             refresh.payload["role"] = user.role
 
-            return Response({
+            # Handle FCM token if provided
+            fcm_message = None
+            if fcm_token:
+                success, message = store_or_update_fcm_token(
+                    email=email,
+                    token=fcm_token,
+                    user_type=user.role  # Using role from user model
+                )
+                if not success:
+                    fcm_message = message
+
+            response_data = {
                 'status': 'success',
                 'message': 'Login successful',
                 'user_id': user.id,
                 'role': user.role,
                 'access': str(refresh.access_token),
                 'refresh': str(refresh)
-            }, status=status.HTTP_200_OK)
+            }
+
+            # Add FCM token status to response if there was an error
+            if fcm_message:
+                response_data['fcm_status'] = 'warning'
+                response_data['fcm_message'] = fcm_message
+
+            return Response(response_data, status=status.HTTP_200_OK)
         else:
-            return Response({'error': 'Invalid email or password'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({
+                'status': 'error',
+                'message': 'Invalid email or password'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+
 
 class SignoutView(APIView):
     permission_classes = [AllowAny]
