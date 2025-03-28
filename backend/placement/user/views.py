@@ -1,38 +1,22 @@
+
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-# from .serializers import UserSignupSerializer,SignInSerializer
-from student .models import Student_auth
-from faculty .models import Faculty_auth
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.authtoken.models import Token
-from django.contrib.auth import authenticate, login as auth_login
-from student .serializers import StudentAuthSerializer
-from faculty .serializers import FacultyAuthSerializer
-import random
+from django.contrib.auth import authenticate
 from django.core.mail import send_mail
-from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from .models import OTP
-from .serializers import *
-from django.contrib.auth.hashers import make_password
 from django.conf import settings
+from django.contrib.auth.hashers import make_password
+import random
 import string
 import re
-from rest_framework.permissions import IsAuthenticated
-from rest_framework_simplejwt.tokens import BlacklistMixin
-
-
-from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import AllowAny
-
-
+from .models import UserAuth, OTP,FCMToken
+from .serializers import UserAuthSerializer
+from django.utils import timezone
 
 def generate_otp():
     return ''.join(random.choices(string.digits, k=6))
-
-
 
 class SignupView(APIView):
     permission_classes = [AllowAny]
@@ -48,31 +32,31 @@ class SignupView(APIView):
         if password != confirm_password:
             return Response({'status': 'failure', 'message': 'Passwords do not match'}, status=status.HTTP_400_BAD_REQUEST)
 
-        if email.endswith('@charusat.ac.in'):
-            user_type = 'faculty'
-            serializer = FacultyAuthSerializer(data={'email': email, 'password': password, 'name': name})
-        elif email.endswith('@charusat.edu.in'):
-            user_type = 'student'
-            serializer = StudentAuthSerializer(data={'email': email, 'password': password, 'name': name})
-        else:
+        # Validate email domain
+        if not (email.endswith('@charusat.ac.in') or email.endswith('@charusat.edu.in')):
             return Response({'status': 'failure', 'message': 'Invalid email domain'}, status=status.HTTP_400_BAD_REQUEST)
-        
 
         if not self.is_password_valid(password):
             return Response({'status': 'failure', 'message': 'Password must be strong.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Check serializer validity
+        # Prepare user data
+        user_data = {
+            'email': email,
+            'name': name,
+            'password': password
+        }
+
+        serializer = UserAuthSerializer(data=user_data)
+        
         if serializer.is_valid():
             # Generate OTP
             otp_code = generate_otp()
             
-
-            # Save OTP with user_type, name, and password in the OTP model
+            # Save OTP 
             OTP.objects.update_or_create(
                 email=email,
                 defaults={
                     'otp_code': otp_code,
-                    'user_type': user_type,
                     'created_at': timezone.now()
                 }
             )
@@ -106,10 +90,6 @@ class SignupView(APIView):
             return False
         return True
 
-         
-
-
-
 class SigninView(APIView):
     permission_classes = [AllowAny]
     def post(self, request):
@@ -119,69 +99,29 @@ class SigninView(APIView):
         if not email or not password:
             return Response({'error': 'Email and password are required'}, status=status.HTTP_400_BAD_REQUEST)
 
-        user = None
-        user_type = None
+        # Authenticate user
+        user = authenticate(email=email, password=password)
 
-        # Check if user is Student
-        if Student_auth.objects.filter(email=email).exists():
-            user = Student_auth.objects.get(email=email)
-            user_type = 'student'
-
-        # Check if user is Faculty
-        elif Faculty_auth.objects.filter(email=email).exists():
-            user = Faculty_auth.objects.get(email=email)
-            user_type = 'faculty'
-
-        # Check if password is correct
-        if user and user.check_password(password):
-            # 🔹 Manually generate JWT tokens without `for_user(user)`
-            refresh = RefreshToken()
-            refresh.payload["user_id"] = str(user.id)  # Store user ID in token
+        if user:
+            # Generate JWT tokens
+            refresh = RefreshToken.for_user(user)
+            refresh.payload["user_id"] = str(user.id)
             refresh.payload["email"] = user.email
-            refresh.payload["user_type"] = user_type  # Add user type for distinction
+            refresh.payload["role"] = user.role
 
             return Response({
                 'status': 'success',
                 'message': 'Login successful',
                 'user_id': user.id,
-                'access': str(refresh.access_token),  # ✅ Custom JWT token
+                'role': user.role,
+                'access': str(refresh.access_token),
                 'refresh': str(refresh)
             }, status=status.HTTP_200_OK)
         else:
             return Response({'error': 'Invalid email or password'}, status=status.HTTP_400_BAD_REQUEST)
 
-
-# from rest_framework_simplejwt.tokens import RefreshToken
-# from rest_framework.permissions import IsAuthenticated
-
-# class SignoutView(APIView):
-#     permission_classes = [AllowAny]
-
-#     def post(self, request):
-#         try:
-#             refresh_token = request.data.get('refresh_token')
-#             if not refresh_token:
-#                 return Response({'status': 'failure', 'message': 'Refresh token is required'}, status=status.HTTP_400_BAD_REQUEST)
-
-#             token = RefreshToken(refresh_token)
-#             token.blacklist()  # Blacklist the refresh token
-
-#             return Response({'status': 'success', 'message': 'User signed out successfully'}, status=status.HTTP_200_OK)
-
-#         except Exception as e:
-#             return Response({'status': 'failure', 'message': 'Failed to sign out', 'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-
-
-
-from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.permissions import IsAuthenticated
-from announcement.models import StudentFCMToken, FacultyFCMToken
-
 class SignoutView(APIView):
     permission_classes = [AllowAny]
-
     def post(self, request):
         try:
             refresh_token = request.data.get('refresh_token')
@@ -194,19 +134,9 @@ class SignoutView(APIView):
             token = RefreshToken(refresh_token)
             token.blacklist()
 
-            # If FCM token is provided, try to delete it from both tables
+            # If FCM token is provided, try to delete it
             if fcm_token:
-                try:
-                    # Try to delete from StudentFCMToken
-                    StudentFCMToken.objects.filter(token=fcm_token).delete()
-                except Exception as e:
-                    pass  # Ignore if not found in student tokens
-
-                try:
-                    # Try to delete from FacultyFCMToken
-                    FacultyFCMToken.objects.filter(token=fcm_token).delete()
-                except Exception as e:
-                    pass  # Ignore if not found in faculty tokens
+                FCMToken.objects.filter(token=fcm_token).delete()
 
             return Response({
                 'status': 'success', 
@@ -220,19 +150,16 @@ class SignoutView(APIView):
                 'error': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-
-
 class VerifyOTPView(APIView):
     permission_classes = [AllowAny]
-    
     def post(self, request):
         otp_code = request.data.get('otp_code')
         email = request.data.get('email')
         name = request.data.get('name')
         password = request.data.get('password')
 
-        if not otp_code or not email or not name or not password:
-            return Response({'error': 'Please Enter OTP'}, status=status.HTTP_400_BAD_REQUEST)
+        if not all([otp_code, email, name, password]):
+            return Response({'error': 'All fields are required'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             otp_instance = OTP.objects.filter(email=email, otp_code=otp_code).first()
@@ -240,34 +167,27 @@ class VerifyOTPView(APIView):
                 return Response({'error': 'Invalid OTP'}, status=status.HTTP_400_BAD_REQUEST)
 
             if otp_instance.is_valid():
-                user_type = otp_instance.user_type
-
-                if user_type == 'faculty':
-                    user = Faculty_auth.objects.create(
-                        email=email,
-                        password=make_password(password),
-                        name=name
-                    )
-                elif user_type == 'student':
-                    user = Student_auth.objects.create(
-                        email=email,
-                        password=make_password(password),
-                        name=name
-                    )
+                # Create user with auto-assigned role based on email domain
+                user = UserAuth.objects.create_user(
+                    email=email,
+                    password=password,
+                    name=name
+                )
 
                 otp_instance.delete()
 
-                # 🔹 Manually create the JWT token (without using `for_user`)
-                refresh = RefreshToken()
-                refresh.payload["user_id"] = str(user.id)  # Store user ID in token
+                # Generate JWT token
+                refresh = RefreshToken.for_user(user)
+                refresh.payload["user_id"] = str(user.id)
                 refresh.payload["email"] = user.email
-                refresh.payload["user_type"] = user_type  # Add user type for distinction
+                refresh.payload["role"] = user.role
 
                 return Response({
                     'status': 'success',
                     'message': 'OTP verified successfully, and user created',
                     'user_id': user.id,
-                    'access': str(refresh.access_token),  # ✅ Custom JWT token
+                    'role': user.role,
+                    'access': str(refresh.access_token),
                     'refresh': str(refresh)
                 }, status=status.HTTP_201_CREATED)
 
@@ -277,16 +197,13 @@ class VerifyOTPView(APIView):
         except OTP.DoesNotExist:
             return Response({'error': 'Invalid OTP or email'}, status=status.HTTP_400_BAD_REQUEST)
 
-
-
 class ResendOTPView(APIView):
     permission_classes = [AllowAny]
     def post(self, request):
-        email = request.data.get('email')  # Get the email from the request
-           # Get the name from the request
-        password = request.data.get('password')  # Get the password from the request
+        email = request.data.get('email')
+        password = request.data.get('password')
 
-        if not email  or not password:
+        if not email or not password:
             return Response({
                 'status': 'failure',
                 'message': 'Email and password are required to resend OTP.'
@@ -301,7 +218,7 @@ class ResendOTPView(APIView):
                 email=email,
                 defaults={
                     'otp_code': new_otp_code,
-                    'created_at': timezone.now()  # Update the created_at field to the current time
+                    'created_at': timezone.now()
                 }
             )
 

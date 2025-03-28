@@ -1,44 +1,11 @@
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager,PermissionsMixin
 from django.utils import timezone
 from django.contrib.postgres.fields import ArrayField
 
 
-
-class StudentManager(BaseUserManager):
-    def create_user(self, email, password=None,**extra_fields):
-        if not email:
-            raise ValueError('Users must have an email address')
-        user = self.model(email=self.normalize_email(email),**extra_fields)
-        user.set_password(password)
-        user.save(using=self._db)
-        return user
-
-
-
-   # token = models.CharField(max_length=255)
-    
-    
-
-class Student_auth(AbstractBaseUser):
-    id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=255)
-    email = models.EmailField(unique=True)
-    password = models.CharField(max_length=255)
-    last_login = models.DateTimeField(null=True, blank=True)
-
-    objects = StudentManager()
-
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['name']
-
-    def __str__(self):
-        return self.email
-    
-
-    
 class Student_details(models.Model):
-    id_no = models.CharField(max_length=15,unique=True)
+    id_no = models.CharField(max_length=15,unique=True,primary_key=True)
     first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255)
     birthdate = models.DateField()
@@ -50,16 +17,16 @@ class Student_details(models.Model):
     city = models.CharField(max_length=255,null=True)
     programming_skill = models.CharField(max_length=255)
     tech_skill = models.CharField(max_length=255)
-    # phone_no=models.BigIntegerField(null=True)
-    # experience = models.CharField(max_length=500,null=False,blank=True)
-    # certification = ArrayField(models.CharField(max_length=255),blank=True,default=list)
-    # city,prog-skill and tech-skill,experince,certification
-   
+    student_email_id = models.EmailField(unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+
     def __str__(self):
         return self.id_no
     
 class Certificate(models.Model):
-    student = models.ForeignKey(Student_details, related_name='certificates', on_delete=models.CASCADE)
+    student = models.ForeignKey(Student_details, related_name='certificates', on_delete=models.CASCADE,max_length=255)
     name = models.CharField(max_length=255)
     platform = models.CharField(max_length=255)
     

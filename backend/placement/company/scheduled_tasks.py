@@ -3,7 +3,7 @@ import time
 from django.utils import timezone
 from datetime import timedelta
 from .models import CompanyDetails
-from announcement.models import FacultyFCMToken, StudentFCMToken
+from user.models import FCMToken
 import requests
 import json
 from firebase_admin import credentials
@@ -41,10 +41,8 @@ def send_push_notification(title, body):
     # Firebase API endpoint
     url = f"https://fcm.googleapis.com/v1/projects/{project_id}/messages:send"
 
-    # Get FCM tokens
-    faculty_tokens = list(FacultyFCMToken.objects.values_list('token', flat=True))
-    student_tokens = list(StudentFCMToken.objects.values_list('token', flat=True))
-    all_tokens = faculty_tokens + student_tokens
+    # Get all FCM tokens
+    all_tokens = list(FCMToken.objects.values_list('token', flat=True))
 
     if not all_tokens:
         print("No FCM tokens found.")

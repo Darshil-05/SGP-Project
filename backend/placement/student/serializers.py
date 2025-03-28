@@ -2,17 +2,17 @@ from rest_framework import serializers
 from .models import *
 from rest_framework.response import Response
 
-class StudentAuthSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True)
+# class StudentAuthSerializer(serializers.ModelSerializer):
+#     password = serializers.CharField(write_only=True)
 
-    class Meta:
-        model = Student_auth
-        fields = ['id','email', 'name', 'password']
+#     class Meta:
+#         model = Student_auth
+#         fields = ['id','email', 'name', 'password']
 
-    def create(self, validated_data):
-        password = validated_data.pop('password', None)
-        user = Student_auth.objects.create_user(**validated_data, password=password)
-        return user
+#     def create(self, validated_data):
+#         password = validated_data.pop('password', None)
+#         user = Student_auth.objects.create_user(**validated_data, password=password)
+#         return user
 
     
 # class StudentInfoSerializer(serializers.ModelSerializer):
@@ -23,7 +23,7 @@ class StudentAuthSerializer(serializers.ModelSerializer):
 class CertificateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Certificate
-        fields = '__all__'
+        fields = ['id', 'student', 'name', 'platform']
 
 class ExperienceSerializer(serializers.ModelSerializer):
     class Meta:

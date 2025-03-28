@@ -6,14 +6,6 @@ from student.models import Student_details
     
 
 
-# class InterviewRoundSerializer(serializers.ModelSerializer):
-#     company_name = serializers.CharField(source='company.comapny_name', read_only=True)  # Get company name instead of ID
-
-#     class Meta:
-#         model = InterviewRound
-#         fields = ['company_name', 'round_number', 'status']  # Exclude 'company' field, include 'company_name'
-
-
 
 from rest_framework import serializers
 from .models import CompanyDetails, InterviewRound
@@ -112,22 +104,7 @@ class CompanyRegistrationSerializer(serializers.ModelSerializer):
         return representation
 
 
-# from rest_framework import serializers
-# from .models import StudentInterviewProgress, InterviewRound
-
-# class StudentProgressSerializer(serializers.ModelSerializer):
-#     student_name = serializers.CharField(source="student.name", read_only=True)
-#     company_name = serializers.CharField(source="company.company_name", read_only=True)
-#     round_name = serializers.CharField(source="round.round_name", read_only=True)
-
-#     class Meta:
-#         model = StudentInterviewProgress
-#         fields = ['id', 'student', 'student_name', 'company', 'company_name', 'round', 'round_name', 'is_passed', 'is_present']
-
         
-
-
-
 
 from rest_framework import serializers
 from .models import CompanyDetails
@@ -147,28 +124,3 @@ class CompanyInfoSerializer(serializers.ModelSerializer):
         return None
 
     
-class ApplyForCompanySerializer(serializers.Serializer):
-    student_id = serializers.CharField()  # Changed to CharField to match `student_unique_id`
-    company_id = serializers.IntegerField()
-
-    def validate(self, data):
-        student_id = data.get('student_id')
-        company_id = data.get('company_id')
-
-        # Validate student existence
-        try:
-            data['student'] = Student_details.objects.get(id_no=student_id)  # Use `id_no` to find the student
-        except Student_details.DoesNotExist:
-            raise serializers.ValidationError({"student_id": "Student not found."})
-
-        # Validate company existence
-        try:
-            data['company'] = CompanyDetails.objects.get(company_id=company_id)
-        except CompanyDetails.DoesNotExist:
-            raise serializers.ValidationError({"company_id": "Company not found."})
-
-        # Check if student already applied
-        if CompanyApplications.objects.filter(student=data['student'], company=data['company']).exists():
-            raise serializers.ValidationError("Student has already applied to this company.")
-
-        return data

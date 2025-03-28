@@ -15,6 +15,6 @@ urlpatterns = [
     # path('update-progress/<int:company_id>/<int:round_index>/', UpdateStudentInterviewProgressView.as_view(), name='update_progress'),
     # path('company/company-info/', CompanyInfoView.as_view(), name='company-details'),
     path('interview-rounds-get/', InterviewRoundList.as_view(), name='interview-round-list'),
-    path('sortlisted-students/<int:company_id>/', SortlistedStudentsByCompanyList.as_view(), name='sortlisted-students'),
-    path('delete-sortlisted/<int:company_id>/', DeleteSortlistedStudent.as_view(), name='delete-sortlisted-student'),
+    path('sortlisted-students/<str:company_name>/', SortlistedStudentsByCompanyList.as_view(), name='sortlisted-students'),
+    path('delete-sortlisted/<str:company_name>/', DeleteSortlistedStudent.as_view(), name='delete-sortlisted-student'),
 ] 

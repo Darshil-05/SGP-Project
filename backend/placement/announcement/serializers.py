@@ -1,4 +1,3 @@
-
 # # serializers.py
 # from rest_framework import serializers
 # from .models import public_announcement
@@ -24,17 +23,17 @@ class AnnouncementSerializer(serializers.ModelSerializer):
     
 
 
-from rest_framework import serializers
-from .models import FacultyFCMToken, StudentFCMToken
+# from rest_framework import serializers
+# from user.models import FCMToken
 
-class FacultyFCMTokenSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = FacultyFCMToken
-        fields = ['id', 'faculty', 'token', 'created_at']
+# class FacultyFCMTokenSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = FCMToken
+#         fields = ['id', 'id_no', 'token', 'created_at']
 
-class StudentFCMTokenSerializer(serializers.ModelSerializer):
+# class StudentFCMTokenSerializer(serializers.ModelSerializer):
 
 
-    class Meta:
-        model = StudentFCMToken
-        fields = ['id', 'student_idno', 'token', 'created_at']
+#     class Meta:
+#         model = FCMToken
+#         fields = ['id', 'id_no', 'token', 'created_at']

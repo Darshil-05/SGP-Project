@@ -43,24 +43,24 @@
    
 
 from rest_framework import serializers
-from .models import Faculty_auth, Faculty_details
+from .models import  Faculty_details
 
 
-class FacultyAuthSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True)
+# class FacultyAuthSerializer(serializers.ModelSerializer):
+#     password = serializers.CharField(write_only=True)
 
-    class Meta:
-        model = Faculty_auth
-        fields = ('id', 'email', 'name', 'password')
+#     class Meta:
+#         model = Faculty_auth
+#         fields = ('id', 'email', 'name', 'password')
 
-    def create(self, validated_data):
-        password = validated_data.pop('password', None)
-        user = Faculty_auth.objects.create_user(
-            email=validated_data['email'],
-            name=validated_data['name'],
-            password=password
-        )
-        return user
+#     def create(self, validated_data):
+#         password = validated_data.pop('password', None)
+#         user = Faculty_auth.objects.create_user(
+#             email=validated_data['email'],
+#             name=validated_data['name'],
+#             password=password
+#         )
+#         return user
 
 class FacultyDetailsSerializer(serializers.ModelSerializer):
     class Meta:

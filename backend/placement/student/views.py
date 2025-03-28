@@ -1,4 +1,3 @@
-
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 import pandas as pd # type: ignore
@@ -11,12 +10,46 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework import generics
 from .models import Student_details, Certificate, Experience
 from .serializers import StudentDetailsSerializer, CertificateSerializer,ExperienceSerializer
+from user.utils import store_or_update_fcm_token
 
 class StudentDetailsList(generics.ListCreateAPIView):
     queryset = Student_details.objects.all()
     serializer_class = StudentDetailsSerializer
 
+    def create(self, request, *args, **kwargs):
+        try:
+            # First save student details using the existing serializer
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            self.perform_create(serializer)
 
+            # After successfully storing student details, handle FCM token
+            fcm_token = request.data.get('fcm_token')
+            if fcm_token:
+                success, message = store_or_update_fcm_token(
+                    email=serializer.data['student_email_id'],
+                    token=fcm_token,
+                    user_type='student'
+                )
+                if not success:
+                    return Response({
+                        'status': 'warning',
+                        'data': serializer.data,
+                        'message': 'Student details saved but FCM token storage failed',
+                        'fcm_error': message
+                    }, status=status.HTTP_200_OK)
+
+            return Response({
+                'status': 'success',
+                'data': serializer.data,
+                'message': 'Student details saved successfully'
+            }, status=status.HTTP_201_CREATED)
+
+        except Exception as e:
+            return Response({
+                'status': 'error',
+                'message': str(e)
+            }, status=status.HTTP_400_BAD_REQUEST)
 
 class StudentDetailsEdit(generics.RetrieveUpdateDestroyAPIView):
     queryset = Student_details.objects.all()
@@ -29,6 +62,37 @@ class StudentDetailsEdit(generics.RetrieveUpdateDestroyAPIView):
 class CertificateList(generics.ListCreateAPIView):
     queryset = Certificate.objects.all()
     serializer_class = CertificateSerializer
+
+    def create(self, request, *args, **kwargs):
+        try:
+            # Get student id_no from request
+            student_id = request.data.get('student')
+            
+            try:
+                # Verify student exists
+                student = Student_details.objects.get(id_no=student_id)
+                
+                serializer = self.get_serializer(data=request.data)
+                serializer.is_valid(raise_exception=True)
+                self.perform_create(serializer)
+
+                return Response({
+                    'status': 'success',
+                    'message': 'Certificate added successfully',
+                    'data': serializer.data
+                }, status=status.HTTP_201_CREATED)
+
+            except Student_details.DoesNotExist:
+                return Response({
+                    'status': 'error',
+                    'message': f'Student with ID {student_id} not found'
+                }, status=status.HTTP_404_NOT_FOUND)
+
+        except Exception as e:
+            return Response({
+                'status': 'error',
+                'message': str(e)
+            }, status=status.HTTP_400_BAD_REQUEST)
 
 class CertificateDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Certificate.objects.all()

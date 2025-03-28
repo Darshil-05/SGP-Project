@@ -28,6 +28,7 @@ class CompanyConfig(AppConfig):
 
     def ready(self):
         # Import here to avoid circular imports
+        import company.signals
         from .scheduled_tasks import start_deadline_checker
         
         # Start the deadline checker only after the first request

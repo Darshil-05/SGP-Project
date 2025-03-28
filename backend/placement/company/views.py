@@ -13,9 +13,9 @@ from rest_framework.views import APIView
 from django.views.decorators.csrf import csrf_exempt
 import logging,requests
 from firebase_admin import messaging, credentials
-from announcement.models import FacultyFCMToken, StudentFCMToken
+from user.models import FCMToken
 import json
-
+import time
 
 
 class ExportCompanyRegistrationData(APIView):
@@ -83,8 +83,8 @@ def send_push_notification(title, body):
     url = f"https://fcm.googleapis.com/v1/projects/{project_id}/messages:send"
 
     # Get FCM tokens
-    faculty_tokens = list(FacultyFCMToken.objects.values_list('token', flat=True))
-    student_tokens = list(StudentFCMToken.objects.values_list('token', flat=True))
+    faculty_tokens = list(FCMToken.objects.values_list('token', flat=True))
+    student_tokens = list(FCMToken.objects.values_list('token', flat=True))
     all_tokens = faculty_tokens + student_tokens
 
     if not all_tokens:
@@ -280,6 +280,33 @@ class CompanyRegistrationListCreate(generics.ListCreateAPIView):
             queryset = queryset.filter(company__company_id=company_id)
 
         return queryset
+    
+    def create(self, request, *args, **kwargs):
+        try:
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            registration = serializer.save()
+
+            time.sleep(0.1)
+
+            # Get the automatically created sortlisted entry
+            from .models import sortlisted
+            sortlisted_entry = sortlisted.objects.get(
+                student=registration.student,
+                company=registration.company
+            )
+
+            return Response({
+                'status': 'success',
+                'message': 'Registration successful and automatically shortlisted',
+                
+            }, status=status.HTTP_201_CREATED)
+
+        except Exception as e:
+            return Response({
+                'status': 'error',
+                'message': str(e)
+            }, status=status.HTTP_400_BAD_REQUEST)
 
 class InterviewRoundByCompanyList(generics.ListAPIView):
     serializer_class = InterviewRoundSerializer
@@ -339,9 +366,9 @@ from rest_framework.generics import ListAPIView, UpdateAPIView
 class SortlistedStudentsByCompanyList(generics.ListAPIView):
     serializer_class = CompanyRegistrationSerializer
     def get_queryset(self):
-        company_id = self.kwargs['company_id']
-        # Filter sortlisted students by the company id
-        company = CompanyDetails.objects.filter(company_id=company_id).first()
+        company_name = self.kwargs['company_name']
+        # Filter registrations by the company name
+        company = CompanyDetails.objects.filter(company_name=company_name).first()
         
         if not company:
             raise serializers.ValidationError({"company_id": "Company does not exist."})
@@ -349,7 +376,8 @@ class SortlistedStudentsByCompanyList(generics.ListAPIView):
         return sortlisted.objects.filter(company=company)
 
 class DeleteSortlistedStudent(APIView):
-    def post(self, request, company_id):
+    
+    def post(self, request, company_name):
         try:
             # Get the list of student IDs from the request body
             student_ids = request.data.get('student_ids', [])
@@ -361,7 +389,7 @@ class DeleteSortlistedStudent(APIView):
 
             # Delete all students from the sortlisted table
             deleted_count = sortlisted.objects.filter(
-                company_id=company_id,
+                company_name=company_name,
                 student_id_no__in=student_ids
             ).delete()[0]
 
