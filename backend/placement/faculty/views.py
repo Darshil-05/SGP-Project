@@ -52,10 +52,21 @@ class FacultyDetailsListCreateView(generics.ListCreateAPIView):
 
     
 class FacultyDetailsRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    
     queryset = Faculty_details.objects.all()
     serializer_class = FacultyDetailsSerializer
     permission_classes = [IsAuthenticated]
     lookup_field = 'faculty_id'
+    
+    def get_object(self):
+        try:
+            email = self.kwargs.get('faculty_email_id')
+            return Faculty_details.objects.get(faculty_email_id=email)
+        except Faculty_details.DoesNotExist:
+            return Response({
+                'status': 'error',
+                'message': f'Faculty with email {email} not found'
+            }, status=status.HTTP_404_NOT_FOUND)
 
 
 
