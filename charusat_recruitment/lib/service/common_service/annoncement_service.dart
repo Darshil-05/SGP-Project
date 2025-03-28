@@ -39,7 +39,7 @@ class AnnouncementService {
       
       if (response.statusCode == 200 || response.statusCode == 201) {
       List<dynamic> responseData = json.decode(response.body);
-        print("Announcements received successfully");
+        print("Announcements received successfully with role $role");
 
         List<AnnouncementModel> announcements =
             responseData.map<AnnouncementModel>((item) {

@@ -32,6 +32,8 @@ class _RoundManagerState extends State<RoundManager> {
 @override
   void initState() {
     // TODO: implement initState
+    print("inside a round");
+
      _rounds = [
         CompanyRound(
             roundName: "Application Deadline", status: "pending", index: 0),

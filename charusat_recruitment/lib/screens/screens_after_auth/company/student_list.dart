@@ -3,8 +3,10 @@ import 'package:http/http.dart' as http;
 import 'package:charusat_recruitment/const.dart';
 import 'package:flutter/material.dart';
 
+
 class StudentListManager extends StatefulWidget {
-  const StudentListManager({super.key});
+  final int companyId ;
+  const StudentListManager({super.key , required this.companyId});
 
   @override
   State<StudentListManager> createState() => _StudentListManagerState();
@@ -16,12 +18,15 @@ class _StudentListManagerState extends State<StudentListManager> {
   bool _isLoading = true;  // Track loading state
   String? _errorMessage;   // Track error messages
   final TextEditingController _searchController = TextEditingController();
-  bool _isShortlistMode = true;
+  final bool _isShortlistMode =(role == 'faculty');
+
   String _searchQuery = "";
 
   @override
   void initState() {
     super.initState();
+    print("inside a student list");
+
     getStudents();
   }
 
@@ -34,7 +39,7 @@ class _StudentListManagerState extends State<StudentListManager> {
     print("Fetching students");
 
     var request = http.Request(
-        'GET', Uri.parse('$serverurl/company/company-registration/?company_id=2'));
+        'GET', Uri.parse('$serverurl/company/company-registration/?company_id=${widget.companyId}'));
 
     try {
       http.StreamedResponse streamedResponse =

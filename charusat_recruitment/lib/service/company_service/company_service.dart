@@ -127,160 +127,175 @@ class CompanyService {
   }
 
   //update company field
-  Future<bool> updateCompanyField(
-    BuildContext context, int companyId, String fieldName, String newValue) async {
-  print("Updating company field: $fieldName to: $newValue for company ID: $companyId");
+  Future<bool> updateCompanyField(BuildContext context, int companyId,
+      String fieldName, String newValue) async {
+    print(
+        "Updating company field: $fieldName to: $newValue for company ID: $companyId");
 
-  try {
-    // Retrieve JWT token
-    String? accessToken = await _storage.read(key: 'access_token');
-    if (accessToken == null) {
-      _showErrorDialog(context, "Error: No access token found", null);
-      return false;
-    }
-
-    // Set up request headers
-    var headers = {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer $accessToken',
-    };
-
-    // Create request
-    var request = http.Request(
-      'PATCH',  // Use PATCH for partial updates
-      Uri.parse('$serverurl/company/companies-detail-edit/$companyId/'),
-    );
-
-    // Create a simple JSON object with just the field being updated
-    Map<String, dynamic> updateData = {
-      fieldName: newValue,
-    };
-    
-    request.body = json.encode(updateData);
-
-    // Attach headers
-    request.headers.addAll(headers);
-
-    // Send request
-    http.StreamedResponse streamedResponse =
-        await request.send().timeout(const Duration(seconds: 10));
-
-    // Convert streamed response to standard response
-    final response = await http.Response.fromStream(streamedResponse);
-
-    print("Update request finished: ${response.body} ${response.statusCode}");
-
-    if (response.statusCode == 200) {
-      print("Company field updated successfully");
-      return true;
-    } else {
-      _showErrorDialog(
-          context, "Failed to update company field", response.statusCode);
-      return false;
-    }
-  } catch (e) {
-    _showErrorDialog(context, "Error updating company field: $e", null);
-    return false;
-  }
-}
-//update round status 
-Future<bool> updateRounds(BuildContext context, int companyId, List<CompanyRound> rounds) async {
-  print("Updating rounds for company ID: $companyId");
-
-  try {
-    // Retrieve JWT token
-    String? accessToken = await _storage.read(key: 'access_token');
-    
-    // Add token refresh logic
-    if (accessToken == null) {
-      bool tokenRefreshed = await AuthenticationService().regenerateAccessToken(context);
-      if (!tokenRefreshed) {
-        _showErrorDialog(context, "Error: Failed to refresh access token", null);
-        return false; // Exit if token refresh fails
+    try {
+      // Retrieve JWT token
+      String? accessToken = await _storage.read(key: 'access_token');
+      if (accessToken == null) {
+        _showErrorDialog(context, "Error: No access token found", null);
+        return false;
       }
-      accessToken = await _storage.read(key: 'access_token'); // Get new token
-    }
 
-    // Set up request headers
-    var headers = {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer $accessToken',
-    };
-
-    // Loop through rounds and update each one
-    bool allSuccessful = true;
-    for (int i = 0; i < rounds.length; i++) {
-      CompanyRound round = rounds[i];
-      
-      // Create request with the new endpoint format
-      var request = http.Request(
-        'PATCH',  
-        Uri.parse('$serverurl/company/interview-round/$companyId/${round.index}/'),
-      );
-  
-      Map<String, dynamic> updateData = {
-        'status': round.status,
+      // Set up request headers
+      var headers = {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $accessToken',
       };
-      
-      request.body = json.encode(updateData);
-      print('${request.body.toString()} for $companyId ${round.index} ');
 
+      // Create request
+      var request = http.Request(
+        'PATCH', // Use PATCH for partial updates
+        Uri.parse('$serverurl/company/companies-detail-edit/$companyId/'),
+      );
+
+      // Create a simple JSON object with just the field being updated
+      Map<String, dynamic> updateData = {
+        fieldName: newValue,
+      };
+
+      request.body = json.encode(updateData);
+
+      // Attach headers
       request.headers.addAll(headers);
-      
+
+      // Send request
       http.StreamedResponse streamedResponse =
           await request.send().timeout(const Duration(seconds: 10));
-      
+
       // Convert streamed response to standard response
       final response = await http.Response.fromStream(streamedResponse);
-      
-      print("Update round ${round.index} request finished: ${response.body} ${response.statusCode}");
-      
-      if (response.statusCode == 401) {
-        // If Unauthorized, attempt to regenerate token and retry this specific round
-        print("Token expired during round update. Refreshing token...");
-        bool tokenRefreshed = await AuthenticationService().regenerateAccessToken(context);
-        
-        if (tokenRefreshed) {
-          // Get new access token
-          accessToken = await _storage.read(key: 'access_token');
-          
-          // Update headers with new token
-          headers['Authorization'] = 'Bearer $accessToken';
-          request.headers.update('Authorization', (value) => 'Bearer $accessToken');
-          
-          // Retry the request with new token
-          streamedResponse = await request.send().timeout(const Duration(seconds: 10));
-          final retryResponse = await http.Response.fromStream(streamedResponse);
-          
-          if (retryResponse.statusCode != 200) {
-            _showErrorDialog(
-                context, "Failed to update company round ${round.index} after token refresh", 
-                retryResponse.statusCode);
-            allSuccessful = false;
-          }
-        } else {
-          _showErrorDialog(
-              context, "Failed to refresh token while updating rounds", null);
-          return false; // Exit early if token refresh fails
-        }
-      } else if (response.statusCode != 200) {
-        _showErrorDialog(
-            context, "Failed to update company round ${round.index}", response.statusCode);
-        allSuccessful = false;
-      }
-    }
 
-    if (allSuccessful) {
-      print("All company rounds updated successfully");
-      return true;
-    } else {
+      print("Update request finished: ${response.body} ${response.statusCode}");
+
+      if (response.statusCode == 200) {
+        print("Company field updated successfully");
+        return true;
+      } else {
+        _showErrorDialog(
+            context, "Failed to update company field", response.statusCode);
+        return false;
+      }
+    } catch (e) {
+      _showErrorDialog(context, "Error updating company field: $e", null);
       return false;
     }
-  } catch (e) {
-    _showErrorDialog(context, "Error updating company rounds: $e", null);
-    return false;
   }
-}
+
+//update round status
+  Future<bool> updateRounds(
+      BuildContext context, int companyId, List<CompanyRound> rounds) async {
+    print("Updating rounds for company ID: $companyId");
+
+    try {
+      // Retrieve JWT token
+      String? accessToken = await _storage.read(key: 'access_token');
+
+      // Add token refresh logic
+      if (accessToken == null) {
+        bool tokenRefreshed =
+            await AuthenticationService().regenerateAccessToken(context);
+        if (!tokenRefreshed) {
+          _showErrorDialog(
+              context, "Error: Failed to refresh access token", null);
+          return false; // Exit if token refresh fails
+        }
+        accessToken = await _storage.read(key: 'access_token'); // Get new token
+      }
+
+      // Set up request headers
+      var headers = {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $accessToken',
+      };
+
+      // Loop through rounds and update each one
+      bool allSuccessful = true;
+      for (int i = 0; i < rounds.length; i++) {
+        CompanyRound round = rounds[i];
+
+        // Create request with the new endpoint format
+        var request = http.Request(
+          'PATCH',
+          Uri.parse(
+              '$serverurl/company/interview-round/$companyId/${round.index}/'),
+        );
+
+        Map<String, dynamic> updateData = {
+          'status': round.status,
+        };
+
+        request.body = json.encode(updateData);
+        print('${request.body.toString()} for $companyId ${round.index} ');
+
+        request.headers.addAll(headers);
+
+        http.StreamedResponse streamedResponse =
+            await request.send().timeout(const Duration(seconds: 10));
+
+        // Convert streamed response to standard response
+        final response = await http.Response.fromStream(streamedResponse);
+
+        print(
+            "Update round ${round.index} request finished: ${response.body} ${response.statusCode}");
+
+        if (response.statusCode == 401) {
+          // If Unauthorized, attempt to regenerate token and retry this specific round
+          print("Token expired during round update. Refreshing token...");
+          bool tokenRefreshed =
+              await AuthenticationService().regenerateAccessToken(context);
+
+          if (tokenRefreshed) {
+            // Get new access token
+            accessToken = await _storage.read(key: 'access_token');
+
+            // Update headers with new token
+            headers['Authorization'] = 'Bearer $accessToken';
+            request.headers
+                .update('Authorization', (value) => 'Bearer $accessToken');
+
+            // Retry the request with new token
+            streamedResponse =
+                await request.send().timeout(const Duration(seconds: 10));
+            final retryResponse =
+                await http.Response.fromStream(streamedResponse);
+
+            if (retryResponse.statusCode != 200) {
+              _showErrorDialog(
+                  context,
+                  "Failed to update company round ${round.index} after token refresh",
+                  retryResponse.statusCode);
+              allSuccessful = false;
+            }
+          } else {
+            _showErrorDialog(
+                context, "Failed to refresh token while updating rounds", null);
+            return false; // Exit early if token refresh fails
+          }
+        } else if (response.statusCode != 200) {
+          _showErrorDialog(
+              context,
+              "Failed to update company round ${round.index}",
+              response.statusCode);
+          allSuccessful = false;
+        }
+      }
+
+      if (allSuccessful) {
+        print("All company rounds updated successfully");
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      _showErrorDialog(context, "Error updating company rounds: $e", null);
+      return false;
+    }
+  }
+
   // Get single company details by ID
   Future<CompanyModel?> getCompanyDetails(
       BuildContext context, int companyId) async {
@@ -315,6 +330,20 @@ Future<bool> updateRounds(BuildContext context, int companyId, List<CompanyRound
 
       if (response.statusCode == 200) {
         Map<String, dynamic> jsonData = json.decode(response.body);
+        print("Before : ${jsonData.toString()}");
+        if (jsonData['interview_rounds'] != null) {
+          List<CompanyRound> sortedRounds = CompanyRound.sortRounds(
+            (jsonData['interview_rounds'] as List)
+                .map((roundJson) => CompanyRound.fromJson(roundJson))
+                .toList(),
+          );
+
+          // Convert sorted rounds back to JSON format
+          jsonData['interview_rounds'] =
+              sortedRounds.map((round) => round.toJson()).toList();
+        }
+        print("after : ${jsonData.toString()}");
+
         return CompanyModel.fromJson(jsonData);
       } else if (response.statusCode == 401) {
         // If unauthorized, try to refresh token and retry

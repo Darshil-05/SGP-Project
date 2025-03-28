@@ -18,6 +18,8 @@ class HomeApp extends StatefulWidget {
 class _HomeAppState extends State<HomeApp> {
   @override
   void initState() {
+    print("inside a home after auth");
+
     AnnouncementService().getAnnouncements(context);
     super.initState();
   }

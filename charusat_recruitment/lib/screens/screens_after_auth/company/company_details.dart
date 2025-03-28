@@ -139,7 +139,7 @@ class _CompanyDetailsPageState extends State<CompanyDetailsPage> {
 
                           // Call the addStudent function
                           bool success = await CompanyService().registerstudent(
-                              context, widget.companyid, studentid);
+                              context, widget.companyid, extractIdFromEmail(email));
                           // Close the loading dialog
                           if (mounted) {
                             Navigator.of(context).pop();
@@ -650,7 +650,9 @@ class _CompanyDetailsPageState extends State<CompanyDetailsPage> {
                                   Center(
                                     child: InkWell(
                                       onTap: () {
-                                        Navigator.push(
+                                        print("Role : $role");
+                                        if(role == 'faculty'){
+                                           Navigator.push(
                                           context,
                                           MaterialPageRoute(
                                             builder: (context) => RoundStatus(
@@ -660,6 +662,11 @@ class _CompanyDetailsPageState extends State<CompanyDetailsPage> {
                                             ),
                                           ),
                                         );
+                                        }
+                                        else{
+                                          //show list of student
+                                        }
+                                       
                                       },
                                       child: Container(
                                         decoration: const BoxDecoration(
@@ -668,9 +675,9 @@ class _CompanyDetailsPageState extends State<CompanyDetailsPage> {
                                                 Radius.circular(10))),
                                         padding: const EdgeInsets.symmetric(
                                             horizontal: 12, vertical: 10),
-                                        child: const Text(
-                                          "Edit Rounds",
-                                          style: TextStyle(
+                                        child:  Text(
+                                          (role == 'faculty') ? "Edit Rounds" : "View List"
+                                          ,style: const TextStyle(
                                             fontSize: 16,
                                             fontWeight: FontWeight.w400,
                                             color: Colors.white,
@@ -696,7 +703,7 @@ class _CompanyDetailsPageState extends State<CompanyDetailsPage> {
                   ),
                 ),
               ),
-        floatingActionButton: (role == 'faculty') ? SizedBox(
+        floatingActionButton: (role != 'faculty') ? SizedBox(
           height: 50, // Set height of the button
           width: 100, // Set width of the button
           child: FloatingActionButton(

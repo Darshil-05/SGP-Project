@@ -12,15 +12,17 @@ import '../../screens/models/student_model.dart';
 
 class StudentService {
   final FlutterSecureStorage storage = const FlutterSecureStorage();
-  
+
   // Get student details with specific ID - Modified to include context
-  Future<StudentProfile> getStudentDetails(BuildContext context, String studentId) async {
+  Future<StudentProfile> getStudentDetails(
+      BuildContext context, String studentId) async {
     print("Fetching student details for ID: $studentId");
-    
+
     String? accessToken = await storage.read(key: 'access_token');
 
     if (accessToken == null) {
-      bool tokenRefreshed = await AuthenticationService().regenerateAccessToken(context);
+      bool tokenRefreshed =
+          await AuthenticationService().regenerateAccessToken(context);
       if (!tokenRefreshed) {
         throw Exception("Authentication failed. Please login again.");
       }
@@ -31,14 +33,13 @@ class StudentService {
       'Authorization': 'Bearer $accessToken',
       'Content-Type': 'application/json',
     };
-    
+
     var url = Uri.parse('$serverurl/student/students-detail-edit/$studentId/');
-    
+
     try {
-      var response = await http.get(
-        url, 
-        headers: headers
-      ).timeout(const Duration(seconds: 10));
+      var response = await http
+          .get(url, headers: headers)
+          .timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         var jsonData = json.decode(response.body);
@@ -89,40 +90,51 @@ class StudentService {
         );
       } else if (response.statusCode == 401) {
         // Token expired, attempt to refresh
-        bool tokenRefreshed = await AuthenticationService().regenerateAccessToken(context);
-        
+        bool tokenRefreshed =
+            await AuthenticationService().regenerateAccessToken(context);
+
         if (tokenRefreshed && context.mounted) {
           // Retry with new token
           return getStudentDetails(context, studentId);
         } else {
           throw Exception("Authentication failed. Please login again.");
         }
+      } 
+      else if(response.statusCode == 404){
+        print("code is 404");
+        if (context.mounted) {
+          Navigator.of(context).popAndPushNamed('/studentDetails');
+        }
+        throw Exception(
+            "Failed to load student details. Status Code: ${response.statusCode}");
       } else {
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Failed to load student details. Status Code: ${response.statusCode}"))
-          );
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text(
+                  "Failed to load student details. Status Code: ${response.statusCode}")));
         }
-        throw Exception("Failed to load student details. Status Code: ${response.statusCode}");
+        throw Exception(
+            "Failed to load student details. Status Code: ${response.statusCode}");
       }
     } catch (error) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Error: $error"))
-        );
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text("Error: $error")));
       }
       throw Exception("Error fetching student details: $error");
     }
   }
 
   // Get student details for editing - Already has context parameter
-  Future<StudentProfile> getStudentDetailsForEdit(BuildContext context, String studentId) async {
+  Future<StudentProfile> getStudentDetailsForEdit(
+      BuildContext context, String studentId) async {
     print("Fetching student details for editing - ID: $studentId");
-    
+
     String? accessToken = await storage.read(key: 'access_token');
 
     if (accessToken == null) {
-      bool tokenRefreshed = await AuthenticationService().regenerateAccessToken(context);
+      bool tokenRefreshed =
+          await AuthenticationService().regenerateAccessToken(context);
       if (!tokenRefreshed) {
         throw Exception("Authentication failed. Please login again.");
       }
@@ -133,14 +145,13 @@ class StudentService {
       'Authorization': 'Bearer $accessToken',
       'Content-Type': 'application/json',
     };
-    
+
     var url = Uri.parse('$serverurl/student/students-detail-edit/$studentId/');
-    
+
     try {
-      var response = await http.get(
-        url, 
-        headers: headers
-      ).timeout(const Duration(seconds: 10));
+      var response = await http
+          .get(url, headers: headers)
+          .timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         var jsonData = json.decode(response.body);
@@ -191,8 +202,9 @@ class StudentService {
         );
       } else if (response.statusCode == 401) {
         // Token expired, attempt to refresh
-        bool tokenRefreshed = await AuthenticationService().regenerateAccessToken(context);
-        
+        bool tokenRefreshed =
+            await AuthenticationService().regenerateAccessToken(context);
+
         if (tokenRefreshed && context.mounted) {
           // Retry with new token
           return getStudentDetailsForEdit(context, studentId);
@@ -200,32 +212,34 @@ class StudentService {
           throw Exception("Authentication failed. Please login again.");
         }
       } else {
-        throw Exception("Failed to load student details. Status Code: ${response.statusCode}");
+        throw Exception(
+            "Failed to load student details. Status Code: ${response.statusCode}");
       }
     } catch (error) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Error: $error"))
-        );
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text("Error: $error")));
       }
       throw Exception("Error fetching student details: $error");
     }
   }
 
   // Add new student - Already has context parameter
-  Future<bool> addStudent(BuildContext context, Map<String, dynamic> studentData) async {
+  Future<bool> addStudent(
+      BuildContext context, Map<String, dynamic> studentData) async {
     print("Adding new student");
     var url = Uri.parse('$serverurl/student/students-create&list/');
-    
+
     // Retrieve the stored access token
     String? accessToken = await storage.read(key: "access_token");
-    
+
     if (accessToken == null) {
-      bool tokenRefreshed = await AuthenticationService().regenerateAccessToken(context);
+      bool tokenRefreshed =
+          await AuthenticationService().regenerateAccessToken(context);
       if (!tokenRefreshed) return false; // Failed to refresh
       accessToken = await storage.read(key: 'access_token'); // Get new token
     }
-    
+
     var headers = {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer $accessToken',
@@ -236,16 +250,23 @@ class StudentService {
       request.headers.addAll(headers);
       request.body = jsonEncode(studentData);
 
-      http.StreamedResponse response = await request.send().timeout(const Duration(seconds: 15));
+      http.StreamedResponse response =
+          await request.send().timeout(const Duration(seconds: 15));
       http.Response normalResponse = await http.Response.fromStream(response);
 
       print("Response Code: ${normalResponse.statusCode}");
       print("Response Body: ${normalResponse.body}");
 
-      if (normalResponse.statusCode == 200 || normalResponse.statusCode == 201) {
-        String token = await NotificationService().initNotifications();
+      if (normalResponse.statusCode == 200 ||
+          normalResponse.statusCode == 201) {
+        String? token = await NotificationService().initNotifications();
+        if (token != null) {
+          AuthenticationService().addFcmToken(context, token);
+          print("FCM Token: $token");
+        } else {
+          print("Failed to retrieve FCM token");
+        }
 
-        AuthenticationService().addFcmToken(context, token);
         print("Token have added $token");
         if (context.mounted) {
           Navigator.of(context).popAndPushNamed('/home');
@@ -253,64 +274,68 @@ class StudentService {
         return true;
       } else if (normalResponse.statusCode == 401) {
         // Token expired, attempt to refresh
-        bool tokenRefreshed = await AuthenticationService().regenerateAccessToken(context);
-        
+        bool tokenRefreshed =
+            await AuthenticationService().regenerateAccessToken(context);
+
         if (tokenRefreshed && context.mounted) {
           // Retry with new token
           return addStudent(context, studentData);
         } else {
           return false;
         }
-      } else {
-        print("Error: ${normalResponse.reasonPhrase}, Body: ${normalResponse.body}");
+      }
+      else {
+        print(
+            "Error: ${normalResponse.reasonPhrase}, Body: ${normalResponse.body}");
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Failed to add student: ${normalResponse.reasonPhrase}"))
-          );
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text(
+                  "Failed to add student: ${normalResponse.reasonPhrase}")));
         }
         return false;
       }
     } catch (e) {
       debugPrint("Error adding student: $e");
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Network error: $e"))
-        );
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text("Network error: $e")));
       }
       return false;
     }
   }
 
   // Update a specific field - Already has context parameter
-  Future<bool> updateStudentField(BuildContext context, String studentId, String fieldName, dynamic value) async {
+  Future<bool> updateStudentField(BuildContext context, String studentId,
+      String fieldName, dynamic value) async {
     print("Updating student field: $fieldName for ID: $studentId");
     var url = Uri.parse('$serverurl/student/details/$studentId/');
-    
+
     // Retrieve the stored access token
     String? accessToken = await storage.read(key: "access_token");
-    
+
     if (accessToken == null) {
-      bool tokenRefreshed = await AuthenticationService().regenerateAccessToken(context);
+      bool tokenRefreshed =
+          await AuthenticationService().regenerateAccessToken(context);
       if (!tokenRefreshed) return false; // Failed to refresh
       accessToken = await storage.read(key: 'access_token'); // Get new token
     }
-    
+
     var headers = {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer $accessToken',
     };
 
     // Create a map with only the field to update
-    Map<String, dynamic> updateData = {
-      fieldName: value
-    };
+    Map<String, dynamic> updateData = {fieldName: value};
 
     try {
-      var response = await http.patch(
-        url,
-        headers: headers,
-        body: jsonEncode(updateData),
-      ).timeout(const Duration(seconds: 10));
+      var response = await http
+          .patch(
+            url,
+            headers: headers,
+            body: jsonEncode(updateData),
+          )
+          .timeout(const Duration(seconds: 10));
 
       print("Update Response Code: ${response.statusCode}");
       print("Update Response Body: ${response.body}");
@@ -320,15 +345,17 @@ class StudentService {
         return true;
       } else if (response.statusCode == 401) {
         // Token expired or invalid
-        bool tokenRefreshed = await AuthenticationService().regenerateAccessToken(context);
-        
+        bool tokenRefreshed =
+            await AuthenticationService().regenerateAccessToken(context);
+
         if (tokenRefreshed && context.mounted) {
           // Retry with new token
           return updateStudentField(context, studentId, fieldName, value);
         } else {
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Session expired. Please login again.')),
+              const SnackBar(
+                  content: Text('Session expired. Please login again.')),
             );
             Navigator.of(context).pushReplacementNamed('/login');
           }
@@ -338,7 +365,7 @@ class StudentService {
         // Validation error or bad request
         var errorData = json.decode(response.body);
         String errorMessage = 'Failed to update: ${errorData.toString()}';
-        
+
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(errorMessage)),
@@ -349,7 +376,8 @@ class StudentService {
         // Other errors
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to update: ${response.reasonPhrase}')),
+            SnackBar(
+                content: Text('Failed to update: ${response.reasonPhrase}')),
           );
         }
         return false;
@@ -366,30 +394,34 @@ class StudentService {
   }
 
   // Update entire student profile - Already has context parameter
-  Future<bool> updateStudentProfile(BuildContext context, String studentId, StudentProfile profile) async {
+  Future<bool> updateStudentProfile(
+      BuildContext context, String studentId, StudentProfile profile) async {
     print("Updating entire student profile for ID: $studentId");
     var url = Uri.parse('$serverurl/student/details/$studentId/');
-    
+
     // Retrieve the stored access token
     String? accessToken = await storage.read(key: "access_token");
-    
+
     if (accessToken == null) {
-      bool tokenRefreshed = await AuthenticationService().regenerateAccessToken(context);
+      bool tokenRefreshed =
+          await AuthenticationService().regenerateAccessToken(context);
       if (!tokenRefreshed) return false; // Failed to refresh
       accessToken = await storage.read(key: 'access_token'); // Get new token
     }
-    
+
     var headers = {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer $accessToken',
     };
 
     try {
-      var response = await http.patch(
-        url,
-        headers: headers,
-        body: jsonEncode(profile.toJson()),
-      ).timeout(const Duration(seconds: 15));
+      var response = await http
+          .patch(
+            url,
+            headers: headers,
+            body: jsonEncode(profile.toJson()),
+          )
+          .timeout(const Duration(seconds: 15));
 
       if (response.statusCode == 200) {
         // Update successful
@@ -401,15 +433,17 @@ class StudentService {
         return true;
       } else if (response.statusCode == 401) {
         // Token expired or invalid
-        bool tokenRefreshed = await AuthenticationService().regenerateAccessToken(context);
-        
+        bool tokenRefreshed =
+            await AuthenticationService().regenerateAccessToken(context);
+
         if (tokenRefreshed && context.mounted) {
           // Retry with new token
           return updateStudentProfile(context, studentId, profile);
         } else {
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Session expired. Please login again.')),
+              const SnackBar(
+                  content: Text('Session expired. Please login again.')),
             );
             Navigator.of(context).pushReplacementNamed('/login');
           }
@@ -419,7 +453,9 @@ class StudentService {
         // Other errors
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to update profile: ${response.reasonPhrase}')),
+            SnackBar(
+                content:
+                    Text('Failed to update profile: ${response.reasonPhrase}')),
           );
         }
         return false;
@@ -434,30 +470,34 @@ class StudentService {
       return false;
     }
   }
-  
+
   // Delete student account - Already has context parameter
-  Future<bool> deleteStudentAccount(BuildContext context, String studentId) async {
+  Future<bool> deleteStudentAccount(
+      BuildContext context, String studentId) async {
     print("Deleting student account: $studentId");
     var url = Uri.parse('$serverurl/student/details/$studentId/');
-    
+
     // Retrieve the stored access token
     String? accessToken = await storage.read(key: "access_token");
-    
+
     if (accessToken == null) {
-      bool tokenRefreshed = await AuthenticationService().regenerateAccessToken(context);
+      bool tokenRefreshed =
+          await AuthenticationService().regenerateAccessToken(context);
       if (!tokenRefreshed) return false; // Failed to refresh
       accessToken = await storage.read(key: 'access_token'); // Get new token
     }
-    
+
     var headers = {
       'Authorization': 'Bearer $accessToken',
     };
 
     try {
-      var response = await http.delete(
-        url,
-        headers: headers,
-      ).timeout(const Duration(seconds: 10));
+      var response = await http
+          .delete(
+            url,
+            headers: headers,
+          )
+          .timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 204) {
         // Deletion successful
@@ -472,15 +512,17 @@ class StudentService {
         return true;
       } else if (response.statusCode == 401) {
         // Token expired or invalid
-        bool tokenRefreshed = await AuthenticationService().regenerateAccessToken(context);
-        
+        bool tokenRefreshed =
+            await AuthenticationService().regenerateAccessToken(context);
+
         if (tokenRefreshed && context.mounted) {
           // Retry with new token
           return deleteStudentAccount(context, studentId);
         } else {
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Session expired. Please login again.')),
+              const SnackBar(
+                  content: Text('Session expired. Please login again.')),
             );
             Navigator.of(context).pushReplacementNamed('/login');
           }
@@ -490,7 +532,9 @@ class StudentService {
         // Other errors
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to delete account: ${response.reasonPhrase}')),
+            SnackBar(
+                content:
+                    Text('Failed to delete account: ${response.reasonPhrase}')),
           );
         }
         return false;

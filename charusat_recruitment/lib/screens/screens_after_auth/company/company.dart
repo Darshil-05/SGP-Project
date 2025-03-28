@@ -17,6 +17,8 @@ class _CompanyPageState extends State<CompanyPage> {
   @override
   void initState() {
     super.initState();
+    print("inside a company page");
+
     companyData = CompanyService().getCompanies(context);
   }
 

@@ -9,11 +9,10 @@ import 'package:charusat_recruitment/screens/models/faculty_model.dart';
 class FacultyService {
   final FlutterSecureStorage storage = const FlutterSecureStorage();
   
-  // Add new faculty
+  // Add new faculty - Uses global email
   Future<bool> addFaculty(BuildContext context, Map<String, String> facultyData) async {
     print("Adding new faculty");
     var url = Uri.parse('$serverurl/faculty/faculty-details/');
-    
     // Retrieve the stored access token
     String? accessToken = await storage.read(key: "access_token");
     
@@ -74,13 +73,14 @@ class FacultyService {
       }
       return false;
     }
-  }
+  } 
 
-  // Get faculty details
-  Future<FacultyProfile> getFacultyDetails(BuildContext context, String facultyId) async {
-    print("Fetching faculty details for ID: $facultyId");
+  // Get faculty details - Uses global email
+  Future<FacultyProfile> getFacultyDetails(BuildContext context) async {
+    print("Fetching faculty details");
     
     String? accessToken = await storage.read(key: 'access_token');
+    String? email = await storage.read(key: 'email');
 
     if (accessToken == null) {
       bool tokenRefreshed = await AuthenticationService().regenerateAccessToken(context);
@@ -88,23 +88,28 @@ class FacultyService {
         throw Exception("Authentication failed. Please login again.");
       }
       accessToken = await storage.read(key: 'access_token'); // Get new token
+      email = await storage.read(key: 'email'); // Get email
     }
 
     var headers = {
       'Authorization': 'Bearer $accessToken',
       'Content-Type': 'application/json',
     };
+    print("Calling faculty emails $email") ;
+    var url = Uri.parse('$serverurl/faculty/faculty-details/$email/');
     
-    var url = Uri.parse('$serverurl/faculty/faculty-details/$facultyId/');
     
     try {
       var response = await http.get(
         url, 
         headers: headers
       ).timeout(const Duration(seconds: 10));
+      print("Getting faculty details ${response.statusCode}");
 
       if (response.statusCode == 200) {
         var jsonData = json.decode(response.body);
+        // jsonData =jsonData[0];
+        print(jsonData.toString());
 
         // Creating FacultyProfile Object
         return FacultyProfile(
@@ -121,7 +126,7 @@ class FacultyService {
         
         if (tokenRefreshed && context.mounted) {
           // Retry with new token
-          return getFacultyDetails(context, facultyId);
+          return getFacultyDetails(context);
         } else {
           throw Exception("Authentication failed. Please login again.");
         }
@@ -140,6 +145,78 @@ class FacultyService {
         );
       }
       throw Exception("Error fetching faculty details: $error");
+    }
+  }
+
+  // Update faculty profile
+  Future<bool> updateFacultyProfile(BuildContext context, FacultyProfile profile) async {
+    print("Updating faculty profile");
+    
+    String? accessToken = await storage.read(key: "access_token");
+    String? email = await storage.read(key: 'email');
+
+    if (accessToken == null) {
+      bool tokenRefreshed = await AuthenticationService().regenerateAccessToken(context);
+      if (!tokenRefreshed) return false;
+      accessToken = await storage.read(key: 'access_token');
+      email = await storage.read(key: 'email');
+    }
+
+    var headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $accessToken',
+    };
+
+    var url = Uri.parse('$serverurl/faculty/faculty-details/?email=$email');
+
+    try {
+      // Convert profile to JSON, ensuring email is included
+      Map<String, dynamic> updateData = profile.toJson();
+      updateData['email'] = email;
+
+      var response = await http.patch(
+        url,
+        headers: headers,
+        body: jsonEncode(updateData),
+      ).timeout(const Duration(seconds: 15));
+
+      if (response.statusCode == 200) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Profile updated successfully')),
+          );
+        }
+        return true;
+      } else if (response.statusCode == 401) {
+        bool tokenRefreshed = await AuthenticationService().regenerateAccessToken(context);
+
+        if (tokenRefreshed && context.mounted) {
+          return updateFacultyProfile(context, profile);
+        } else {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Session expired. Please login again.')),
+            );
+            Navigator.of(context).pushReplacementNamed('/login');
+          }
+          return false;
+        }
+      } else {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to update profile: ${response.reasonPhrase}')),
+          );
+        }
+        return false;
+      }
+    } catch (e) {
+      debugPrint("Error updating faculty profile: $e");
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Network error: $e')),
+        );
+      }
+      return false;
     }
   }
 }

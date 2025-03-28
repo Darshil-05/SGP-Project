@@ -5,7 +5,8 @@ import 'package:flutter/material.dart';
 import '../auth/registerheader.dart';
 
 class OtpPage extends StatefulWidget {
-  const OtpPage({super.key});
+  final String password , name ;
+  const OtpPage({super.key , required this.name , required this.password});
 
   @override
   State<OtpPage> createState() => _OtpPageState();
@@ -23,6 +24,8 @@ class _OtpPageState extends State<OtpPage> {
 
   @override
   void initState() {
+    print("Inside a OTP Screen");
+
     super.initState();
     _startTimer();
   }
@@ -50,12 +53,14 @@ class _OtpPageState extends State<OtpPage> {
     AuthenticationService authService = AuthenticationService();
     String otp = _otpControllers.map((controller) => controller.text).join();
     debugPrint("OTP verification started : $email , $otp");
-    bool success = await authService.verifyOtp(email, otp);
-
+    bool success = await authService.verifyOtp(widget.name , email,  widget.password , otp);
+    role = determineEmailType(email);
     if (success) {
       debugPrint("OTP Verified Successfully");
       if (mounted) {
-        if (role == "faculty") {
+        print("role : $role");
+        if (role != "faculty") {
+          print("role is faculty");
           Navigator.of(context).pushReplacementNamed('/studentDetails');
         } else {
           Navigator.of(context).pushReplacementNamed('/facultyDetails');

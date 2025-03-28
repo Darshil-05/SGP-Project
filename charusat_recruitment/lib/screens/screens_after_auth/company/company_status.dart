@@ -6,7 +6,7 @@ class CompanyLiveStatus extends StatelessWidget {
   final List<CompanyRound> rounds;
   
   const CompanyLiveStatus({Key? key, required this.rounds}) : super(key: key);
-
+  
   @override
   Widget build(BuildContext context) {
     if (rounds.isEmpty) {

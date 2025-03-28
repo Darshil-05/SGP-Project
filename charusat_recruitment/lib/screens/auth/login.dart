@@ -19,154 +19,126 @@ class _LoginPageState extends State<LoginPage> {
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false; // Add this line to track loading state
-  
 
-Future<void> studentDetails(String studentId) async {
 
-  var request = http.Request('GET', Uri.parse('$serverurl/student/students/'));
 
-  http.StreamedResponse response = await request.send();
-
-  if (response.statusCode == 200) {
-    // Step 2: Parse the response
-    String responseBody = await response.stream.bytesToString();
-    List<dynamic> jsonData = json.decode(responseBody);
-  // debugPrint(jsonData.toString());
-    // Step 3: Search for student by id and initialize variables
-    for (var student in jsonData) {
-      debugPrint(student['id_no'].toString().toLowerCase());
-      if (student['id_no'].toString().toLowerCase() == studentId.toLowerCase()) {
-        debugPrint("here");
-        name = student['first_name'] + " " + student ['last_name'] ?? " ";
-        dob = student['birthdate'] ?? '';
-        cgpa = student['cgpa'].toString();
-        city = student['city'] ?? '';
-        domain = student['domains'] ?? '';
-        programmingskill = student['programming_skill'] ?? '';
-        otherskill = student['tech_skill'] ?? '';
-        institute = student['institute'] ?? '';
-        department = student['department'] ?? '';
-        passingyear = student['passing_year'].toString();
-        print("Data initialized for student ID: $studentId");
-        return; // Exit the function once data is found and initialized
-      }
+  String extractStudentID(String email) {
+    if (email.contains('@')) {
+      return email.split('@')[0];
+    } else {
+      return 'Invalid email';
     }
-    print("Student ID not found.");
-  } else {
-    print("Failed to fetch data: ${response.reasonPhrase}");
   }
-}
-String extractStudentID(String email) {
-  
-  if (email.contains('@')) {
-    return email.split('@')[0]; 
-  } else {
-    return 'Invalid email';
-  }
-}
+
   void _login() async {
     // Set loading state to true before starting the login process
     setState(() {
       _isLoading = true;
     });
-    
+
     AuthenticationService authService = AuthenticationService();
     email = _emailController.text;
-    password = _passwordController.text;
 
-    
-    int success = await authService.login(_emailController.text, _passwordController.text);
-    
+    int success = await authService.login(
+        _emailController.text, _passwordController.text);
+
     // Set loading state back to false after login process completes
     setState(() {
       _isLoading = false;
     });
-    
+
     print("sucess is $success");
     if (success == 1) {
-       String token = await NotificationService().initNotifications();
+      String? token = await NotificationService().initNotifications();
+      if (token != null) {
         AuthenticationService().addFcmToken(context, token);
-        print("Token have added $token");
+        print("FCM Token: $token");
+      } else {
+        print("Failed to retrieve FCM token");
+      }
+
+      print("Token have added $token");
       print("Login Successful");
       if (mounted) {
         Navigator.of(context).pushReplacementNamed('/home');
       }
-    } else if(success == 2) {
+    } else if (success == 2) {
       showInvalidCredentialsDialog(context);
     } else {
       print("Login Failed");
     }
   }
 
-void showInvalidCredentialsDialog(BuildContext context, {String message = "Invalid username or password. Please try again."}) {
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: Text("Authentication Error"),
-        content: Text(message),
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10.0),
-        ),
-        actions: <Widget>[
-          TextButton(
-            child: Text("OK"),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
+  void showInvalidCredentialsDialog(BuildContext context,
+      {String message = "Invalid username or password. Please try again."}) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Authentication Error"),
+          content: Text(message),
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10.0),
           ),
-        ],
-      );
-    },
-  );
-}
+          actions: <Widget>[
+            TextButton(
+              child: Text("OK"),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
 
+  String? _validateEmail(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Please enter your email';
+    }
 
- String? _validateEmail(String? value) {
-  if (value == null || value.isEmpty) {
-    return 'Please enter your email';
+    final emailRegExp = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
+    if (!emailRegExp.hasMatch(value)) {
+      return 'Please enter a valid email address';
+    }
+    // Check if email ends with either @charusat.edu.in or @charusat.ac.in
+    if (!value.endsWith('@charusat.edu.in') &&
+        !value.endsWith('@charusat.ac.in')) {
+      return 'Email must end with @charusat.edu.in or @charusat.ac.in';
+    }
+
+    // Basic email validation for format
+
+    return null;
   }
-  
-  final emailRegExp = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
-  if (!emailRegExp.hasMatch(value)) {
-    return 'Please enter a valid email address';
-  }
-  // Check if email ends with either @charusat.edu.in or @charusat.ac.in
-  if (!value.endsWith('@charusat.edu.in') && !value.endsWith('@charusat.ac.in')) {
-    return 'Email must end with @charusat.edu.in or @charusat.ac.in';
-  }
-  
-  // Basic email validation for format
-  
-  return null;
-}
 
   String? _validatePassword(String? value) {
-  if (value == null || value.isEmpty) {
-    return 'Please enter your password';
+    if (value == null || value.isEmpty) {
+      return 'Please enter your password';
+    }
+    if (value.length < 8) {
+      return 'Password must be at least 8 characters long';
+    }
+
+    // Check for at least one uppercase letter
+    if (!RegExp(r'[A-Z]').hasMatch(value)) {
+      return 'Password must contain at least one capital letter';
+    }
+
+    // Check for at least one lowercase letter
+    if (!RegExp(r'[a-z]').hasMatch(value)) {
+      return 'Password must contain at least one small letter';
+    }
+
+    // Check for at least one special character
+    if (!RegExp(r'[@#$_\-!]').hasMatch(value)) {
+      return 'Password must contain at least one special symbol (@, #, \$, _, -, !)';
+    }
+
+    return null;
   }
-  if (value.length < 8) {
-    return 'Password must be at least 8 characters long';
-  }
-  
-  // Check for at least one uppercase letter
-  if (!RegExp(r'[A-Z]').hasMatch(value)) {
-    return 'Password must contain at least one capital letter';
-  }
-  
-  // Check for at least one lowercase letter
-  if (!RegExp(r'[a-z]').hasMatch(value)) {
-    return 'Password must contain at least one small letter';
-  }
-  
-  // Check for at least one special character
-  if (!RegExp(r'[@#$_\-!]').hasMatch(value)) {
-    return 'Password must contain at least one special symbol (@, #, \$, _, -, !)';
-  }
-  
-  return null;
-}
 
   bool _obscureText = true;
 
@@ -279,7 +251,9 @@ void showInvalidCredentialsDialog(BuildContext context, {String message = "Inval
                     ),
                     SizedBox(height: height * 0.035),
                     GestureDetector(
-                      onTap: _isLoading ? null : _login, // Disable tap when loading
+                      onTap: _isLoading
+                          ? null
+                          : _login, // Disable tap when loading
                       child: Container(
                         height: height * 0.07,
                         width: width * 0.8,
@@ -296,17 +270,17 @@ void showInvalidCredentialsDialog(BuildContext context, {String message = "Inval
                                   blurRadius: 10)
                             ]),
                         child: Center(
-                          child: _isLoading 
-                            ? const CircularProgressIndicator(
-                                color: Colors.white,
-                              ) 
-                            : const Text(
-                                "Sign in",
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 28,
-                                    letterSpacing: 3),
-                              ),
+                          child: _isLoading
+                              ? const CircularProgressIndicator(
+                                  color: Colors.white,
+                                )
+                              : const Text(
+                                  "Sign in",
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 28,
+                                      letterSpacing: 3),
+                                ),
                         ),
                       ),
                     ),

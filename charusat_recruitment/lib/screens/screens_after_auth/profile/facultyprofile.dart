@@ -1,11 +1,11 @@
-import 'package:charusat_recruitment/screens/models/faculty_model.dart';
 import 'package:flutter/material.dart';
+import 'package:charusat_recruitment/screens/models/faculty_model.dart';
 import 'package:charusat_recruitment/service/common_service/auth_service.dart';
 
+import '../../../service/users/faculty_service.dart';
+
 class FacultyProfilePage extends StatefulWidget {
-  final FacultyProfile faculty;
-  
-  const FacultyProfilePage({super.key, required this.faculty});
+  const FacultyProfilePage({super.key});
 
   @override
   State<FacultyProfilePage> createState() => _FacultyProfilePageState();
@@ -15,30 +15,92 @@ class _FacultyProfilePageState extends State<FacultyProfilePage> {
   bool personalDetailsVisible = false;
   bool departmentDetailsVisible = false;
   bool editable = false;
+  bool _isLoading = true;
+  FacultyProfile? _facultyProfile;
 
-  // Controllers for editable fields - only for Faculty model properties
-  TextEditingController firstnameController = TextEditingController();
-  TextEditingController birthdateController = TextEditingController();
-  TextEditingController instituteController = TextEditingController();
-  TextEditingController departmentController = TextEditingController();
+  // Services
+  final FacultyService _facultyService = FacultyService();
+  final AuthenticationService _authService = AuthenticationService();
+
+  // Controllers for editable fields
+  late TextEditingController firstnameController;
+  late TextEditingController lastnameController;
+  late TextEditingController instituteController;
+  late TextEditingController departmentController;
 
   @override
   void initState() {
     super.initState();
-    // Initialize controllers with current values
-    firstnameController.text = widget.faculty.firstName;
-    instituteController.text = widget.faculty.institute;
-    departmentController.text = widget.faculty.department;
+    
+    // Initialize controllers
+    firstnameController = TextEditingController();
+    lastnameController = TextEditingController();
+    instituteController = TextEditingController();
+    departmentController = TextEditingController();
+
+    // Fetch faculty details
+    _fetchFacultyDetails();
   }
 
-  @override
-  void dispose() {
-    // Dispose controllers to avoid memory leaks
-    firstnameController.dispose();
-    birthdateController.dispose();
-    instituteController.dispose();
-    departmentController.dispose();
-    super.dispose();
+  // Fetch faculty details
+  Future<void> _fetchFacultyDetails() async {
+    try {
+      setState(() {
+        _isLoading = true;
+      });
+
+      FacultyProfile facultyProfile = await _facultyService.getFacultyDetails(context);
+      
+      setState(() {
+        _facultyProfile = facultyProfile;
+        
+        // Update controllers with fetched data
+        firstnameController.text = facultyProfile.firstName;
+        lastnameController.text = facultyProfile.lastName;
+        instituteController.text = facultyProfile.institute;
+        departmentController.text = facultyProfile.department;
+        
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      // Handle error - show snackbar or dialog
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to load faculty details: $e')),
+      );
+    }
+  }
+
+  // Save profile changes
+  Future<void> _saveProfile() async {
+    if (_facultyProfile == null) return;
+
+    // Create an updated faculty profile
+    FacultyProfile updatedProfile = FacultyProfile(
+      id: _facultyProfile!.id,
+      facultyId: _facultyProfile!.facultyId,
+      firstName: firstnameController.text,
+      lastName: lastnameController.text,
+      institute: instituteController.text,
+      department: departmentController.text,
+    );
+
+    try {
+      bool success = await _facultyService.updateFacultyProfile(context, updatedProfile);
+      
+      if (success) {
+        setState(() {
+          editable = false;
+          _facultyProfile = updatedProfile;
+        });
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to update profile: $e')),
+      );
+    }
   }
 
   Widget buildEditableDetailItem(
@@ -126,159 +188,166 @@ class _FacultyProfilePageState extends State<FacultyProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SingleChildScrollView(
-        padding: EdgeInsets.only(
-          top: MediaQuery.of(context).padding.top + 25,
-          bottom: MediaQuery.of(context).padding.bottom,
-        ),
-        physics: const BouncingScrollPhysics(),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Padding(
-              padding: EdgeInsets.only(left: 80.0),
-              child: Text(
-                "Faculty Profile",
-                style: TextStyle(fontSize: 25, fontFamily: "pop"),
+      body: _isLoading 
+        ? const Center(child: CircularProgressIndicator())
+        : _facultyProfile == null
+          ? const Center(child: Text('Failed to load faculty profile'))
+          : SingleChildScrollView(
+              padding: EdgeInsets.only(
+                top: MediaQuery.of(context).padding.top + 25,
+                bottom: MediaQuery.of(context).padding.bottom,
               ),
-            ),
-            const SizedBox(height: 20),
-            Container(
-              margin: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(10),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.shade200,
-                    blurRadius: 10,
-                    spreadRadius: 2,
-                  )
-                ],
-              ),
-              width: MediaQuery.sizeOf(context).width,
+              physics: const BouncingScrollPhysics(),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(
-                    height: 8,
-                  ),
-                  CircleAvatar(
-                    backgroundColor: const Color.fromARGB(255, 49, 62, 99),
-                    radius: 50,
+                  const Padding(
+                    padding: EdgeInsets.only(left: 80.0),
                     child: Text(
-                      firstnameController.text.isNotEmpty
-                          ? firstnameController.text[0]
-                          : '',
-                      style: const TextStyle(color: Colors.white, fontSize: 18),
+                      "Faculty Profile",
+                      style: TextStyle(fontSize: 25, fontFamily: "pop"),
                     ),
                   ),
-                  const SizedBox(
-                    height: 8,
-                  ),
-                  Text(
-                    firstnameController.text,
-                    style: const TextStyle(fontSize: 24),
-                  ),
-                  const SizedBox(
-                    height: 8,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 10),
-            // Personal Details Section
-            buildDetailCard(
-              'Personal Details',
-              personalDetailsVisible,
-              () {
-                setState(() {
-                  personalDetailsVisible = !personalDetailsVisible;
-                });
-              },
-              content: Column(
-                children: [
-                  buildEditableDetailItem(
-                      Icons.person, 'First Name', firstnameController),
-                ],
-              ),
-            ),
-            // Department Information Section
-            buildDetailCard(
-              'Department Information',
-              departmentDetailsVisible,
-              () {
-                setState(() {
-                  departmentDetailsVisible = !departmentDetailsVisible;
-                });
-              },
-              content: Column(
-                children: [
-                  buildEditableDetailItem(
-                      Icons.business, 'Institute', instituteController),
-                  buildEditableDetailItem(
-                      Icons.school, 'Department', departmentController),
-                ],
-              ),
-            ),
-            InkWell(
-              onTap: () {
-                // Save the updated values
-                setState(() {
-                  editable = !editable;
-                });
-                print(editable ? "Done editing" : "Started editing mode");
-              },
-              child: Container(
-                width: MediaQuery.sizeOf(context).width - 17,
-                padding: const EdgeInsets.all(8),
-                margin: const EdgeInsets.only(left: 8),
-                decoration: const BoxDecoration(
-                    color: Color(0xff0f1d2c),
-                    borderRadius: BorderRadius.all(Radius.circular(10))),
-                child: Center(
-                    child: Text(
-                  editable ? 'Save' : 'Edit Profile',
-                  style: const TextStyle(
+                  const SizedBox(height: 20),
+                  Container(
+                    margin: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
                       color: Colors.white,
-                      fontSize: 23,
-                      fontWeight: FontWeight.bold),
-                )),
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.shade200,
+                          blurRadius: 10,
+                          spreadRadius: 2,
+                        )
+                      ],
+                    ),
+                    width: MediaQuery.sizeOf(context).width,
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 8),
+                        CircleAvatar(
+                          backgroundColor: const Color.fromARGB(255, 49, 62, 99),
+                          radius: 50,
+                          child: Text(
+                            firstnameController.text.isNotEmpty
+                                ? firstnameController.text[0]
+                                : '',
+                            style: const TextStyle(color: Colors.white, fontSize: 18),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          '${firstnameController.text} ${lastnameController.text}',
+                          style: const TextStyle(fontSize: 24),
+                        ),
+                        const SizedBox(height: 8),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  // Personal Details Section
+                  buildDetailCard(
+                    'Personal Details',
+                    personalDetailsVisible,
+                    () {
+                      setState(() {
+                        personalDetailsVisible = !personalDetailsVisible;
+                      });
+                    },
+                    content: Column(
+                      children: [
+                        buildEditableDetailItem(
+                            Icons.person, 'First Name', firstnameController),
+                        buildEditableDetailItem(
+                            Icons.person_outline, 'Last Name', lastnameController),
+                      ],
+                    ),
+                  ),
+                  // Department Information Section
+                  buildDetailCard(
+                    'Department Information',
+                    departmentDetailsVisible,
+                    () {
+                      setState(() {
+                        departmentDetailsVisible = !departmentDetailsVisible;
+                      });
+                    },
+                    content: Column(
+                      children: [
+                        buildEditableDetailItem(
+                            Icons.business, 'Institute', instituteController),
+                        buildEditableDetailItem(
+                            Icons.school, 'Department', departmentController),
+                      ],
+                    ),
+                  ),
+                  // InkWell(
+                  //   onTap: () {
+                  //     setState(() {
+                  //       if (editable) {
+                  //         _saveProfile();
+                  //       } else {
+                  //         editable = true;
+                  //       }
+                  //     });
+                  //   },
+                  //   child: Container(
+                  //     width: MediaQuery.sizeOf(context).width - 17,
+                  //     padding: const EdgeInsets.all(8),
+                  //     margin: const EdgeInsets.only(left: 8),
+                  //     decoration: const BoxDecoration(
+                  //         color: Color(0xff0f1d2c),
+                  //         borderRadius: BorderRadius.all(Radius.circular(10))),
+                  //     child: Center(
+                  //         child: Text(
+                  //       editable ? 'Save' : 'Edit Profile',
+                  //       style: const TextStyle(
+                  //           color: Colors.white,
+                  //           fontSize: 23,
+                  //           fontWeight: FontWeight.bold),
+                  //     )),
+                  //   ),
+                  // ),
+                  const SizedBox(height: 20),
+                  InkWell(
+                    onTap: () async {
+                      await _authService.logout();
+                      if (mounted) {
+                        Navigator.of(context).pushReplacementNamed('/login');
+                      }
+                    },
+                    child: Container(
+                      width: MediaQuery.sizeOf(context).width - 17,
+                      padding: const EdgeInsets.all(8),
+                      margin: const EdgeInsets.only(left: 8),
+                      decoration: const BoxDecoration(
+                          color: Color(0xff0f1d2c),
+                          borderRadius: BorderRadius.all(Radius.circular(10))),
+                      child: const Center(
+                          child: Text(
+                        "Log Out",
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 23,
+                            fontWeight: FontWeight.bold),
+                      )),
+                    ),
+                  ),
+                  const SizedBox(height: 40)
+                ],
               ),
             ),
-            const SizedBox(
-              height: 20,
-            ),
-            InkWell(
-              onTap: () async {
-                AuthenticationService authService = AuthenticationService();
-                await authService.logout();
-                if (mounted) {
-                  Navigator.of(context).pushReplacementNamed('/login');
-                }
-              },
-              child: Container(
-                width: MediaQuery.sizeOf(context).width - 17,
-                padding: const EdgeInsets.all(8),
-                margin: const EdgeInsets.only(left: 8),
-                decoration: const BoxDecoration(
-                    color: Color(0xff0f1d2c),
-                    borderRadius: BorderRadius.all(Radius.circular(10))),
-                child: const Center(
-                    child: Text(
-                  "Log Out",
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 23,
-                      fontWeight: FontWeight.bold),
-                )),
-              ),
-            ),
-            const SizedBox(
-              height: 40,
-            )
-          ],
-        ),
-      ),
     );
+  }
+
+  @override
+  void dispose() {
+    // Dispose controllers
+    firstnameController.dispose();
+    lastnameController.dispose();
+    instituteController.dispose();
+    departmentController.dispose();
+    super.dispose();
   }
 }

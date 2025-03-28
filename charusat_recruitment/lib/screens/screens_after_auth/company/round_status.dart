@@ -1,3 +1,4 @@
+import 'package:charusat_recruitment/screens/screens_after_auth/company/student_list.dart';
 import 'package:flutter/material.dart';
 import 'package:charusat_recruitment/screens/models/company_round_model.dart';
 import 'package:charusat_recruitment/service/company_service/company_service.dart';
@@ -5,10 +6,10 @@ import 'package:charusat_recruitment/service/company_service/company_service.dar
 class RoundStatus extends StatefulWidget {
   final int companyId;
   final List<CompanyRound> rounds;
-  
+
   const RoundStatus({
-    super.key, 
-    required this.companyId, 
+    super.key,
+    required this.companyId,
     required this.rounds,
   });
 
@@ -24,6 +25,8 @@ class _RoundStatusState extends State<RoundStatus> {
 
   @override
   void initState() {
+    print("inside a Round update management");
+
     super.initState();
     _companyId = widget.companyId;
     _rounds = List.from(widget.rounds);
@@ -35,7 +38,7 @@ class _RoundStatusState extends State<RoundStatus> {
     setState(() {
       String currentStatus = _rounds[index].status.toLowerCase();
       String newStatus;
-      
+
       if (currentStatus == "pending") {
         newStatus = "running";
       } else if (currentStatus == "running") {
@@ -43,12 +46,9 @@ class _RoundStatusState extends State<RoundStatus> {
       } else {
         newStatus = "pending";
       }
-      
+
       _rounds[index] = CompanyRound(
-        roundName: _rounds[index].roundName,
-        status: newStatus,
-        index: index
-      );
+          roundName: _rounds[index].roundName, status: newStatus, index: index);
       print("status updated ${_rounds[index].toJson()}");
     });
   }
@@ -62,14 +62,12 @@ class _RoundStatusState extends State<RoundStatus> {
     // Update indices for all rounds before submitting
     for (int i = 0; i < _rounds.length; i++) {
       _rounds[i] = CompanyRound(
-        roundName: _rounds[i].roundName,
-        status: _rounds[i].status,
-        index: i
-      );
+          roundName: _rounds[i].roundName, status: _rounds[i].status, index: i);
     }
 
     // Call the service to update rounds
-    bool success = await _companyService.updateRounds(context, _companyId, _rounds);
+    bool success =
+        await _companyService.updateRounds(context, _companyId, _rounds);
 
     setState(() {
       _isLoading = false;
@@ -82,11 +80,17 @@ class _RoundStatusState extends State<RoundStatus> {
       );
 
       // Navigate back to the previous screen
-      Navigator.of(context).pop();
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+            builder: (context) => StudentListManager(
+                  companyId: _companyId,
+                )),
+      );
     } else {
       // Show error message
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to update rounds. Please try again.')),
+        const SnackBar(
+            content: Text('Failed to update rounds. Please try again.')),
       );
     }
   }
@@ -174,31 +178,35 @@ class _RoundStatusState extends State<RoundStatus> {
                     itemCount: _rounds.length,
                     onReorder: (oldIndex, newIndex) {
                       // Prevent reordering first and last items
-                      if (oldIndex == 0 || oldIndex == _rounds.length - 1 ||
-                          newIndex == 0 || (newIndex == _rounds.length && oldIndex != _rounds.length - 1)) {
+                      if (oldIndex == 0 ||
+                          oldIndex == _rounds.length - 1 ||
+                          newIndex == 0 ||
+                          (newIndex == _rounds.length &&
+                              oldIndex != _rounds.length - 1)) {
                         return;
                       }
-                      
+
                       setState(() {
                         if (newIndex > oldIndex) newIndex -= 1;
                         final item = _rounds.removeAt(oldIndex);
                         _rounds.insert(newIndex, item);
-                        
+
                         // Update indices for all rounds after reordering
                         for (int i = 0; i < _rounds.length; i++) {
                           _rounds[i] = CompanyRound(
-                            roundName: _rounds[i].roundName,
-                            status: _rounds[i].status,
-                            index: i
-                          );
+                              roundName: _rounds[i].roundName,
+                              status: _rounds[i].status,
+                              index: i);
                         }
                       });
                     },
                     itemBuilder: (context, index) {
-                      final bool isStaticItem = index == 0 || index == _rounds.length - 1;
-                      
+                      final bool isStaticItem =
+                          index == 0 || index == _rounds.length - 1;
+
                       return Card(
-                        key: ValueKey(_rounds[index].roundName + index.toString()),
+                        key: ValueKey(
+                            _rounds[index].roundName + index.toString()),
                         elevation: 3,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(15),
@@ -213,14 +221,18 @@ class _RoundStatusState extends State<RoundStatus> {
                               fontSize: 18,
                               fontWeight: FontWeight.w500,
                               fontFamily: "pop",
-                              color: isStaticItem ? const Color(0xff0f1d2c) : Colors.white,
+                              color: isStaticItem
+                                  ? const Color(0xff0f1d2c)
+                                  : Colors.white,
                             ),
                           ),
                           subtitle: Text(
                             _rounds[index].status.toUpperCase(),
                             style: TextStyle(
                               fontSize: 12,
-                              color: isStaticItem ? const Color(0xff0f1d2c) : Colors.white70,
+                              color: isStaticItem
+                                  ? const Color(0xff0f1d2c)
+                                  : Colors.white70,
                             ),
                           ),
                           trailing: Row(
@@ -248,7 +260,8 @@ class _RoundStatusState extends State<RoundStatus> {
                     onPressed: _updateRounds,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xff0f1d2c),
-                      padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 30, vertical: 15),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(15),
                       ),
@@ -269,7 +282,7 @@ class _RoundStatusState extends State<RoundStatus> {
             ),
     );
   }
-  
+
   // Helper method to create status indicator
   Widget _statusIndicator(String label, Color color) {
     return Row(

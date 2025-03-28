@@ -1,4 +1,5 @@
 import 'package:charusat_recruitment/const.dart';
+import 'package:charusat_recruitment/screens/auth/otp.dart';
 import 'package:charusat_recruitment/screens/auth/registerheader.dart';
 import 'package:charusat_recruitment/service/common_service/auth_service.dart';
 import 'package:flutter/material.dart';
@@ -30,50 +31,51 @@ class _RegisterPageState extends State<RegisterPage> {
     super.dispose();
   }
 
- String? _validateEmail(String? value) {
-  if (value == null || value.isEmpty) {
-    return 'Please enter your email';
+  String? _validateEmail(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Please enter your email';
+    }
+
+    // Check if email ends with either @charusat.edu.in or @charusat.ac.in
+    if (!value.endsWith('@charusat.edu.in') &&
+        !value.endsWith('@charusat.ac.in')) {
+      return 'Email must end with @charusat.edu.in or @charusat.ac.in';
+    }
+
+    // Basic email validation for format
+    final emailRegExp = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
+    if (!emailRegExp.hasMatch(value)) {
+      return 'Please enter a valid email address';
+    }
+
+    return null;
   }
-  
-  // Check if email ends with either @charusat.edu.in or @charusat.ac.in
-  if (!value.endsWith('@charusat.edu.in') && !value.endsWith('@charusat.ac.in')) {
-    return 'Email must end with @charusat.edu.in or @charusat.ac.in';
-  }
-  
-  // Basic email validation for format
-  final emailRegExp = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
-  if (!emailRegExp.hasMatch(value)) {
-    return 'Please enter a valid email address';
-  }
-  
-  return null;
-}
 
   String? _validatePassword(String? value) {
-  if (value == null || value.isEmpty) {
-    return 'Please enter your password';
+    if (value == null || value.isEmpty) {
+      return 'Please enter your password';
+    }
+    if (value.length < 6) {
+      return 'Password must be at least 6 characters long';
+    }
+
+    // Check for at least one uppercase letter
+    if (!RegExp(r'[A-Z]').hasMatch(value)) {
+      return 'Password must contain at least one capital letter';
+    }
+
+    // Check for at least one lowercase letter
+    if (!RegExp(r'[a-z]').hasMatch(value)) {
+      return 'Password must contain at least one small letter';
+    }
+
+    // Check for at least one special character
+    if (!RegExp(r'[@#$_\-!]').hasMatch(value)) {
+      return 'Password must contain at least one special symbol (@, #, \$, _, -, !)';
+    }
+
+    return null;
   }
-  if (value.length < 6) {
-    return 'Password must be at least 6 characters long';
-  }
-  
-  // Check for at least one uppercase letter
-  if (!RegExp(r'[A-Z]').hasMatch(value)) {
-    return 'Password must contain at least one capital letter';
-  }
-  
-  // Check for at least one lowercase letter
-  if (!RegExp(r'[a-z]').hasMatch(value)) {
-    return 'Password must contain at least one small letter';
-  }
-  
-  // Check for at least one special character
-  if (!RegExp(r'[@#$_\-!]').hasMatch(value)) {
-    return 'Password must contain at least one special symbol (@, #, \$, _, -, !)';
-  }
-  
-  return null;
-}
 
   String? _validateRepeatPassword(String? value) {
     if (value == null || value.isEmpty) {
@@ -89,32 +91,37 @@ class _RegisterPageState extends State<RegisterPage> {
     if (!_formKey.currentState!.validate()) {
       return;
     }
-    
+
     // Set loading state to true before starting the registration process
     setState(() {
       _isLoading = true;
     });
-    
+
     AuthenticationService authService = AuthenticationService();
     email = _emailController.text;
-    password = _passwordController.text;
-    print("from register page email and password are ${_emailController.text} ${_passwordController.text}");
-    int success = await authService.register(_nameController.text, _emailController.text, _passwordController.text);
-    
+    int success = await authService.register(
+        _nameController.text, _emailController.text, _passwordController.text);
+
     // Set loading state back to false after registration process completes
     setState(() {
       _isLoading = false;
     });
-    
+
     print("success is $success");
     if (success == 1) {
       debugPrint("Registration Successful. Redirecting to OTP verification.");
       if (mounted) {
-        Navigator.of(context).pushNamed('/otp');
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+              builder: (context) => OtpPage(
+                  name: _nameController.text,
+                  password: _passwordController.text)),
+        );
       }
     } else if (success == 2) {
       // Show error for user already exists or invalid email
-      _showErrorDialog(context, "User already exists or invalid email. Please try again.");
+      _showErrorDialog(
+          context, "User already exists or invalid email. Please try again.");
     } else {
       debugPrint("Registration Failed");
       _showErrorDialog(context, "Registration failed. Please try again later.");
@@ -143,6 +150,14 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   @override
+  void initState() {
+    // TODO: implement initState
+    print("Inside a register");
+
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     var screenHeight = MediaQuery.sizeOf(context).height;
     var screenWidth = MediaQuery.sizeOf(context).width;
@@ -168,7 +183,8 @@ class _RegisterPageState extends State<RegisterPage> {
                     TextFormField(
                       controller: _nameController,
                       decoration: const InputDecoration(
-                        prefixIcon: Icon(Icons.person, color: Color(0xff0f1d2c)),
+                        prefixIcon:
+                            Icon(Icons.person, color: Color(0xff0f1d2c)),
                         labelText: 'Name',
                         labelStyle: TextStyle(color: Color(0xff0f1d2c)),
                         enabledBorder: OutlineInputBorder(
@@ -209,10 +225,13 @@ class _RegisterPageState extends State<RegisterPage> {
                     TextFormField(
                       controller: _passwordController,
                       decoration: InputDecoration(
-                        prefixIcon: const Icon(Icons.lock, color: Color(0xff0f1d2c)),
+                        prefixIcon:
+                            const Icon(Icons.lock, color: Color(0xff0f1d2c)),
                         suffixIcon: IconButton(
                           icon: Icon(
-                            _obscureTextPassword ? Icons.visibility_off : Icons.visibility,
+                            _obscureTextPassword
+                                ? Icons.visibility_off
+                                : Icons.visibility,
                             color: const Color(0xff0f1d2c),
                           ),
                           onPressed: () {
@@ -238,15 +257,19 @@ class _RegisterPageState extends State<RegisterPage> {
                     TextFormField(
                       controller: _repeatPasswordController,
                       decoration: InputDecoration(
-                        prefixIcon: const Icon(Icons.lock, color: Color(0xff0f1d2c)),
+                        prefixIcon:
+                            const Icon(Icons.lock, color: Color(0xff0f1d2c)),
                         suffixIcon: IconButton(
                           icon: Icon(
-                            _obscureTextRepeatPassword ? Icons.visibility_off : Icons.visibility,
+                            _obscureTextRepeatPassword
+                                ? Icons.visibility_off
+                                : Icons.visibility,
                             color: const Color(0xff0f1d2c),
                           ),
                           onPressed: () {
                             setState(() {
-                              _obscureTextRepeatPassword = !_obscureTextRepeatPassword;
+                              _obscureTextRepeatPassword =
+                                  !_obscureTextRepeatPassword;
                             });
                           },
                         ),
@@ -265,17 +288,20 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                     SizedBox(height: screenHeight * 0.035),
                     GestureDetector(
-                      onTap: _isLoading ? null : () {
-                        if (_formKey.currentState!.validate()) {
-                          registerUser();
-                        }
-                      },
+                      onTap: _isLoading
+                          ? null
+                          : () {
+                              if (_formKey.currentState!.validate()) {
+                                registerUser();
+                              }
+                            },
                       child: Container(
                         height: screenHeight * 0.07,
                         width: screenWidth * 0.8,
                         decoration: BoxDecoration(
                           color: const Color(0xff0f1d2c),
-                          borderRadius: const BorderRadius.all(Radius.circular(10)),
+                          borderRadius:
+                              const BorderRadius.all(Radius.circular(10)),
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black.withOpacity(0.5),

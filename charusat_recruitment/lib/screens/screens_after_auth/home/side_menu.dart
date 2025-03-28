@@ -4,7 +4,7 @@ import 'package:charusat_recruitment/Providers/menu_provider.dart'; // Import th
 
 class SideMenu extends StatelessWidget {
   const SideMenu({super.key});
-
+  
   @override
   Widget build(BuildContext context) {
     // Access the MenuProvider using the Consumer widget

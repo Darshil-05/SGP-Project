@@ -91,6 +91,13 @@ class _CompanyManagerState extends State<CompanyManager> {
       Navigator.of(context).pushNamed('/round', arguments: company);
     }
   }
+  @override
+  void initState() {
+    // TODO: implement initState
+    print("inside a manager");
+
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {

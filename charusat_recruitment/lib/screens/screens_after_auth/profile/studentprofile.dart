@@ -29,9 +29,11 @@ class _ProfilePageState extends State<ProfilePage> {
   
   @override
   void initState() {
+    print("inside a student profile");
+
     super.initState();
     // Get studentId from const.dart
-    studentId = studentid;
+    studentId = extractIdFromEmail(email);
     // Load student profile
     _loadStudentProfile();
   }

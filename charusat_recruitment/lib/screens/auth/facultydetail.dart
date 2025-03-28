@@ -1,6 +1,5 @@
 import 'package:charusat_recruitment/service/users/faculty_service.dart';
 import 'package:charusat_recruitment/screens/models/institute_model.dart';
-import 'package:charusat_recruitment/screens/models/faculty_model.dart';
 import 'package:flutter/material.dart';
 
 class FacultyDetailsPage extends StatefulWidget {
@@ -17,7 +16,6 @@ class _FacultyDetailsPageState extends State<FacultyDetailsPage> {
   final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _lastNameController = TextEditingController();
   final TextEditingController _facultyIdController = TextEditingController();
-  final TextEditingController _dobController = TextEditingController();
   
   String? _selectedInstitute;
   String? _selectedDepartment;
@@ -33,23 +31,6 @@ class _FacultyDetailsPageState extends State<FacultyDetailsPage> {
           .departments;
       _selectedDepartment = null; // Reset the department when institute changes
     });
-  }
-
-  // Function to select date
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(), // Current date
-      firstDate: DateTime(1940, 1), // Earliest date
-      lastDate: DateTime.now(), // Latest date
-    );
-    if (picked != null) {
-      setState(() {
-        _dobController.text =
-            "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
-        debugPrint(_dobController.text);
-      });
-    }
   }
 
   void _onDepartmentChanged(String? value) {
@@ -72,7 +53,6 @@ class _FacultyDetailsPageState extends State<FacultyDetailsPage> {
           "faculty_id": _facultyIdController.text,
           "first_name": _firstNameController.text,
           "last_name": _lastNameController.text,
-          "birthdate": _dobController.text,
           "institute": _selectedInstitute!,
           "department": _selectedDepartment!,
           "role": "faculty"
@@ -92,12 +72,16 @@ class _FacultyDetailsPageState extends State<FacultyDetailsPage> {
       }
     }
   }
-
+  @override
+  void initState() {
+    // TODO: implement initState
+    print("Inside a Faculty Details");
+    super.initState();
+  }
   void _clearForm() {
     _firstNameController.clear();
     _lastNameController.clear();
     _facultyIdController.clear();
-    _dobController.clear();
     setState(() {
       _selectedInstitute = null;
       _selectedDepartment = null;
@@ -194,56 +178,25 @@ class _FacultyDetailsPageState extends State<FacultyDetailsPage> {
                   ],
                 ),
                 const SizedBox(height: 16.0),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextFormField(
-                        controller: _facultyIdController,
-                        cursorColor: const Color(0xff0f1d2c),
-                        decoration: const InputDecoration(
-                          labelText: 'Faculty ID',
-                          labelStyle: TextStyle(color: Color(0xff0f1d2c)),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.grey),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Color(0xff0f1d2c)),
-                          ),
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter the faculty ID';
-                          }
-                          return null;
-                        },
-                      ),
+                TextFormField(
+                  controller: _facultyIdController,
+                  cursorColor: const Color(0xff0f1d2c),
+                  decoration: const InputDecoration(
+                    labelText: 'Faculty ID',
+                    labelStyle: TextStyle(color: Color(0xff0f1d2c)),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.grey),
                     ),
-                    const SizedBox(width: 16.0),
-                    Expanded(
-                      child: TextFormField(
-                        controller: _dobController,
-                        decoration: const InputDecoration(
-                          labelText: 'Date of Birth',
-                          labelStyle: TextStyle(color: Color(0xff0f1d2c)),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.grey),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Color(0xff0f1d2c)),
-                          ),
-                          suffixIcon: Icon(Icons.calendar_today),
-                        ),
-                        readOnly: true,
-                        onTap: () => _selectDate(context),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please select date of birth';
-                          }
-                          return null;
-                        },
-                      ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xff0f1d2c)),
                     ),
-                  ],
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter the faculty ID';
+                    }
+                    return null;
+                  },
                 ),
                 const SizedBox(height: 16.0),
                 DropdownButtonFormField<String>(

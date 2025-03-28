@@ -1,5 +1,3 @@
-// File: lib/screens/models/company_round.dart
-
 class CompanyRound {
   final String roundName;
   final String status;
@@ -11,13 +9,24 @@ class CompanyRound {
     required this.index,
   });
 
-  // Factory constructor to create from JSON
+  // Factory constructor to create from JSON with automatic sorting
   factory CompanyRound.fromJson(Map<String, dynamic> json) {
     return CompanyRound(
       roundName: json['round_name'] ?? '',
       status: json['status'] ?? 'pending',
       index: json['index'] is int ? json['index'] : 0,
     );
+  }
+
+  // Static method to sort a list of CompanyRound by index
+  static List<CompanyRound> sortRounds(List<CompanyRound> rounds) {
+    // Create a copy of the list to avoid modifying the original
+    var sortedRounds = List<CompanyRound>.from(rounds);
+    
+    // Sort the rounds based on their index
+    sortedRounds.sort((a, b) => a.index.compareTo(b.index));
+    
+    return sortedRounds;
   }
 
   // Convert to JSON for API requests

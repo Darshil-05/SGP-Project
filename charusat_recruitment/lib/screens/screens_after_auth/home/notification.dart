@@ -134,6 +134,13 @@ class _NotificationPageState extends State<NotificationPage> {
       ),
     );
   }
+  @override
+  void initState() {
+    print("inside a notifications");
+
+    // TODO: implement initState
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {

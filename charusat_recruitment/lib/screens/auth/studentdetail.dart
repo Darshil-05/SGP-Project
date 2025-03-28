@@ -2,6 +2,8 @@ import 'package:charusat_recruitment/service/users/student_service.dart';
 import 'package:charusat_recruitment/screens/models/institute_model.dart';
 import 'package:flutter/material.dart';
 
+import '../../const.dart';
+
 
 class StudentDetailsPage extends StatefulWidget {
   const StudentDetailsPage({super.key});
@@ -70,6 +72,7 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
     
     // Collect student details from text controllers
     final Map<String, String> studentData = {
+      "student_email_id" : email,
       "id_no": _studentIdController.text,
       "last_name": _lastnameController.text,
       "first_name": _firstnameController.text,
@@ -109,6 +112,13 @@ class _StudentDetailsPageState extends State<StudentDetailsPage> {
         ],
       ),
     );
+  }
+  @override
+  void initState() {
+    // TODO: implement initState
+    print("Inside a Student detail");
+    
+    super.initState();
   }
 
   @override

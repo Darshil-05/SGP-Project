@@ -1,6 +1,8 @@
 import 'dart:math' as math;
+import 'package:charusat_recruitment/const.dart';
 import 'package:charusat_recruitment/screens/screens_after_auth/company/company.dart';
 import 'package:charusat_recruitment/screens/screens_after_auth/home/notification.dart';
+import 'package:charusat_recruitment/screens/screens_after_auth/profile/facultyprofile.dart';
 import 'package:charusat_recruitment/screens/screens_after_auth/profile/studentprofile.dart';
 import 'package:charusat_recruitment/screens/screens_after_auth/home/side_menu.dart';
 import 'package:flutter/cupertino.dart';
@@ -25,14 +27,12 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   late AnimationController? _animationController;
   late Animation<double> _sidebarAnim;
   bool _prevMenuState = false;
-
   Widget _tabBody = Container(color: Colors.amber);
-
   final List<Widget> _screen = [
     const HomeApp(),
     const CompanyPage(),
-    NotificationPage(),
-    ProfilePage()
+    const NotificationPage(),
+     role!="faculty" ? ProfilePage() : FacultyProfilePage()
   ];
 
   final springDesc =
@@ -59,6 +59,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
 
   @override
   void initState() {
+    print("inside a company");
     super.initState();
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.dark);
     _animationController = AnimationController(
