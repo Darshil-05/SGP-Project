@@ -375,6 +375,7 @@ class SortlistedStudentsByCompanyList(generics.ListAPIView):
 
         return sortlisted.objects.filter(company=company)
 
+
 class DeleteSortlistedStudent(APIView):
     
     def post(self, request, company_name):
@@ -386,6 +387,18 @@ class DeleteSortlistedStudent(APIView):
                 return Response({
                     "error": "No student IDs provided in the request."
                 }, status=status.HTTP_400_BAD_REQUEST)
+            
+            students_to_delete = sortlisted.objects.filter(
+                company_name=company_name,
+                student_id_no__in=student_ids
+            ).select_related('student').values('student_id_no', 'student__first_name')
+            
+            deleted_students = [
+                {
+                    "id_no": student['student_id_no'],
+                    "name": student['student__first_name']
+                } for student in students_to_delete
+            ]
 
             # Delete all students from the sortlisted table
             deleted_count = sortlisted.objects.filter(
@@ -394,8 +407,10 @@ class DeleteSortlistedStudent(APIView):
             ).delete()[0]
 
             return Response({
-                "message": f"Successfully deleted {deleted_count} students from sortlisted.",
-                "deleted_count": deleted_count
+                "status": "success",
+                "message": f"Successfully deleted students from {company_name}",
+                "deleted_students": deleted_students,
+                "total_count": deleted_count
             }, status=status.HTTP_200_OK)
 
         except Exception as e:
